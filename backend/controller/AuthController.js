@@ -1,6 +1,6 @@
-import UserModel from "../models/userModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import UserModel from "../models/UserModel.js";
 
 export const register = async (req, res) => {
     try {
@@ -39,8 +39,8 @@ export const register = async (req, res) => {
         });
 
         const token_data =  {
-            id: user._id,
-            email : user.email
+            id: newUser._id,
+            email : newUser.email
         }
         const token = await jwt.sign(token_data, process.env.JWT_SECRET_KEY, { expiresIn : '1d'})
 
@@ -58,7 +58,7 @@ export const register = async (req, res) => {
             .status(201)
             .json({
                 message: "User registered successfully",
-                succsess: true,
+                success: true,
                 user: userWithouPassword
             });
 
@@ -89,6 +89,8 @@ export const login = async (req, res) => {
                 success: false 
             });
         }
+        
+        const verifyPassword = await bcrypt.compare(password, user.password);
 
          if (!verifyPassword) {
             return res.status(400).json({ 
@@ -119,7 +121,7 @@ export const login = async (req, res) => {
             .status(200)
             .json({
                 message: "Login successfully",
-                succsess: true,
+                success: true,
                 user: userWithouPassword
             });
 

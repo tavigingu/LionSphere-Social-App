@@ -1,20 +1,34 @@
+// src/pages/Home.js
 import React from "react";
+import { useLocation } from "react-router-dom";
+import Background from "../components/Background";
+import ProfileSide from "../components/ProfileSide"; // Importă componenta
 
-const HomePage: React.FC = () => {
+const Home: React.FC = () => {
+  const location = useLocation();
+  const user = location.state?.user; // Accesează datele utilizatorului
+
+  if (!user) {
+    return (
+      <div className="relative min-h-screen text-white">
+        <Background />
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
+          <h1 className="text-2xl">
+            Nu sunt date disponibile despre utilizator.
+          </h1>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600" />
-
-      {/* Content */}
-      <div className="relative z-10 bg-white rounded-2xl shadow-xl p-8 text-center mx-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Welcome to Homepage! 🎉
-        </h1>
-        <p className="text-gray-600">You have successfully logged in!</p>
+    <div className="relative min-h-screen text-white">
+      <Background />
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
+        <ProfileSide /> {/* Adaugă componenta ProfileSide */}
       </div>
     </div>
   );
 };
 
-export default HomePage;
+export default Home;

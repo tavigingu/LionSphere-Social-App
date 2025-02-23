@@ -18,8 +18,8 @@ export interface IUser {
     lastname: string;
     email: string;
     role: string;
-    followers: string[];
-    following: string[];
+    followers: [];
+    following: [];
     createdAt: string;
     updatedAt: string;
   }

@@ -41,18 +41,16 @@ const UserSchema = mongoose.Schema(
             type: String,
             max: 200
         },
+        online: {
+            type: Boolean,
+            default: false 
+        },
         profilePicture: String,
         coverPicture: String,
         city: String,
         worksAt: String,
-        followers: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
-        }],
-        following: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
-        }]
+        followers: [String],
+        following: [String]
     },
     {
         timestamps: true // Adaugă automat createdAt și updatedAt

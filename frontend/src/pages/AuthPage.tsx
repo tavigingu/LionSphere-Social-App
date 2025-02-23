@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import LoginForm from "../components/loginForm.tsx";
-import RegisterForm from "../components/registerForm.tsx";
+import LoginForm from "../components/loginForm";
+import RegisterForm from "../components/registerForm";
 import {
   LoginCredentials,
   RegisterCredentials,
   AuthResponse,
-} from "../types/authTypes.ts";
+} from "../types/authTypes";
 
 const AuthPage: React.FC = () => {
   const loginUrl = "http://localhost:5001/auth/login";
@@ -56,7 +56,7 @@ const AuthPage: React.FC = () => {
 
       if (response.data.success) {
         console.log(response.data);
-        navigate("/home");
+        navigate("/home", { state: { user: response.data.user } });
       }
     } catch (error) {
       console.log("Error:", error);

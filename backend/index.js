@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 
 //routes
 import AuthRoute from "./routes/AuthRoute.js";
+import UserRoute from "./routes/UserRoute.js";
+import PostRoute from "./routes/PostRoute.js";
 
 
 dotenv.config();
@@ -15,7 +17,7 @@ const app = express();
 
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:5174", // URL-ul exact al frontend-ului tău
+    origin: "http://localhost:5173", // URL-ul exact al frontend-ului tău
     credentials: true,               // Important pentru cookie-uri
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -31,6 +33,8 @@ connectDB().then(()=>{
 })
 
 app.use('/auth', AuthRoute);
+app.use('/user', UserRoute);
+app.use('/post', PostRoute);
 
 
 

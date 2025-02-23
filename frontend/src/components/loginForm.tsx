@@ -1,5 +1,5 @@
 import React from "react";
-import { LoginCredentials } from "../types/authTypes.ts";
+import { LoginCredentials } from "../types/authTypes";
 
 const LoginForm = ({
   formData,

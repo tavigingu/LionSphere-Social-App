@@ -1,5 +1,5 @@
 import React from "react";
-import { RegisterCredentials } from "../types/authTypes.ts";
+import { RegisterCredentials } from "../types/authTypes";
 
 const RegisterForm = ({
   formData,

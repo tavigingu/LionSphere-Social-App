@@ -22,6 +22,8 @@ export interface IUser {
     following: [];
     createdAt: string;
     updatedAt: string;
+    profilePicture?: string;
+    coverPicture?: string;
   }
   
   export interface AuthResponse {

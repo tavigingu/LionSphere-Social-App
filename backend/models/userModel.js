@@ -49,6 +49,7 @@ const UserSchema = mongoose.Schema(
         coverPicture: String,
         city: String,
         worksAt: String,
+        occupation: String,
         followers: [String],
         following: [String]
     },

@@ -178,15 +178,15 @@ export const followUser = async (req, res) => {
             });
         }
 
-        if (user.followers.includes(_id)) {
+        if (user.following.includes(_id)) {
             return res.status(400).json({
                 message: "You already follow this user",
                 success: false
             });
         }
 
-        await user.updateOne({ $push: { followers: _id } });
-        await currentUser.updateOne({ $push: { following: userId } });
+        await user.updateOne({ $push: { following: _id } });
+        await currentUser.updateOne({ $push: { followers: userId } });
 
         res.status(200).json({
             message: "User followed successfully",
@@ -230,8 +230,8 @@ export const unfollowUser = async (req, res) => {
             });
         }
 
-        await user.updateOne({ $pull: { followers: _id } });
-        await currentUser.updateOne({ $pull: { following: userId } });
+        await user.updateOne({ $pull: { following: _id } });
+        await currentUser.updateOne({ $pull: { followers: userId } });
 
         res.status(200).json({
             message: "User unfollowed successfully",

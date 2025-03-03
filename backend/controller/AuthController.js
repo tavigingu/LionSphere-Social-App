@@ -132,3 +132,26 @@ export const login = async (req, res) => {
         });
     }
 }
+
+export const logout = async (req, res) => {
+    try {
+        // Ștergem cookie-ul 'token' setând o dată de expirare în trecut
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict' // Opțional, pentru securitate suplimentară
+        });
+
+        // Returnăm un răspuns JSON care indică succesul delogării
+        return res.status(200).json({
+            message: "Logged out successfully",
+            success: true,
+            user: null // Indică faptul că utilizatorul nu mai este autentificat
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message || error,
+            error: true
+        });
+    }
+};

@@ -1,17 +1,41 @@
-import React from "react";
+import { useState } from "react";
+import useAuthStore from "../store/AuthStore";
 import { RegisterCredentials } from "../types/authTypes";
 
-const RegisterForm = ({
-  formData,
-  onChange,
-  onSubmit,
-  onSwitchToLogin,
-}: {
-  formData: RegisterCredentials;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: () => void;
+interface RegisterFormProps {
   onSwitchToLogin: () => void;
-}) => {
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
+  const { register, loading, error, clearError } = useAuthStore();
+
+  const [formData, setFormData] = useState<RegisterCredentials>({
+    username: "",
+    email: "",
+    password: "",
+    firstname: "",
+    lastname: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (error) clearError();
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await register(formData);
+      // Redirecționarea va fi gestionată la nivel de rută (PrivateRoute)
+    } catch (error) {
+      // Eroarea este deja setată în store
+      console.error(error);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
       <div className="text-center">
@@ -21,7 +45,13 @@ const RegisterForm = ({
         </p>
       </div>
 
-      <div className="space-y-4">
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Username
@@ -30,9 +60,10 @@ const RegisterForm = ({
             type="text"
             name="username"
             value={formData.username}
-            onChange={onChange}
+            onChange={handleChange}
             placeholder="Choose a username"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            required
           />
         </div>
 
@@ -44,9 +75,10 @@ const RegisterForm = ({
             type="text"
             name="firstname"
             value={formData.firstname}
-            onChange={onChange}
+            onChange={handleChange}
             placeholder="Enter your first name"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            required
           />
         </div>
 
@@ -58,9 +90,10 @@ const RegisterForm = ({
             type="text"
             name="lastname"
             value={formData.lastname}
-            onChange={onChange}
+            onChange={handleChange}
             placeholder="Enter your last name"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            required
           />
         </div>
 
@@ -72,9 +105,10 @@ const RegisterForm = ({
             type="email"
             name="email"
             value={formData.email}
-            onChange={onChange}
+            onChange={handleChange}
             placeholder="Enter your email"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            required
           />
         </div>
 
@@ -86,19 +120,22 @@ const RegisterForm = ({
             type="password"
             name="password"
             value={formData.password}
-            onChange={onChange}
+            onChange={handleChange}
             placeholder="Create a password"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            required
+            minLength={6}
           />
         </div>
-      </div>
 
-      <button
-        onClick={onSubmit}
-        className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-150 ease-in-out"
-      >
-        Create Account
-      </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-150 ease-in-out disabled:opacity-70"
+        >
+          {loading ? "Creating Account..." : "Create Account"}
+        </button>
+      </form>
 
       <div className="text-center text-sm text-gray-600">
         Already have an account?{" "}

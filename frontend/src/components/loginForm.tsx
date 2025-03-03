@@ -1,17 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 import { LoginCredentials } from "../types/authTypes";
+import useAuthStore from "../store/AuthStore";
 
-const LoginForm = ({
-  formData,
-  onChange,
-  onSubmit,
-  onSwitchToRegister
-}: {
-  formData: LoginCredentials;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: () => void;
-  onSwitchToRegister: () => void; 
-}) => {
+interface LoginFormProps {
+  onSwitchToRegister: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
+  const { login, loading, error, clearError } = useAuthStore();
+
+  const [formData, setFormData] = useState<LoginCredentials>({
+    email: " ",
+    password: " ",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (error) clearError();
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await login(formData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
       <div className="text-center">
@@ -19,7 +38,13 @@ const LoginForm = ({
         <p className="mt-2 text-sm text-gray-600">Please sign in to continue</p>
       </div>
 
-      <div className="space-y-4">
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Email
@@ -28,9 +53,10 @@ const LoginForm = ({
             type="email"
             name="email"
             value={formData.email}
-            onChange={onChange}
+            onChange={handleChange}
             placeholder="Enter your email"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            required
           />
         </div>
 
@@ -42,19 +68,21 @@ const LoginForm = ({
             type="password"
             name="password"
             value={formData.password}
-            onChange={onChange}
+            onChange={handleChange}
             placeholder="Enter your password"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            required
           />
         </div>
-      </div>
 
-      <button
-        onClick={onSubmit}
-        className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-150 ease-in-out"
-      >
-        Sign In
-      </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-150 ease-in-out disabled:opacity-70"
+        >
+          {loading ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
 
       <div className="text-center text-sm text-gray-600">
         <div>

@@ -31,3 +31,10 @@ export interface IUser {
     success: boolean;
     user: IUser;
   }
+  
+  export interface AuthState {
+    user: IUser | null;
+    isAuthenticated: boolean;
+    loading: boolean;
+    error: string | null;
+  }

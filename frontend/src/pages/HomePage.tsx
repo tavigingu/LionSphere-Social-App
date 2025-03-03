@@ -1,10 +1,11 @@
 // src/pages/Home.js
 import React from "react";
-import { useLocation } from "react-router-dom";
+//import { useLocation } from "react-router-dom";
 import Background from "../components/Background";
 import ProfileSide from "../components/ProfileSide"; // Importă componenta
 import PostCard from "../components/PostCard";
 import { IPost } from "../types/PostTypes";
+import useAuthStore from "../store/AuthStore";
 
 const hardcodedPosts: IPost[] = [
   {
@@ -24,8 +25,16 @@ const hardcodedPosts: IPost[] = [
 ];
 
 const Home: React.FC = () => {
-  const location = useLocation();
-  const user = location.state?.user; // Accesează datele utilizatorului
+  const { logout, user } = useAuthStore();
+
+  const handleTempLogout = async () => {
+    try {
+      await logout();
+      console.log("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   if (!user) {
     return (
@@ -44,6 +53,12 @@ const Home: React.FC = () => {
   return (
     <div className="relative min-h-screen text-white">
       <Background />
+      <button
+        onClick={handleTempLogout}
+        className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition"
+      >
+        Deconectare
+      </button>
       <div className="relative z-10 flex flex-col lg:flex-row max-w-screen-xl mx-auto">
         {/* ProfileSide pentru mobile și desktop */}
         <div

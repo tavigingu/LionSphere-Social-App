@@ -1,20 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { IUser } from "../types/authTypes";
+import React, { useState } from "react";
+import useAuthStore from "../store/AuthStore";
 
 const ProfileSide: React.FC = () => {
-  const location = useLocation();
-  const user = location.state?.user as IUser | undefined;
-  const [userData, setUserData] = useState<IUser | null>(null);
+  const { user } = useAuthStore();
+  //const [userData, setUserData] = useState<IUser | null>(null);
   const [isCoverHovered, setIsCoverHovered] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setUserData(user);
-    }
-  }, [user]);
-
-  if (!userData) {
+  if (!user) {
     return (
       <div className="w-full max-w-sm bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl shadow-2xl p-6 border border-gray-800">
         <p className="text-white text-center">Încărcare...</p>
@@ -52,7 +44,7 @@ const ProfileSide: React.FC = () => {
           bg-center
           relative
         "
-        style={{ backgroundImage: `url(${userData.coverPicture})` }}
+        style={{ backgroundImage: `url(${user.coverPicture})` }}
         onMouseEnter={() => setIsCoverHovered(true)}
         onMouseLeave={() => setIsCoverHovered(false)}
       />
@@ -92,9 +84,9 @@ const ProfileSide: React.FC = () => {
             "
             style={{ opacity: isCoverHovered ? 0.5 : 1 }}
           >
-            {userData.profilePicture ? (
+            {user.profilePicture ? (
               <img
-                src={userData.profilePicture}
+                src={user.profilePicture}
                 alt="Profile"
                 className="w-full h-full object-cover rounded-full" // Added rounded-full here too
               />
@@ -133,7 +125,7 @@ const ProfileSide: React.FC = () => {
             sm:mt-4
           "
         >
-          {userData.username}
+          {user.username}
         </h2>
         <p
           className="
@@ -142,7 +134,7 @@ const ProfileSide: React.FC = () => {
             text-gray-300
           "
         >
-          {userData.firstname} {userData.lastname}
+          {user.firstname} {user.lastname}
         </p>
 
         {/* Stats */}
@@ -175,7 +167,7 @@ const ProfileSide: React.FC = () => {
                 text-white
               "
             >
-              {userData.followers.length}
+              {user.followers.length}
             </p>
           </div>
           <div className="flex flex-col items-center">
@@ -196,7 +188,7 @@ const ProfileSide: React.FC = () => {
                 text-white
               "
             >
-              {userData.following.length}
+              {user.following.length}
             </p>
           </div>
         </div>

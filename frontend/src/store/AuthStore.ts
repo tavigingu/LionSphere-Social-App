@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { loginUser, registerUser, logoutUser } from '../api/Auth';
-import { AuthState, LoginCredentials, RegisterCredentials, AuthResponse } from '../types/authTypes';
+import { AuthState, LoginCredentials, RegisterCredentials, AuthResponse } from '../types/AuthTypes';
 
 
 interface AuthStore extends AuthState {

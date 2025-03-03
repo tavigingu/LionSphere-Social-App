@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LoginCredentials } from "../types/authTypes";
+import { LoginCredentials } from "../types/AuthTypes";
 import useAuthStore from "../store/AuthStore";
 
 interface LoginFormProps {

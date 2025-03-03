@@ -1,10 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import useAuthStore from "../store/AuthStore";
 
 const ProfileSide: React.FC = () => {
   const { user } = useAuthStore();
-  //const [userData, setUserData] = useState<IUser | null>(null);
+  const [postCount, setPostCount] = useState(0);
   const [isCoverHovered, setIsCoverHovered] = useState(false);
+
+  // Fetch user's post count
+  useEffect(() => {
+    const fetchPostCount = async () => {
+      if (user) {
+        try {
+          const response = await axios.get(
+            `http://localhost:5001/post/${user._id}/timeline`
+          );
+          setPostCount(response.data.posts.length);
+        } catch (error) {
+          console.error("Error fetching post count:", error);
+          setPostCount(0);
+        }
+      }
+    };
+
+    fetchPostCount();
+  }, [user]);
 
   if (!user) {
     return (
@@ -88,7 +108,7 @@ const ProfileSide: React.FC = () => {
               <img
                 src={user.profilePicture}
                 alt="Profile"
-                className="w-full h-full object-cover rounded-full" // Added rounded-full here too
+                className="w-full h-full object-cover rounded-full"
               />
             ) : (
               <div
@@ -140,7 +160,8 @@ const ProfileSide: React.FC = () => {
         {/* Stats */}
         <div
           className="
-            flex 
+            grid 
+            grid-cols-3 
             justify-around 
             mt-4 
             sm:mt-8 
@@ -149,6 +170,27 @@ const ProfileSide: React.FC = () => {
             pt-4
           "
         >
+          <div className="flex flex-col items-center">
+            <p
+              className="
+                text-xs 
+                sm:text-sm 
+                text-gray-400
+              "
+            >
+              Posts
+            </p>
+            <p
+              className="
+                text-base 
+                sm:text-2xl 
+                font-semibold 
+                text-white
+              "
+            >
+              {postCount}
+            </p>
+          </div>
           <div className="flex flex-col items-center">
             <p
               className="

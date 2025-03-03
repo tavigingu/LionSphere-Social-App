@@ -7,7 +7,7 @@ import RegisterForm from "../components/registerForm";
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -22,8 +22,6 @@ const AuthPage: React.FC = () => {
   const handleSwitchToLogin = () => {
     setIsLogin(true);
   };
-
-
 
   return (
     <div className="fixed inset-0 flex items-center justify-center">

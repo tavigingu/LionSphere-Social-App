@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LoginCredentials, RegisterCredentials, AuthResponse } from '../types/authTypes';
+import { LoginCredentials, RegisterCredentials, AuthResponse } from '../types/AuthTypes';
 
 const BASE_URL = 'http://localhost:5001/auth';
 

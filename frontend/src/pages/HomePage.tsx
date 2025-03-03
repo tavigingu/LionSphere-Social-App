@@ -1,31 +1,28 @@
-// src/pages/Home.js
-import React from "react";
-//import { useLocation } from "react-router-dom";
-import Background from "../components/Background";
-import ProfileSide from "../components/ProfileSide"; // Importă componenta
-import PostCard from "../components/PostCard";
-import { IPost } from "../types/PostTypes";
+import { useEffect, useState } from "react";
 import useAuthStore from "../store/AuthStore";
+import usePostStore from "../store/PostStore";
+import Background from "../components/Background";
+import ProfileSide from "../components/ProfileSide";
+import PostCard from "../components/PostCard";
+import PostCreateForm from "../components/PostCreationForm";
 
-const hardcodedPosts: IPost[] = [
-  {
-    userId: "123456789abcdef",
-    username: "taviii",
-    desc: "Ce frumos e cerul de noapte astă-seară! 🌟",
-    likes: ["987654321fedcba", "111111111111111"],
-    image: "", // Exemplu de URL pentru imagine
-  },
-  {
-    userId: "987654321fedcba",
-    username: "maryam",
-    desc: "Party time! 🎉 Să ne distrăm sub stele!",
-    likes: ["123456789abcdef", "222222222222222"],
-    image: "", // Exemplu de URL pentru imagine
-  },
-];
-
-const Home: React.FC = () => {
+const HomePage: React.FC = () => {
   const { logout, user } = useAuthStore();
+  const {
+    timelinePosts,
+    loading,
+    error,
+    fetchTimelinePosts,
+    likePost: likeSinglePost,
+  } = usePostStore();
+
+  // const [newPostDesc, setNewPostDesc] = useState("");
+
+  useEffect(() => {
+    if (user && user._id) {
+      fetchTimelinePosts(user._id);
+    }
+  }, [user, fetchTimelinePosts]);
 
   const handleTempLogout = async () => {
     try {
@@ -36,19 +33,17 @@ const Home: React.FC = () => {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="relative min-h-screen text-white">
-        ``
-        <Background />
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
-          <h1 className="text-2xl">
-            Nu sunt date disponibile despre utilizator.
-          </h1>
-        </div>
-      </div>
-    );
-  }
+  const handleLikePost = async (postId: string) => {
+    if (user && user._id) {
+      await likeSinglePost(postId, user._id);
+    }
+  };
+
+  const handlePostCreated = () => {
+    if (user && user._id) {
+      fetchTimelinePosts(user._id);
+    }
+  };
 
   return (
     <div className="relative min-h-screen text-white">
@@ -61,65 +56,48 @@ const Home: React.FC = () => {
       </button>
       <div className="relative z-10 flex flex-col lg:flex-row max-w-screen-xl mx-auto">
         {/* ProfileSide pentru mobile și desktop */}
-        <div
-          className="
-          w-full 
-          md:block
-          md:relative
-          md:max-w-[600px]
-          sm:max-w-[300px]
-          sm:items-center
-          md:ml-0
-          lg:w-[500px] 
-          lg:ml-[25px]
-          lg:fixed 
-          lg:left-0 
-          lg:top-4 
-          lg:h-auto
-          p-4
-        "
-        >
+        <div className="w-full md:block md:relative md:max-w-[600px] sm:max-w-[300px] sm:items-center md:ml-0 lg:w-[500px] lg:ml-[25px] lg:fixed lg:left-0 lg:top-4 lg:h-auto p-4">
           <ProfileSide />
         </div>
 
         {/* Conținutul principal (postările) centrat */}
-        <div
-          className="
-          w-full 
-          lg:ml-[300px] 
-          md:ml-0
-          flex 
-          justify-center 
-          items-start 
-          lg:items-center 
-          min-h-screen 
-          p-4
-        "
-        >
-          <div
-            className="
-            grid 
-            grid-cols-1 
-            gap-6 
-            w-full 
-            max-w-[900px] 
-            md:max-w-[800px] 
-            sm:max-w-[600px]
-            sm: items-center
-            lg:max-w-[1000px] 
-            pt-4
-          "
-          >
-            {hardcodedPosts.map((post, index) => (
-              <PostCard
-                key={index}
-                userId={post.userId}
-                username={post.username}
-                desc={post.desc}
-                likes={post.likes}
-                image={post.image}
-              />
-            ))}
+        <div className="w-full lg:ml-[300px] md:ml-0 flex justify-center items-start lg:items-center min-h-screen p-4">
+          <div className="grid grid-cols-1 gap-6 w-full max-w-[900px] md:max-w-[800px] sm:max-w-[600px] sm:items-center lg:max-w-[1000px] pt-4">
+            {/* Post creation form */}
+            <PostCreateForm onPostCreated={handlePostCreated} />
+
+            {/* Loading indicator */}
+            {loading && (
+              <div className="flex justify-center items-center p-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            )}
+
+            {/* Display posts */}
+            {!loading && timelinePosts.length === 0 ? (
+              <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl">
+                <p className="text-lg text-gray-300">
+                  Nu există postări de afișat.
+                </p>
+                <p className="text-gray-400 mt-2">
+                  Urmărește alți utilizatori sau creează prima ta postare!
+                </p>
+              </div>
+            ) : (
+              timelinePosts.map((post) => (
+                <PostCard
+                  key={post._id}
+                  userId={post.userId}
+                  username={post.username}
+                  desc={post.desc}
+                  likes={post.likes || []}
+                  image={post.image}
+                  _id={post._id}
+                  onLike={() => post._id && handleLikePost(post._id)}
+                  isLiked={user ? post.likes?.includes(user._id) : false}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -127,4 +105,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default HomePage;

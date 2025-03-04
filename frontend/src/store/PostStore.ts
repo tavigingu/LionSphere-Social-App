@@ -1,4 +1,4 @@
-import { getTimelinePosts, likePost, createPost } from "../api/Post";
+import { getTimelinePosts, likePost, createPost, commentOnPost } from "../api/Post";
 import { PostState } from "../types/PostTypes"
 import { create } from 'zustand';
 import { IPost } from "../types/PostTypes";
@@ -8,7 +8,7 @@ interface PostStore extends PostState {
     //fetchUserPosts: (userId: string) => Promise<void>;
     likePost: (postId: string, userId: string) => Promise<void>
     createNewPost: (postData: Omit<IPost, '_id' | 'username' | 'likes' | 'createdAt' | 'updatedAt'>) => Promise<IPost>;
-    //addComment: (postId: string, userId: string, text: string) => Promise<void>;
+    addComment: (postId: string, userId: string, text: string) => Promise<void>;
     clearError: () => void;
     resetState: () => void;
 }
@@ -96,6 +96,18 @@ const usePostStore = create<PostStore>((set,get) => ({
           const errorMessage = error instanceof Error ? error.message : 'Failed to create post';
           set({ error: errorMessage, loading: false });
           throw error;
+        }
+      },
+
+      addComment: async(postId: string, userId: string, text: string) => {
+        try {
+          console.log("Comentariu adaugat")
+          await commentOnPost(postId, userId, text);
+          console.log("a trecut si de api")
+          
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to add comment';
+          set({ error: errorMessage });
         }
       },
 

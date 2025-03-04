@@ -16,8 +16,6 @@ const HomePage: React.FC = () => {
     likePost: likeSinglePost,
   } = usePostStore();
 
-  // const [newPostDesc, setNewPostDesc] = useState("");
-
   useEffect(() => {
     if (user && user._id) {
       fetchTimelinePosts(user._id);
@@ -87,12 +85,12 @@ const HomePage: React.FC = () => {
               timelinePosts.map((post) => (
                 <PostCard
                   key={post._id}
+                  _id={post._id || ""}
                   userId={post.userId}
-                  username={post.username}
                   desc={post.desc}
                   likes={post.likes || []}
                   image={post.image}
-                  _id={post._id}
+                  comments={post.comments || []}
                   onLike={() => post._id && handleLikePost(post._id)}
                   isLiked={user ? post.likes?.includes(user._id) : false}
                 />

@@ -80,4 +80,23 @@ export const createPost = async (postData: {
       
       throw error;
     }
-  };
+};
+
+export const commentOnPost = async ( postId: string, userId: string, text: string): Promise<void> => {
+  try {
+    const response = await axios.put<{message: string, success:boolean}>(
+      `${BASE_URL}/post/${postId}/comment`,
+      { userId, text}
+    );
+
+    if(!response.data.success) {
+      throw new Error(response.data.message || 'Failed to comment on post');
+    }
+  } catch(error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to comment on post:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to comment on post')   
+    }
+    throw error;
+  }
+} 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import useAuthStore from "../store/AuthStore";
+import { getTimelinePosts } from "../api/Post";
 
 const ProfileSide: React.FC = () => {
   const { user } = useAuthStore();
@@ -12,10 +12,8 @@ const ProfileSide: React.FC = () => {
     const fetchPostCount = async () => {
       if (user) {
         try {
-          const response = await axios.get(
-            `http://localhost:5001/post/${user._id}/timeline`
-          );
-          setPostCount(response.data.posts.length);
+          const posts = await getTimelinePosts(user._id);
+          setPostCount(posts.length);
         } catch (error) {
           console.error("Error fetching post count:", error);
           setPostCount(0);

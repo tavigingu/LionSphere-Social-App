@@ -4,7 +4,7 @@ import usePostStore from "../store/PostStore";
 import Background from "../components/Background";
 import ProfileSide from "../components/ProfileSide";
 import PostCard from "../components/PostCard";
-import PostCreateForm from "../components/PostCreationForm";
+import PostCreationForm from "../components/PostCreationForm";
 
 const HomePage: React.FC = () => {
   const { logout, user } = useAuthStore();
@@ -46,32 +46,40 @@ const HomePage: React.FC = () => {
   return (
     <div className="relative min-h-screen text-white">
       <Background />
+
+      {/* Buton de deconectare */}
       <button
         onClick={handleTempLogout}
-        className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition"
+        className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition z-20"
       >
         Deconectare
       </button>
-      <div className="relative z-10 flex flex-col lg:flex-row max-w-screen-xl mx-auto">
-        {/* ProfileSide pentru mobile și desktop */}
-        <div className="w-full md:block md:relative md:max-w-[600px] sm:max-w-[300px] sm:items-center md:ml-0 lg:w-[500px] lg:ml-[25px] lg:fixed lg:left-0 lg:top-4 lg:h-auto p-4">
-          <ProfileSide />
-        </div>
 
-        {/* Conținutul principal (postările) centrat */}
-        <div className="w-full lg:ml-[300px] md:ml-0 flex justify-center items-start lg:items-center min-h-screen p-4">
-          <div className="grid grid-cols-1 gap-6 w-full max-w-[900px] md:max-w-[800px] sm:max-w-[600px] sm:items-center lg:max-w-[1000px] pt-4">
-            {/* Post creation form */}
-            <PostCreateForm onPostCreated={handlePostCreated} />
+      <div className="container mx-auto px-4 py-4 relative z-10">
+        <div className="flex flex-col lg:flex-row">
+          {/* Sidebar cu profilul - coloana stânga fixă */}
+          <div className="w-full lg:w-80 mb-6 lg:mb-0 lg:mr-8">
+            <div className="lg:sticky lg:top-4">
+              <ProfileSide />
+            </div>
+          </div>
 
-            {/* Loading indicator */}
+          {/* Conținut principal - coloana dreaptă */}
+          <div className="w-full lg:flex-1 lg:ml-8">
+            {/* Formular de creare postare */}
+            {/*<PostCreationForm onPostCreated={handlePostCreated} />
+
+            {/* Spațiu între formular și postări */}
+            <div className="h-6"></div>
+
+            {/* Indicator de încărcare */}
             {loading && (
               <div className="flex justify-center items-center p-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
               </div>
             )}
 
-            {/* Display posts */}
+            {/* Mesaj când nu există postări */}
             {!loading && timelinePosts.length === 0 ? (
               <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl">
                 <p className="text-lg text-gray-300">
@@ -82,19 +90,22 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
             ) : (
-              timelinePosts.map((post) => (
-                <PostCard
-                  key={post._id}
-                  _id={post._id || ""}
-                  userId={post.userId}
-                  desc={post.desc}
-                  likes={post.likes || []}
-                  image={post.image}
-                  comments={post.comments || []}
-                  onLike={() => post._id && handleLikePost(post._id)}
-                  isLiked={user ? post.likes?.includes(user._id) : false}
-                />
-              ))
+              /* Lista de postări */
+              <div className="space-y-6">
+                {timelinePosts.map((post) => (
+                  <PostCard
+                    key={post._id}
+                    _id={post._id || ""}
+                    userId={post.userId}
+                    desc={post.desc}
+                    likes={post.likes || []}
+                    image={post.image}
+                    comments={post.comments || []}
+                    onLike={() => post._id && handleLikePost(post._id)}
+                    isLiked={user ? post.likes?.includes(user._id) : false}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </div>

@@ -1,6 +1,6 @@
-import { FaHeart, FaRegHeart, FaComment, FaShare } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaRegComment } from "react-icons/fa";
 import React, { useState, useEffect } from "react";
-import { IPost } from "../types/PostTypes";
+//import { IPost } from "../types/PostTypes";
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
 import axios from "axios";
@@ -55,50 +55,41 @@ const PostCard: React.FC<PostCardProps> = ({
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId) return;
-
       try {
         setLoading(true);
         const response = await axios.get(
           `http://localhost:5001/user/${userId}`
         );
-        if (response.data.success) {
-          setPostUser(response.data.user);
-        }
+        if (response.data.success) setPostUser(response.data.user);
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, [userId]);
 
-  // Fetch comment users data
   useEffect(() => {
     const fetchCommentUsers = async () => {
       if (!comments || comments.length === 0) return;
-
       const uniqueUserIds = [
         ...new Set(comments.map((comment) => comment.userId)),
       ];
-
       const newCommentUsers: Record<
         string,
         { username: string; profilePicture?: string }
       > = {};
-
       for (const commentUserId of uniqueUserIds) {
         try {
           const response = await axios.get(
             `http://localhost:5001/user/${commentUserId}`
           );
-          if (response.data.success) {
+          if (response.data.success)
             newCommentUsers[commentUserId] = {
               username: response.data.user.username,
               profilePicture: response.data.user.profilePicture,
             };
-          }
         } catch (error) {
           console.error(
             `Failed to fetch user data for comment user ${commentUserId}:`,
@@ -106,23 +97,15 @@ const PostCard: React.FC<PostCardProps> = ({
           );
         }
       }
-
       setCommentUsers(newCommentUsers);
     };
-
     fetchCommentUsers();
   }, [comments]);
+
   return (
-    <div
-      className={`w-full max-w-md sm:max-w-lg lg:max-w-xl ${
-        comments.length > 0
-          ? "min-h-[600px] sm:min-h-[700px] lg:min-h-[850px]"
-          : "min-h-[460px] sm:min-h-[560px] lg:min-h-[680px]"
-      } lg:min-w-[750px] backdrop-blur-sm bg-white/5 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl flex flex-col`}
-    >
-      {/* Header cu username-ul și imaginea utilizatorului care postează */}
-      <div className="flex items-center mb-4">
-        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-green-500 flex items-center justify-center mr-3 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-xl overflow-hidden mb-6 max-w-xl">
+      <div className="p-4 flex items-center">
+        <div className="h-10 w-10 rounded-full border border-blue-500 overflow-hidden">
           {postUser?.profilePicture ? (
             <img
               src={postUser.profilePicture}
@@ -137,80 +120,73 @@ const PostCard: React.FC<PostCardProps> = ({
             </div>
           )}
         </div>
-        <div className="flex flex-col">
-          <span className="text-white font-medium text-base sm:text-lg">
+        <div className="ml-3">
+          <h3 className="font-semibold text-gray-800">
             {postUser?.username || "Unknown User"}
-          </span>
+          </h3>
           {postUser?.firstname && postUser?.lastname && (
-            <span className="text-gray-400 text-xs">
+            <p className="text-xs text-gray-500">
               {postUser.firstname} {postUser.lastname}
-            </span>
+            </p>
           )}
         </div>
       </div>
-
-      {/* Imaginea principală a postării - înălțime fixă indiferent de comentarii */}
-      <div className="h-[300px] sm:h-[350px] lg:h-[450px] relative mb-4">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 rounded-lg overflow-hidden">
-          {image ? (
-            <img
-              src={image}
-              alt="Post Image"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300 text-sm">
-              No Post Image
-            </div>
-          )}
-        </div>
+      <div className="w-full h-[400px] sm:h-[400px] bg-gray-100">
+        {image ? (
+          <img src={image} alt="Post" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-100 to-purple-100">
+            <p className="text-gray-400">No image</p>
+          </div>
+        )}
       </div>
-
-      {/* Interacțiuni (like, comment, share) */}
-      <div className="flex items-center justify-between mb-4 text-sm sm:text-base">
+      <div className="px-4 py-3 flex space-x-6">
         <button
           onClick={onLike}
-          className={`flex items-center ${
-            isLiked ? "text-red-500" : "text-gray-300 hover:text-red-500"
-          } transition-colors`}
+          className="flex items-center transition-colors"
         >
           {isLiked ? (
-            <FaHeart className="mr-2 size-4 sm:size-5" />
+            <div className="flex items-center">
+              <FaHeart
+                className="mr-2 text-2xl text-purple-500 filter drop-shadow-lg"
+                style={{
+                  filter: "drop-shadow(0 0 3px rgba(147, 51, 234, 0.5))",
+                }}
+              />
+              <span className="text-purple-500">{likes.length}</span>
+            </div>
           ) : (
-            <FaRegHeart className="mr-2 size-4 sm:size-5" />
+            <div className="flex items-center text-gray-700 hover:text-purple-500 transition-colors">
+              <FaRegHeart className="text-2xl" />
+              <span className="ml-2 text-sm">{likes.length}</span>
+            </div>
           )}
-          {likes.length} {likes.length === 1 ? "Like" : "Likes"}
         </button>
         <button
-          className="flex items-center text-gray-300 hover:text-blue-500 transition-colors"
+          className="flex items-center text-gray-700 hover:text-blue-500 transition-colors"
           onClick={() => setShowAllComments(!showAllComments)}
         >
-          <FaComment className="mr-2 size-4 sm:size-5" />
-          {comments.length} {comments.length === 1 ? "Comment" : "Comments"}
-        </button>
-        <button className="flex items-center text-gray-300 hover:text-green-500 transition-colors">
-          <FaShare className="mr-2 size-4 sm:size-5" /> Share
+          <div className="flex items-center">
+            <FaRegComment className="text-2xl" />
+            <span className="ml-2 text-sm">{comments.length}</span>
+          </div>
         </button>
       </div>
-
-      {/* Descrierea */}
-      <div>
-        <p className="text-gray-300 text-sm sm:text-base mb-4">{desc}</p>
-      </div>
-
-      {/* Comments section - displayed only if there are comments */}
-      {comments.length > 0 && (
-        <div className="mt-2 mb-6 border-t border-gray-700 pt-3">
-          <h4 className="text-gray-300 text-sm font-medium mb-2">
-            Comments ({comments.length})
+      <div className="px-4 pb-3">
+        <div className="flex">
+          <h4 className="font-semibold text-gray-800">
+            {postUser?.username || "Unknown User"}
           </h4>
-
-          {/* Display first comment or all comments based on state */}
-          <div className="space-y-3 max-h-[300px] overflow-y-auto">
+          <p className="text-gray-800 ml-2">{desc}</p>
+        </div>
+      </div>
+      {comments.length > 0 && (
+        <div className="px-4 pb-3 border-t border-gray-100 pt-3">
+          <div className="space-y-3 max-h-60 overflow-y-auto">
             {(showAllComments ? comments : comments.slice(0, 1)).map(
               (comment, index) => (
-                <div key={comment._id || index} className="flex items-start">
-                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2">
+                <div key={comment._id || index} className="flex mb-3">
+                  <div className="w-8 h-8 rounded-full overflow-hidden mr-2">
                     {commentUsers[comment.userId]?.profilePicture ? (
                       <img
                         src={commentUsers[comment.userId].profilePicture}
@@ -218,7 +194,7 @@ const PostCard: React.FC<PostCardProps> = ({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
                         <span className="text-white text-xs font-bold">
                           {commentUsers[comment.userId]?.username
                             ?.charAt(0)
@@ -228,15 +204,15 @@ const PostCard: React.FC<PostCardProps> = ({
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2">
-                      <p className="text-white text-sm font-medium">
+                    <div className="bg-gray-100 rounded-lg p-2">
+                      <p className="text-sm font-medium text-gray-800">
                         {commentUsers[comment.userId]?.username ||
                           "Unknown User"}
                       </p>
-                      <p className="text-gray-300 text-sm">{comment.text}</p>
+                      <p className="text-sm text-gray-700">{comment.text}</p>
                     </div>
                     {comment.createdAt && (
-                      <p className="text-gray-400 text-xs mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         {new Date(comment.createdAt).toLocaleString()}
                       </p>
                     )}
@@ -245,12 +221,10 @@ const PostCard: React.FC<PostCardProps> = ({
               )
             )}
           </div>
-
-          {/* View more button - show only if there are more than 1 comment */}
           {comments.length > 1 && (
             <button
               onClick={() => setShowAllComments(!showAllComments)}
-              className="text-blue-400 hover:text-blue-300 text-sm mt-2 transition-colors"
+              className="text-blue-500 hover:text-blue-700 text-sm mt-2 transition-colors"
             >
               {showAllComments
                 ? "Show less"
@@ -259,15 +233,33 @@ const PostCard: React.FC<PostCardProps> = ({
           )}
         </div>
       )}
-
-      {/* Comment input section */}
-      <div
-        className={`mt-auto ${comments.length > 0 ? "pt-4" : "pt-16"} ${
-          comments.length === 0 ? "border-t border-gray-700" : ""
-        }`}
-      >
-        <div className="flex">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mr-2 overflow-hidden">
+      <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+        <form
+          className="flex items-center"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (commentText.trim() && currentUser?._id && _id) {
+              addComment(_id, currentUser._id, commentText)
+                .then(() => {
+                  setCommentText("");
+                  if (!commentUsers[currentUser._id]) {
+                    setCommentUsers({
+                      ...commentUsers,
+                      [currentUser._id]: {
+                        username: currentUser.username,
+                        profilePicture: currentUser.profilePicture,
+                      },
+                    });
+                  }
+                  setShowAllComments(true);
+                })
+                .catch((error) =>
+                  console.error("Error adding comment:", error)
+                );
+            }
+          }}
+        >
+          <div className="w-8 h-8 rounded-full overflow-hidden mr-2">
             {currentUser?.profilePicture ? (
               <img
                 src={currentUser.profilePicture}
@@ -282,53 +274,33 @@ const PostCard: React.FC<PostCardProps> = ({
               </div>
             )}
           </div>
-          <form
-            className="flex-1 flex"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (commentText.trim() && currentUser?._id && _id) {
-                addComment(_id, currentUser._id, commentText)
-                  .then(() => {
-                    setCommentText("");
-                    // După adăugarea unui comentariu, ar fi bine să actualizăm și datele utilizatorului
-                    if (!commentUsers[currentUser._id]) {
-                      setCommentUsers({
-                        ...commentUsers,
-                        [currentUser._id]: {
-                          username: currentUser.username,
-                          profilePicture: currentUser.profilePicture,
-                        },
-                      });
-                    }
-                    // Afișăm toate comentariile după ce adăugăm unul nou
-                    setShowAllComments(true);
-                  })
-                  .catch((error) =>
-                    console.error("Error adding comment:", error)
-                  );
-              }
-            }}
+          <input
+            type="text"
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="Add a comment..."
+            className="flex-1 border text-gray-500 border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            disabled={!commentText.trim()}
+            className={`ml-2 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center ${
+              !commentText.trim()
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-blue-600"
+            }`}
           >
-            <input
-              type="text"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Scrie un comentariu..."
-              className="flex-1 bg-transparent border-b border-gray-700 focus:border-blue-500 px-2 py-1 text-white text-sm outline-none"
-            />
-            <button
-              type="submit"
-              disabled={!commentText.trim()}
-              className={`ml-2 px-3 py-1 rounded-lg ${
-                commentText.trim()
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                  : "bg-gray-700 text-gray-400 cursor-not-allowed"
-              } text-sm transition-colors`}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 16 16"
             >
-              Post
-            </button>
-          </form>
-        </div>
+              <path d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4.5 5.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z" />
+            </svg>
+          </button>
+        </form>
       </div>
     </div>
   );

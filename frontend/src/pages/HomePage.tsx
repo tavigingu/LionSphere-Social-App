@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
-import Background from "../components/Background";
-import ProfileSide from "../components/ProfileSide";
-import PostCard from "../components/PostCard";
+import Background from "../components/Home/Background";
+import ProfileSide from "../components/Home/ProfileSide";
+import PostCard from "../components/Home/PostCard";
 import PostCreationForm from "../components/PostCreationForm";
+import Dashboard from "../components/Home/Dashboard";
+//import "../styles/fonts.css"; // Import custom fonts
 
 const HomePage: React.FC = () => {
-  const { logout, user } = useAuthStore();
+  const { user } = useAuthStore();
   const {
     timelinePosts,
     loading,
@@ -21,15 +23,6 @@ const HomePage: React.FC = () => {
       fetchTimelinePosts(user._id);
     }
   }, [user, fetchTimelinePosts]);
-
-  const handleTempLogout = async () => {
-    try {
-      await logout();
-      console.log("Logged out successfully");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
 
   const handleLikePost = async (postId: string) => {
     if (user && user._id) {
@@ -47,50 +40,41 @@ const HomePage: React.FC = () => {
     <div className="relative min-h-screen text-white">
       <Background />
 
-      {/* Buton de deconectare */}
-      <button
-        onClick={handleTempLogout}
-        className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition z-20"
-      >
-        Deconectare
-      </button>
-
-      <div className="container mx-auto px-4 py-4 relative z-10">
+      {/* Conținut principal cu padding ajustat pentru fiecare dimensiune de ecran */}
+      <div className="container mx-auto px-4 py-4 relative z-10 lg:pr-96">
         <div className="flex flex-col lg:flex-row">
-          {/* Sidebar cu profilul - coloana stânga fixă */}
-          <div className="w-full lg:w-80 mb-6 lg:mb-0 lg:mr-8">
+          {/* Left sidebar with profile - vizibil pe desktop, ascuns pe mobile */}
+          <div className="hidden lg:block lg:w-80 mb-6 lg:mb-0">
             <div className="lg:sticky lg:top-4">
               <ProfileSide />
             </div>
           </div>
 
-          {/* Conținut principal - coloana dreaptă */}
-          <div className="w-full lg:flex-1 lg:ml-8">
-            {/* Formular de creare postare */}
+          {/* Main content - middle column */}
+          <div className="w-full lg:flex-1 mx-0 lg:ml-20">
+            {/* Post creation form */}
             {/*<PostCreationForm onPostCreated={handlePostCreated} />
 
-            {/* Spațiu între formular și postări */}
+            {/* Space between form and posts */}
             <div className="h-6"></div>
 
-            {/* Indicator de încărcare */}
+            {/* Loading indicator */}
             {loading && (
               <div className="flex justify-center items-center p-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
               </div>
             )}
 
-            {/* Mesaj când nu există postări */}
+            {/* Message when no posts */}
             {!loading && timelinePosts.length === 0 ? (
               <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl">
-                <p className="text-lg text-gray-300">
-                  Nu există postări de afișat.
-                </p>
+                <p className="text-lg text-gray-300">No posts to display.</p>
                 <p className="text-gray-400 mt-2">
-                  Urmărește alți utilizatori sau creează prima ta postare!
+                  Follow other users or create your first post!
                 </p>
               </div>
             ) : (
-              /* Lista de postări */
+              /* Post list */
               <div className="space-y-6">
                 {timelinePosts.map((post) => (
                   <PostCard
@@ -110,6 +94,9 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Right-side fixed dashboard - gestionat intern pentru a fi responsive */}
+      <Dashboard />
     </div>
   );
 };

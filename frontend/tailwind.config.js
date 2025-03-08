@@ -6,7 +6,7 @@ export default {
   ],
   theme: {
     extend: {
-      // Definim keyframes-urile
+      // Define keyframes
       keyframes: {
         drift: {
           '0%': { transform: 'translateX(0)' },
@@ -23,11 +23,15 @@ export default {
           "50%": { opacity: "0.8" },
         }
       },
-      // Definim animațiile care folosesc keyframes-urile
+      // Define animations that use keyframes
       animation: {
         drift: 'drift 20s infinite ease-in-out',
         'drift-slow': 'drift-slow 30s infinite ease-in-out',
         "pulse-slow": "pulse-slow 3s infinite ease-in-out",
+      },
+      // Add custom fonts
+      fontFamily: {
+        'dancing': ['"Dancing Script"', 'cursive'],
       },
     },
   },

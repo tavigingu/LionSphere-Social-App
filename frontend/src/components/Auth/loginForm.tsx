@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { LoginCredentials } from "../types/AuthTypes";
-import useAuthStore from "../store/AuthStore";
+import { LoginCredentials } from "../../types/AuthTypes";
+import useAuthStore from "../../store/AuthStore";
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;

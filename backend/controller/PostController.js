@@ -76,19 +76,22 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
     try {
         const postId = req.params.id;
-        const { userId, role: userRole } = req.body;
-        
+        //const { userId, role: userRole } = req.body;
+        const { userId }= req.body;
+    
         const post = await PostModel.findById(postId);
-
-        if(post.userId === userId || userRole === 'admin') {
-            await post.delete();
-
+        //if(post.userId === userId || userRole === 'admin') {
+        if(post.userId === userId ){
+            console.log("intainte de delete");
+            await PostModel.findByIdAndDelete(postId);
+            console.log("a intrat");
             res.status(200).json({
                 message: "Post deleted successfully",
                 success: true
             });
             
         } else {
+            console.log("e pe else");
             return res.status(403).json({
                 message: "You can delete only your post",
                 success: false
@@ -200,10 +203,10 @@ export const getTimelinePosts = async (req, res) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
         });
 
-        console.log("Searching posts for userId:", userId);
-        console.log(`User posts found: ${currentUserPosts.length}`);
-        console.log(`Friend posts found: ${friendPosts.length}`);
-        console.log(`Total timeline posts: ${timelinePosts.length}`);
+        // console.log("Searching posts for userId:", userId);
+        // console.log(`User posts found: ${currentUserPosts.length}`);
+        // console.log(`Friend posts found: ${friendPosts.length}`);
+        // console.log(`Total timeline posts: ${timelinePosts.length}`);
 
         res.status(200).json({
             message: "Timeline posts fetched successfully",

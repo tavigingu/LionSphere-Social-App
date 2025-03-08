@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/AuthStore";
 import { useState, useEffect } from "react";
-import LoginForm from "../components/loginForm";
-import RegisterForm from "../components/registerForm";
+import LoginForm from "../components/Auth/loginForm";
+import RegisterForm from "../components/Auth/registerForm";
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);

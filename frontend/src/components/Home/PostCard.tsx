@@ -1,8 +1,14 @@
-import { FaHeart, FaRegHeart, FaRegComment } from "react-icons/fa";
-import React, { useState, useEffect } from "react";
+import {
+  FaHeart,
+  FaRegHeart,
+  FaRegComment,
+  FaEllipsisV,
+  FaTrash,
+} from "react-icons/fa";
+import React, { useState, useEffect, useRef } from "react";
 //import { IPost } from "../types/PostTypes";
-import useAuthStore from "../store/AuthStore";
-import usePostStore from "../store/PostStore";
+import useAuthStore from "../../store/AuthStore";
+import usePostStore from "../../store/PostStore";
 import axios from "axios";
 
 interface PostCardProps {
@@ -32,7 +38,7 @@ const PostCard: React.FC<PostCardProps> = ({
   isLiked = false,
 }) => {
   const { user: currentUser } = useAuthStore();
-  const { addComment } = usePostStore();
+  const { addComment, deletePost } = usePostStore();
   const [postUser, setPostUser] = useState<{
     profilePicture?: string;
     username: string;
@@ -41,6 +47,8 @@ const PostCard: React.FC<PostCardProps> = ({
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [commentUsers, setCommentUsers] = useState<
     Record<
       string,
@@ -51,6 +59,17 @@ const PostCard: React.FC<PostCardProps> = ({
     >
   >({});
   const [commentText, setCommentText] = useState("");
+
+  const handleDeletePost = async () => {
+    if (_id && currentUser) {
+      try {
+        await deletePost(_id, currentUser._id);
+        setShowMenu(false);
+      } catch (error) {
+        console.error("Error deleting post:", error);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -102,34 +121,76 @@ const PostCard: React.FC<PostCardProps> = ({
     fetchCommentUsers();
   }, [comments]);
 
+  // Handle outside clicks to close the menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="bg-white rounded-xl shadow-xl overflow-hidden mb-6 max-w-xl">
-      <div className="p-4 flex items-center">
-        <div className="h-10 w-10 rounded-full border border-blue-500 overflow-hidden">
-          {postUser?.profilePicture ? (
-            <img
-              src={postUser.profilePicture}
-              alt={`${postUser.username}'s profile`}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">
-                {postUser?.username?.charAt(0).toUpperCase() || "U"}
-              </span>
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="h-10 w-10 rounded-full border border-blue-500 overflow-hidden">
+            {postUser?.profilePicture ? (
+              <img
+                src={postUser.profilePicture}
+                alt={`${postUser.username}'s profile`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">
+                  {postUser?.username?.charAt(0).toUpperCase() || "U"}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="ml-3">
+            <h3 className="font-semibold text-gray-800">
+              {postUser?.username || "Unknown User"}
+            </h3>
+            {postUser?.firstname && postUser?.lastname && (
+              <p className="text-xs text-gray-500">
+                {postUser.firstname} {postUser.lastname}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Three dots menu - only show if current user is the post owner or an admin */}
+        {currentUser &&
+          (currentUser._id === userId || currentUser.role === "admin") && (
+            <div className="relative" ref={menuRef}>
+              <button
+                className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                onClick={() => setShowMenu(!showMenu)}
+              >
+                <FaEllipsisV />
+              </button>
+
+              {/* Dropdown menu */}
+              {showMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                  <button
+                    className="flex items-center w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100 rounded-md"
+                    onClick={handleDeletePost}
+                  >
+                    <FaTrash className="mr-2" />
+                    Delete post
+                  </button>
+                </div>
+              )}
             </div>
           )}
-        </div>
-        <div className="ml-3">
-          <h3 className="font-semibold text-gray-800">
-            {postUser?.username || "Unknown User"}
-          </h3>
-          {postUser?.firstname && postUser?.lastname && (
-            <p className="text-xs text-gray-500">
-              {postUser.firstname} {postUser.lastname}
-            </p>
-          )}
-        </div>
       </div>
       <div className="w-full h-[400px] sm:h-[400px] bg-gray-100">
         {image ? (

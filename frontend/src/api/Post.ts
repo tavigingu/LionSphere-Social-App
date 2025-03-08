@@ -100,3 +100,23 @@ export const commentOnPost = async ( postId: string, userId: string, text: strin
     throw error;
   }
 } 
+
+export const deletePost = async (postId: string, userId: string): Promise<void> => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/post/${postId}`, {
+      data: { userId } 
+    });
+    
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to delete post');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to delete post:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to delete post');
+    }
+    throw error;
+  }
+};
+
+

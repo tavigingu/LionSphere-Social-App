@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import useAuthStore from "../store/AuthStore";
-import { getTimelinePosts } from "../api/Post";
+import useAuthStore from "../../store/AuthStore";
+import { getTimelinePosts } from "../../api/Post";
 
 const ProfileSide: React.FC = () => {
   const { user } = useAuthStore();

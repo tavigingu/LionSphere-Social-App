@@ -1,4 +1,4 @@
-import { getTimelinePosts, likePost, createPost, commentOnPost } from "../api/Post";
+import { getTimelinePosts, likePost, createPost, commentOnPost, deletePost } from "../api/Post";
 import { PostState } from "../types/PostTypes"
 import { create } from 'zustand';
 import { IPost } from "../types/PostTypes";
@@ -8,6 +8,7 @@ interface PostStore extends PostState {
     //fetchUserPosts: (userId: string) => Promise<void>;
     likePost: (postId: string, userId: string) => Promise<void>
     createNewPost: (postData: Omit<IPost, '_id' | 'username' | 'likes' | 'createdAt' | 'updatedAt'>) => Promise<IPost>;
+    deletePost: (postId: string, userId: string) => Promise<void>;
     addComment: (postId: string, userId: string, text: string) => Promise<void>;
     clearError: () => void;
     resetState: () => void;
@@ -108,6 +109,25 @@ const usePostStore = create<PostStore>((set,get) => ({
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to add comment';
           set({ error: errorMessage });
+        }
+      },
+
+      deletePost: async(postId: string, userId: string) => {
+        try {
+          set({ loading: true, error: null });
+          await deletePost(postId, userId);
+          
+          // Remove the deleted post from all relevant state arrays
+          set((state) => ({
+            timelinePosts: state.timelinePosts.filter(post => post._id !== postId),
+            userPosts: state.userPosts.filter(post => post._id !== postId),
+            posts: state.posts.filter(post => post._id !== postId),
+            loading: false
+          }));
+          
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to delete post';
+          set({ error: errorMessage, loading: false });
         }
       },
 

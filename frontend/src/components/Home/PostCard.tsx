@@ -6,7 +6,7 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import React, { useState, useEffect, useRef } from "react";
-//import { IPost } from "../types/PostTypes";
+import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/AuthStore";
 import usePostStore from "../../store/PostStore";
 import axios from "axios";
@@ -37,6 +37,7 @@ const PostCard: React.FC<PostCardProps> = ({
   onLike,
   isLiked = false,
 }) => {
+  const navigate = useNavigate();
   const { user: currentUser } = useAuthStore();
   const { addComment, deletePost } = usePostStore();
   const [postUser, setPostUser] = useState<{
@@ -69,6 +70,10 @@ const PostCard: React.FC<PostCardProps> = ({
         console.error("Error deleting post:", error);
       }
     }
+  };
+
+  const navigateToProfile = (userId: string) => {
+    navigate(`/profile/${userId}`);
   };
 
   useEffect(() => {
@@ -138,7 +143,10 @@ const PostCard: React.FC<PostCardProps> = ({
   return (
     <div className="bg-white rounded-xl shadow-xl overflow-hidden mb-6 max-w-xl">
       <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center">
+        <div
+          className="flex items-center cursor-pointer"
+          onClick={() => navigateToProfile(userId)}
+        >
           <div className="h-10 w-10 rounded-full border border-blue-500 overflow-hidden">
             {postUser?.profilePicture ? (
               <img
@@ -235,7 +243,10 @@ const PostCard: React.FC<PostCardProps> = ({
       </div>
       <div className="px-4 pb-3">
         <div className="flex">
-          <h4 className="font-semibold text-gray-800">
+          <h4
+            className="font-semibold text-gray-800 cursor-pointer hover:text-blue-600"
+            onClick={() => navigateToProfile(userId)}
+          >
             {postUser?.username || "Unknown User"}
           </h4>
           <p className="text-gray-800 ml-2">{desc}</p>
@@ -247,7 +258,10 @@ const PostCard: React.FC<PostCardProps> = ({
             {(showAllComments ? comments : comments.slice(0, 1)).map(
               (comment, index) => (
                 <div key={comment._id || index} className="flex mb-3">
-                  <div className="w-8 h-8 rounded-full overflow-hidden mr-2">
+                  <div
+                    className="w-8 h-8 rounded-full overflow-hidden mr-2 cursor-pointer"
+                    onClick={() => navigateToProfile(comment.userId)}
+                  >
                     {commentUsers[comment.userId]?.profilePicture ? (
                       <img
                         src={commentUsers[comment.userId].profilePicture}
@@ -266,7 +280,10 @@ const PostCard: React.FC<PostCardProps> = ({
                   </div>
                   <div className="flex-1">
                     <div className="bg-gray-100 rounded-lg p-2">
-                      <p className="text-sm font-medium text-gray-800">
+                      <p
+                        className="text-sm font-medium text-gray-800 cursor-pointer hover:text-blue-600"
+                        onClick={() => navigateToProfile(comment.userId)}
+                      >
                         {commentUsers[comment.userId]?.username ||
                           "Unknown User"}
                       </p>
@@ -320,7 +337,10 @@ const PostCard: React.FC<PostCardProps> = ({
             }
           }}
         >
-          <div className="w-8 h-8 rounded-full overflow-hidden mr-2">
+          <div
+            className="w-8 h-8 rounded-full overflow-hidden mr-2 cursor-pointer"
+            onClick={() => currentUser && navigateToProfile(currentUser._id)}
+          >
             {currentUser?.profilePicture ? (
               <img
                 src={currentUser.profilePicture}

@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:5001';
 
-interface TimelineResponse {
+interface getPostsResponse {
     message: string,
     success: boolean,
     posts: IPost[]
@@ -11,7 +11,7 @@ interface TimelineResponse {
 
 export const getTimelinePosts = async (userId: string ): Promise<IPost[]> => {
     try {
-        const response = await axios.get<TimelineResponse>(`${BASE_URL}/post/${userId}/timeline`);
+        const response = await axios.get<getPostsResponse>(`${BASE_URL}/post/${userId}/timeline`);
         return response.data.posts;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -23,6 +23,18 @@ export const getTimelinePosts = async (userId: string ): Promise<IPost[]> => {
 }
 
   //getuserposts to do
+export const getuserPosts = async( userId: string) : Promise<IPost[]> => {
+  try{
+    const response = await axios.get<getPostsResponse>(`${BASE_URL}/post/${userId}/posts`);
+    return response.data.posts
+  } catch (error) {
+      if(axios.isAxiosError(error)){
+        console.error('Get posts failed:', error.response?.data);
+        throw new Error(`Get posts failed: ${error.response?.data?.message} || 'Unknown error'}`);
+      }
+      throw error;
+  }
+}
 
 export const likePost = async (postId: string, userId: string) : Promise<void> => {
     try {

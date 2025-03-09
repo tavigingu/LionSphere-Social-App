@@ -220,3 +220,37 @@ export const getTimelinePosts = async (req, res) => {
         });
     }
 };
+
+export const getUserPosts = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        const currentUser = await UserModel.findById(userId);
+        
+        if (!currentUser) {
+            return res.status(404).json({
+                message: "User not found",
+                success: false
+            });
+        }
+
+        // Preia postările utilizatorului curent
+        const currentUserPosts = await PostModel.find({ userId: userId });
+
+        // Sortează postările cronologic, cele mai recente primele
+        const timelinePosts = currentUserPosts.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+        res.status(200).json({
+            message: "User posts fetched successfully",
+            success: true,
+            posts: timelinePosts 
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};

@@ -24,7 +24,6 @@ const ProfilePage: React.FC = () => {
 
   // Check if viewing own profile
   const isOwnProfile = currentUser?._id === (userId || currentUser?._id);
-
   // If no userId is provided, use the current user's ID
   const targetUserId = userId || currentUser?._id;
 
@@ -47,7 +46,7 @@ const ProfilePage: React.FC = () => {
 
           // Fetch user's posts
           const postsResponse = await axios.get(
-            `http://localhost:5001/post/${targetUserId}/timeline`
+            `http://localhost:5001/post/${targetUserId}/posts`
           );
 
           if (postsResponse.data.success) {
@@ -140,44 +139,53 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Main content - middle column */}
-          <div className="w-full lg:flex-1 mx-0 lg:ml-6 lg:mr-6">
-            {/* Profile header */}
-            <ProfileHeader user={profileUser} isOwnProfile={isOwnProfile} />
+          {/* Main content - middle column with same positioning as HomePage */}
+          <div className="w-full lg:flex-1 mx-0 lg:mx-6">
+            {/* Main content wrapper with consistent width */}
+            <div className="max-w-2xl mx-auto">
+              {/* Profile header with post count */}
+              <div className="px-0">
+                <ProfileHeader
+                  user={profileUser}
+                  isOwnProfile={isOwnProfile}
+                  postCount={userPosts.length}
+                />
+              </div>
 
-            {/* User's posts section */}
-            <div className="mt-6 ml-19">
-              <h2 className="text-xl font-bold mb-4 text-white">Posts</h2>
+              {/* User's posts section */}
+              <div className="mt-6">
+                <h2 className="text-xl font-bold mb-4 text-white">Posts</h2>
 
-              {userPosts.length === 0 ? (
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-center">
-                  <p className="text-white">
-                    {isOwnProfile
-                      ? "You haven't created any posts yet."
-                      : "This user hasn't created any posts yet."}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {userPosts.map((post) => (
-                    <PostCard
-                      key={post._id}
-                      _id={post._id || ""}
-                      userId={post.userId}
-                      desc={post.desc}
-                      likes={post.likes || []}
-                      image={post.image}
-                      comments={post.comments || []}
-                      onLike={() => post._id && handleLikePost(post._id)}
-                      isLiked={
-                        currentUser
-                          ? post.likes?.includes(currentUser._id)
-                          : false
-                      }
-                    />
-                  ))}
-                </div>
-              )}
+                {userPosts.length === 0 ? (
+                  <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-center">
+                    <p className="text-white">
+                      {isOwnProfile
+                        ? "You haven't created any posts yet."
+                        : "This user hasn't created any posts yet."}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {userPosts.map((post) => (
+                      <PostCard
+                        key={post._id}
+                        _id={post._id || ""}
+                        userId={post.userId}
+                        desc={post.desc}
+                        likes={post.likes || []}
+                        image={post.image}
+                        comments={post.comments || []}
+                        onLike={() => post._id && handleLikePost(post._id)}
+                        isLiked={
+                          currentUser
+                            ? post.likes?.includes(currentUser._id)
+                            : false
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -50,6 +50,10 @@ const UserSchema = mongoose.Schema(
         city: String,
         worksAt: String,
         occupation: String,
+        facebook: String,
+        instagram: String,
+        linedin: String,
+        github: String,
         followers: [String],
         following: [String]
     },

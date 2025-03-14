@@ -10,6 +10,7 @@ import ProfileHeader from "../components/Profile/ProfileHeader";
 import UserInfoSidebar from "../components/Profile/UserInfoSide";
 import { IUser } from "../types/AuthTypes";
 import { IPost } from "../types/PostTypes";
+import { followUser, unfollowUser, checkFollowStatus } from "../api/User";
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -21,6 +22,8 @@ const ProfilePage: React.FC = () => {
   const [userPosts, setUserPosts] = useState<IPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   // Check if viewing own profile
   const isOwnProfile = currentUser?._id === (userId || currentUser?._id);
@@ -42,7 +45,13 @@ const ProfilePage: React.FC = () => {
         );
 
         if (userResponse.data.success) {
-          setProfileUser(userResponse.data.user);
+          const userData = userResponse.data.user;
+          setProfileUser(userData);
+
+          // Check if the current user is following this profile
+          if (currentUser && !isOwnProfile) {
+            setIsFollowing(checkFollowStatus(userData, currentUser._id));
+          }
 
           // Fetch user's posts
           const postsResponse = await axios.get(
@@ -68,7 +77,7 @@ const ProfilePage: React.FC = () => {
     };
 
     fetchProfileData();
-  }, [targetUserId, navigate]);
+  }, [targetUserId, navigate, currentUser, isOwnProfile]);
 
   const handleLikePost = async (postId: string) => {
     if (currentUser && currentUser._id) {
@@ -89,6 +98,50 @@ const ProfilePage: React.FC = () => {
           return post;
         })
       );
+    }
+  };
+
+  const handleProfileUpdate = (updatedUser: IUser) => {
+    setProfileUser(updatedUser);
+  };
+
+  const handleFollowToggle = async () => {
+    if (!currentUser || !profileUser) return;
+
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await unfollowUser(profileUser._id, currentUser._id);
+        // Update profile user's followers count - handle as string[]
+        setProfileUser((prev) => {
+          if (!prev) return prev;
+          // Explicitly cast followers to string[] for correct typing
+          const followers = Array.isArray(prev.followers)
+            ? ([...prev.followers] as string[])
+            : [];
+          const updatedFollowers = followers.filter(
+            (id) => id !== currentUser._id
+          );
+          return { ...prev, followers: updatedFollowers };
+        });
+      } else {
+        await followUser(profileUser._id, currentUser._id);
+        // Update profile user's followers count - handle as string[]
+        setProfileUser((prev) => {
+          if (!prev) return prev;
+          // Explicitly cast followers to string[] for correct typing
+          const followers = Array.isArray(prev.followers)
+            ? ([...prev.followers] as string[])
+            : [];
+          return { ...prev, followers: [...followers, currentUser._id] };
+        });
+      }
+      // Toggle following state
+      setIsFollowing(!isFollowing);
+    } catch (err) {
+      console.error("Error toggling follow status:", err);
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -135,7 +188,11 @@ const ProfilePage: React.FC = () => {
           {/* Left sidebar with user info - visible on desktop, hidden on mobile */}
           <div className="hidden lg:block lg:w-80 mb-6 lg:mb-0">
             <div className="lg:sticky lg:top-4">
-              <UserInfoSidebar user={profileUser} />
+              <UserInfoSidebar
+                user={profileUser}
+                isOwnProfile={isOwnProfile}
+                onProfileUpdate={handleProfileUpdate}
+              />
             </div>
           </div>
 
@@ -149,8 +206,35 @@ const ProfilePage: React.FC = () => {
                   user={profileUser}
                   isOwnProfile={isOwnProfile}
                   postCount={userPosts.length}
+                  onProfileUpdate={handleProfileUpdate}
                 />
               </div>
+
+              {/* Follow/Unfollow button - only shown when viewing other profiles */}
+              {!isOwnProfile && (
+                <div className="w-full mb-6">
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={followLoading}
+                    className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                      isFollowing
+                        ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    {followLoading ? (
+                      <span className="flex items-center justify-center">
+                        <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-current rounded-full"></div>
+                        Processing...
+                      </span>
+                    ) : isFollowing ? (
+                      "Unfollow"
+                    ) : (
+                      "Follow"
+                    )}
+                  </button>
+                </div>
+              )}
 
               {/* User's posts section */}
               <div className="mt-6">

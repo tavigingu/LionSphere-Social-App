@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { IUser } from "../../types/AuthTypes";
 import { FaPen, FaTimes, FaCheck, FaCamera } from "react-icons/fa";
-import { updateUser } from "../../api/User";
+import { updateUser, followUser, unfollowUser } from "../../api/User";
 import useAuthStore from "../../store/AuthStore";
 import uploadFile from "../../helpers/uploadFile";
 
@@ -9,18 +9,23 @@ interface ProfileHeaderProps {
   user: IUser | null;
   isOwnProfile: boolean;
   postCount?: number;
+  isFollowing?: boolean;
   onProfileUpdate?: (updatedUser: IUser) => void;
+  onFollowToggle?: () => void;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   user,
   isOwnProfile,
   postCount = 0,
+  isFollowing = false,
   onProfileUpdate,
+  onFollowToggle,
 }) => {
   const { user: currentUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState<
     "profile" | "cover" | null
   >(null);
@@ -100,6 +105,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const handleFollowToggle = async () => {
+    if (!currentUser || !user || !onFollowToggle) return;
+    
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await unfollowUser(user._id, currentUser._id);
+      } else {
+        await followUser(user._id, currentUser._id);
+      }
+      // Call the callback to update parent component state
+      onFollowToggle();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update follow status");
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -260,8 +284,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 <FaPen className="mr-2" /> Edit Profile
               </button>
             ) : (
-              <button className="bg-blue-600 hover:bg-blue-700 mt-2 text-white px-4 py-2 rounded-lg transition">
-                Follow
+              <button
+                onClick={handleFollowToggle}
+                disabled={followLoading}
+                className={`mt-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isFollowing
+                    ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                {followLoading ? (
+                  <span className="flex items-center justify-center">
+                    <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-current rounded-full"></div>
+                    Processing...
+                  </span>
+                ) : isFollowing ? (
+                  "Unfollow"
+                ) : (
+                  "Follow"
+                )}
               </button>
             )}
           </div>

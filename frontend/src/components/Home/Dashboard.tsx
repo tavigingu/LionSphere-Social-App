@@ -12,16 +12,35 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import useAuthStore from "../../store/AuthStore";
+import SearchSidebar from "../Home/SearchSidebar";
 
 const Dashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
   const navigate = useNavigate();
   const [activeButton, setActiveButton] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCompressed, setIsCompressed] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const handleClick = (buttonName: string) => {
     setActiveButton(buttonName);
     setMobileMenuOpen(false); // Close the mobile menu when selecting an option
+
+    // Handle special cases
+    if (buttonName === "search") {
+      setIsSearchOpen(true);
+      setIsCompressed(true);
+      return;
+    }
 
     // Handle navigation based on the button clicked
     switch (buttonName) {
@@ -35,12 +54,11 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
+  const handleCloseSearch = () => {
+    setIsSearchOpen(false);
+    setIsCompressed(false);
+    if (activeButton === "search") {
+      setActiveButton("home");
     }
   };
 
@@ -68,7 +86,9 @@ const Dashboard: React.FC = () => {
       style={{ cursor: "pointer" }}
     >
       {icon}
-      <span className="flex-1">{label}</span>
+      <span className={`flex-1 ${isCompressed ? "lg:hidden" : ""}`}>
+        {label}
+      </span>
     </button>
   );
 
@@ -92,7 +112,12 @@ const Dashboard: React.FC = () => {
               ? "fixed inset-0 p-4" // Fullscreen on mobile when open
               : "fixed -right-80 top-0 bottom-0 w-80 p-4 lg:right-0" // Hidden on mobile, visible on desktop
           } 
-          lg:w-80 lg:p-4 lg:fixed lg:right-0 lg:top-0 lg:bottom-0 flex flex-col`}
+          ${
+            isCompressed
+              ? "lg:w-20" // Compressed when search is open
+              : "lg:w-80" // Normal width
+          }
+          lg:p-4 lg:fixed lg:right-0 lg:top-0 lg:bottom-0 flex flex-col`}
       >
         {/* Mobile header with close button - only on mobile */}
         <div className="flex justify-between items-center mb-6 lg:hidden">
@@ -107,8 +132,12 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Desktop Title - hidden on mobile */}
-        <div className="hidden lg:block mb-8 p-2">
+        {/* Desktop Title - hidden on mobile and when compressed */}
+        <div
+          className={`hidden ${
+            isCompressed ? "lg:hidden" : "lg:block"
+          } mb-8 p-2`}
+        >
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
             LionSphere
           </h1>
@@ -183,7 +212,7 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* User info section */}
+        {/* User info section - hide details when compressed */}
         {user && (
           <div className="mt-4 p-3 rounded-lg bg-gray-50 flex items-center">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mr-3">
@@ -199,7 +228,11 @@ const Dashboard: React.FC = () => {
                 </span>
               )}
             </div>
-            <div className="flex-1 overflow-hidden">
+            <div
+              className={`flex-1 overflow-hidden ${
+                isCompressed ? "lg:hidden" : ""
+              }`}
+            >
               <p className="font-medium text-gray-800 truncate">
                 {user.username}
               </p>
@@ -221,7 +254,7 @@ const Dashboard: React.FC = () => {
             className="mr-4 transition-all duration-200"
             size={20}
           />
-          Log out
+          <span className={`${isCompressed ? "lg:hidden" : ""}`}>Log out</span>
         </button>
       </div>
 
@@ -232,6 +265,9 @@ const Dashboard: React.FC = () => {
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
+
+      {/* Search Sidebar */}
+      <SearchSidebar isOpen={isSearchOpen} onClose={handleCloseSearch} />
     </>
   );
 };

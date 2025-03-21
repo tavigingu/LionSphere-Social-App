@@ -152,7 +152,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 placeholder="Your city"
               />
             </div>
@@ -171,7 +171,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                 name="worksAt"
                 value={formData.worksAt}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 placeholder="Your workplace"
               />
             </div>
@@ -190,7 +190,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                 name="occupation"
                 value={formData.occupation}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 placeholder="Your occupation"
               />
             </div>
@@ -209,7 +209,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   name="instagram"
                   value={formData.instagram}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   placeholder="Instagram username"
                 />
               </div>
@@ -223,7 +223,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   name="facebook"
                   value={formData.facebook}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   placeholder="Facebook username or URL"
                 />
               </div>
@@ -237,7 +237,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   name="linkedin"
                   value={formData.linkedin}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   placeholder="LinkedIn username or URL"
                 />
               </div>
@@ -251,7 +251,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   name="github"
                   value={formData.github}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   placeholder="GitHub username"
                 />
               </div>

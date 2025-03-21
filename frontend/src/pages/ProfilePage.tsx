@@ -206,35 +206,13 @@ const ProfilePage: React.FC = () => {
                   user={profileUser}
                   isOwnProfile={isOwnProfile}
                   postCount={userPosts.length}
+                  isFollowing={isFollowing}
                   onProfileUpdate={handleProfileUpdate}
+                  onFollowToggle={handleFollowToggle}
                 />
               </div>
 
-              {/* Follow/Unfollow button - only shown when viewing other profiles */}
-              {!isOwnProfile && (
-                <div className="w-full mb-6">
-                  <button
-                    onClick={handleFollowToggle}
-                    disabled={followLoading}
-                    className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                      isFollowing
-                        ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                    }`}
-                  >
-                    {followLoading ? (
-                      <span className="flex items-center justify-center">
-                        <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-current rounded-full"></div>
-                        Processing...
-                      </span>
-                    ) : isFollowing ? (
-                      "Unfollow"
-                    ) : (
-                      "Follow"
-                    )}
-                  </button>
-                </div>
-              )}
+              {/* Butonul de follow a fost mutat în ProfileHeader */}
 
               {/* User's posts section */}
               <div className="mt-6">

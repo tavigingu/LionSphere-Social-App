@@ -85,7 +85,7 @@ const ProfileSide: React.FC = () => {
             <p className="font-bold text-gray-800">{user.followers.length}</p>
           </div>
           <div className="text-center">
-            <p className="text-gray-500 text-sm">Following</p>
+            <p className="text-gray-500 text-sm">Following</p>  
             <p className="font-bold text-gray-800">{user.following.length}</p>
           </div>
         </div>

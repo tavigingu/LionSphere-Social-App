@@ -195,7 +195,7 @@ export const getTimelinePosts = async (req, res) => {
 
         // Preia postările de la utilizatorii urmăriți 
         const friendPosts = await PostModel.find({ 
-            userId: { $in: currentUser.followers } 
+            userId: { $in: currentUser.following } 
         });
 
         // Sortează postările cronologic, cele mai recente primele

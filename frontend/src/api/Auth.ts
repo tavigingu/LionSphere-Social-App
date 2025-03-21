@@ -42,3 +42,4 @@ export const logoutUser = async (): Promise<void> => {
     throw error;
   }
 };
+

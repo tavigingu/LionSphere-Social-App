@@ -223,7 +223,7 @@ export const unfollowUser = async (req, res) => {
             });
         }
 
-        if (!currentUser.followers.includes(_id)) {
+        if (!currentUser.following.includes(userId)) {
             return res.status(400).json({
                 message: "You don't follow this user",
                 success: false
@@ -297,3 +297,49 @@ export const searchUsers = async (req, res) => {
         console.log("[Backend] Error response sent");
     }
 }
+
+export const getSuggestedUsers = async (req, res) => {
+    try {
+        console.log("a intrat infct");
+        const { userId } = req.query;
+        
+        if (!userId) {
+            return res.status(400).json({
+                message: "ID-ul utilizatorului este necesar",
+                success: false
+            });
+        }
+        
+        // Obținem utilizatorul pentru a-i lua lista de following
+        const currentUser = await UserModel.findById(userId);
+        
+        if (!currentUser) {
+            return res.status(404).json({
+                message: "Utilizatorul nu a fost găsit",
+                success: false
+            });
+        }
+        
+        // Găsim utilizatori pe care utilizatorul curent nu îi urmărește deja
+        const suggestedUsers = await UserModel.find({
+            _id: { $ne: userId }, // Excludem utilizatorul curent
+            _id: { $nin: currentUser.following } // Excludem utilizatorii urmăriți deja
+        })
+        .select('-password') // Excludem parola din rezultate
+        .limit(5)
+        .sort({ createdAt: -1 }); // Opțional: utilizatorii cei mai noi întâi
+
+        //console.log(suggestedUsers);
+
+        res.status(200).json({
+            message: "Sugestii de utilizatori generate cu succes",
+            success: true,
+            users: suggestedUsers
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};

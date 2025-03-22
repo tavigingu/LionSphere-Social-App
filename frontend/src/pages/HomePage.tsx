@@ -5,6 +5,7 @@ import Background from "../components/Home/Background";
 import ProfileSide from "../components/Home/ProfileSide";
 import PostCard from "../components/Home/PostCard";
 import Dashboard from "../components/Home/Dashboard";
+import PeopleYouMayKnow from "../components/Home/PeopleYouMayKnow";
 
 const HomePage: React.FC = () => {
   const { user } = useAuthStore();
@@ -38,7 +39,7 @@ const HomePage: React.FC = () => {
     <div className="relative min-h-screen text-white">
       <Background />
 
-      {/* Conținut principal cu padding ajustat pentru fiecare dimensiune de ecran */}
+      {/* Main content with padding adjusted for each screen size */}
       <div className="container mx-auto px-4 py-4 relative z-10 lg:pr-96">
         <div className="flex flex-col lg:flex-row">
           {/* Left sidebar with profile - hidden on mobile */}
@@ -50,9 +51,12 @@ const HomePage: React.FC = () => {
 
           {/* Main content - middle column */}
           <div className="w-full lg:flex-1 mx-0 lg:mx-6">
-            {/* Main content wrapper cu lățime consistentă */}
+            {/* Main content wrapper with consistent width */}
             <div className="max-w-2xl mx-auto">
-              {/* Post creation form */}
+              {/* People You May Know section - visible at the top of feed */}
+              <div className="mb-6">
+                <PeopleYouMayKnow />
+              </div>
 
               {/* Loading indicator */}
               {loading && (

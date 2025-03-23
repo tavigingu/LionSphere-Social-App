@@ -116,12 +116,12 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className={`fixed inset-y-0 right-0 bg-white shadow-xl transition-all duration-300 ease-in-out z-50 ${
+      className={`fixed inset-y-0 right-0 bg-white shadow-xl transition-all duration-300 hover:shadow-2xl ease-in-out z-50 ${
         isOpen ? "w-80" : "w-0 opacity-0"
-      } overflow-hidden`}
+      } overflow-hidden flex flex-col`}
       ref={searchRef}
     >
-      <div className="p-4 h-full flex flex-col">
+      <div className="p-4 flex flex-col h-full">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-800">Search Users</h2>
           <button
@@ -160,55 +160,66 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        {loading ? (
-          <div className="flex justify-center items-center flex-grow">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div className="overflow-y-auto flex-grow">
-            {searchResults.length === 0 && searchTerm ? (
-              <div className="text-center text-gray-500 py-8">
-                No users found matching '{searchTerm}'
-              </div>
-            ) : searchResults.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                Search for users by username or name
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {searchResults.map((user) => (
-                  <div
-                    key={user._id}
-                    onClick={() => navigateToProfile(user._id)}
-                    className="flex items-center p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition"
-                  >
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mr-3">
-                      {user.profilePicture ? (
-                        <img
-                          src={user.profilePicture}
-                          alt={`${user.username}'s profile`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-white font-bold">
-                          {user.username.charAt(0).toUpperCase()}
-                        </span>
-                      )}
+        <div className="flex-grow overflow-y-auto">
+          {loading ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <div>
+              {searchResults.length === 0 && searchTerm ? (
+                <div className="text-center text-gray-500 py-8">
+                  No users found matching '{searchTerm}'
+                </div>
+              ) : searchResults.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  Search for users by username or name
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {searchResults.map((user) => (
+                    <div
+                      key={user._id}
+                      onClick={() => navigateToProfile(user._id)}
+                      className="flex items-center p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition"
+                    >
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mr-3">
+                        {user.profilePicture ? (
+                          <img
+                            src={user.profilePicture}
+                            alt={`${user.username}'s profile`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-white font-bold">
+                            {user.username.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-800">
+                          {user.username}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {user.firstname} {user.lastname}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-gray-800">
-                        {user.username}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {user.firstname} {user.lastname}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer cu text - poziționat la sfârșitul conținutului și mereu vizibil */}
+        <div className="mt-auto border-t border-gray-200">
+          <div className="py-4 text-center">
+            <p className="text-xs text-gray-300 font-medium tracking-wider">
+              © 2025 LIONSHPERE BY TAVI GINGU
+            </p>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

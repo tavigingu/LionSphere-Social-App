@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IUser } from "../../types/AuthTypes";
 import {
   FaBriefcase,
@@ -31,6 +31,9 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [animateItems, setAnimateItems] = useState(false);
 
   const [formData, setFormData] = useState({
     city: user?.city || "",
@@ -42,9 +45,27 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
     github: user?.github || "",
   });
 
+  // Trigger entrance animations after component mounts
+  useEffect(() => {
+    // Small delay for container animation
+    const containerTimer = setTimeout(() => {
+      setIsVisible(true);
+    }, 200);
+
+    // Additional delay for items animation
+    const itemsTimer = setTimeout(() => {
+      setAnimateItems(true);
+    }, 600);
+
+    return () => {
+      clearTimeout(containerTimer);
+      clearTimeout(itemsTimer);
+    };
+  }, []);
+
   if (!user) {
     return (
-      <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden p-6">
+      <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden p-6 opacity-0 animate-pulse">
         <p className="text-gray-500 text-center">Loading user information...</p>
       </div>
     );
@@ -102,19 +123,25 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
     setError(null);
   };
 
-  // Check if any information exists
-  const hasDetails = user.worksAt || user.occupation || user.city || user.email;
+  // Dynamic classes for container entrance animation
+  const containerClasses = `w-full bg-white rounded-xl shadow-xl overflow-hidden p-6 transition-all duration-400 ease-out 
+    ${
+      isVisible
+        ? "opacity-100 transform translate-x-0"
+        : "opacity-0 transform translate-x-8"
+    } 
+    hover:shadow-2xl`;
 
   // Render edit form when editing is active
   if (isEditing) {
     return (
-      <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden p-6">
+      <div className={containerClasses}>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-gray-800">Edit Profile</h3>
           <div className="flex space-x-2">
             <button
               onClick={cancelEdit}
-              className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
+              className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:rotate-90"
               title="Cancel"
             >
               <FaTimes />
@@ -122,7 +149,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className={`p-2 text-white rounded-full ${
+              className={`p-2 text-white rounded-full transition-all duration-300 transform hover:scale-110 ${
                 loading ? "bg-blue-400" : "bg-blue-500 hover:bg-blue-600"
               }`}
               title="Save"
@@ -133,7 +160,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 animate-pulse">
             {error}
           </div>
         )}
@@ -152,7 +179,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                 placeholder="Your city"
               />
             </div>
@@ -171,7 +198,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                 name="worksAt"
                 value={formData.worksAt}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                 placeholder="Your workplace"
               />
             </div>
@@ -190,7 +217,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                 name="occupation"
                 value={formData.occupation}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                 placeholder="Your occupation"
               />
             </div>
@@ -209,7 +236,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   name="instagram"
                   value={formData.instagram}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                   placeholder="Instagram username"
                 />
               </div>
@@ -223,7 +250,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   name="facebook"
                   value={formData.facebook}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                   placeholder="Facebook username or URL"
                 />
               </div>
@@ -237,7 +264,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   name="linkedin"
                   value={formData.linkedin}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                   placeholder="LinkedIn username or URL"
                 />
               </div>
@@ -251,7 +278,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   name="github"
                   value={formData.github}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                   placeholder="GitHub username"
                 />
               </div>
@@ -264,13 +291,13 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
 
   // Main display content
   return (
-    <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden p-6">
+    <div className={containerClasses}>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-gray-800">Profile Info</h3>
         {isOwnProfile && (
           <button
             onClick={() => setIsEditing(true)}
-            className="p-2 text-blue-500 hover:text-blue-700 rounded-full hover:bg-blue-50 transition-colors"
+            className="p-2 text-blue-500 hover:text-blue-700 rounded-full hover:bg-blue-50 transition-all duration-300 transform hover:rotate-90"
             title="Edit profile"
           >
             <FaPen />
@@ -283,13 +310,27 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
         {/* Email Info Point - Always show email */}
-        <div className="relative z-10 flex mb-6">
+        <div
+          className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+            ${
+              animateItems
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-4"
+            } delay-100
+            hover:translate-x-2`}
+          onMouseEnter={() => setHoveredIcon("email")}
+          onMouseLeave={() => setHoveredIcon(null)}
+        >
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              user.email ? "bg-blue-500" : "bg-gray-300"
-            } mr-4`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              hoveredIcon === "email" ? "scale-110" : ""
+            } ${user.email ? "bg-blue-500" : "bg-gray-300"} mr-4`}
           >
-            <FaEnvelope className="text-white text-sm" />
+            <FaEnvelope
+              className={`text-white text-sm ${
+                hoveredIcon === "email" ? "animate-bounce" : ""
+              }`}
+            />
           </div>
           <div className="flex-1">
             <p className="text-sm text-gray-500">Email</p>
@@ -298,13 +339,27 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
 
         {/* Location Info Point */}
-        <div className="relative z-10 flex mb-6">
+        <div
+          className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+            ${
+              animateItems
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-4"
+            } delay-200
+            hover:translate-x-2`}
+          onMouseEnter={() => setHoveredIcon("location")}
+          onMouseLeave={() => setHoveredIcon(null)}
+        >
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              user.city ? "bg-green-500" : "bg-gray-300"
-            } mr-4`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              hoveredIcon === "location" ? "scale-110" : ""
+            } ${user.city ? "bg-green-500" : "bg-gray-300"} mr-4`}
           >
-            <FaMapMarkerAlt className="text-white text-sm" />
+            <FaMapMarkerAlt
+              className={`text-white text-sm ${
+                hoveredIcon === "location" ? "animate-bounce" : ""
+              }`}
+            />
           </div>
           <div className="flex-1">
             <p className="text-sm text-gray-500">Location</p>
@@ -319,13 +374,27 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
 
         {/* Work Info Point */}
-        <div className="relative z-10 flex mb-6">
+        <div
+          className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+            ${
+              animateItems
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-4"
+            } delay-300
+            hover:translate-x-2`}
+          onMouseEnter={() => setHoveredIcon("work")}
+          onMouseLeave={() => setHoveredIcon(null)}
+        >
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              user.worksAt ? "bg-purple-500" : "bg-gray-300"
-            } mr-4`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              hoveredIcon === "work" ? "scale-110" : ""
+            } ${user.worksAt ? "bg-purple-500" : "bg-gray-300"} mr-4`}
           >
-            <FaBriefcase className="text-white text-sm" />
+            <FaBriefcase
+              className={`text-white text-sm ${
+                hoveredIcon === "work" ? "animate-bounce" : ""
+              }`}
+            />
           </div>
           <div className="flex-1">
             <p className="text-sm text-gray-500">Works at</p>
@@ -342,13 +411,27 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
 
         {/* Occupation Info Point */}
-        <div className="relative z-10 flex">
+        <div
+          className={`relative z-10 flex transition-all duration-500 transform 
+            ${
+              animateItems
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-4"
+            } delay-400
+            hover:translate-x-2`}
+          onMouseEnter={() => setHoveredIcon("occupation")}
+          onMouseLeave={() => setHoveredIcon(null)}
+        >
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              user.occupation ? "bg-yellow-500" : "bg-gray-300"
-            } mr-4`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              hoveredIcon === "occupation" ? "scale-110" : ""
+            } ${user.occupation ? "bg-yellow-500" : "bg-gray-300"} mr-4`}
           >
-            <FaGraduationCap className="text-white text-sm" />
+            <FaGraduationCap
+              className={`text-white text-sm ${
+                hoveredIcon === "occupation" ? "animate-bounce" : ""
+              }`}
+            />
           </div>
           <div className="flex-1">
             <p className="text-sm text-gray-500">Occupation</p>
@@ -366,7 +449,15 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
       </div>
 
       {/* Social Media Section */}
-      <div className="mt-8 pt-4 border-t border-gray-200">
+      <div
+        className={`mt-8 pt-4 border-t border-gray-200 transition-all duration-500 
+        ${
+          animateItems
+            ? "opacity-100 transform translate-y-0"
+            : "opacity-0 transform translate-y-4"
+        } 
+        delay-500`}
+      >
         <h4 className="text-md font-semibold text-gray-700 mb-4">
           Social Media
         </h4>
@@ -375,15 +466,31 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
           {/* Instagram */}
-          <div className="relative z-10 flex mb-6">
+          <div
+            className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+              ${
+                animateItems
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 -translate-x-4"
+              } delay-600
+              hover:translate-x-2`}
+            onMouseEnter={() => setHoveredIcon("instagram")}
+            onMouseLeave={() => setHoveredIcon(null)}
+          >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                hoveredIcon === "instagram" ? "scale-110" : ""
+              } ${
                 user.instagram
                   ? "bg-gradient-to-tr from-purple-600 to-pink-500"
                   : "bg-gray-300"
               } mr-4`}
             >
-              <FaInstagram className="text-white text-sm" />
+              <FaInstagram
+                className={`text-white text-sm ${
+                  hoveredIcon === "instagram" ? "animate-bounce" : ""
+                }`}
+              />
             </div>
             <div className="flex-1">
               {user.instagram ? (
@@ -406,13 +513,27 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
 
           {/* Facebook */}
-          <div className="relative z-10 flex mb-6">
+          <div
+            className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+              ${
+                animateItems
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 -translate-x-4"
+              } delay-700
+              hover:translate-x-2`}
+            onMouseEnter={() => setHoveredIcon("facebook")}
+            onMouseLeave={() => setHoveredIcon(null)}
+          >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                user.facebook ? "bg-blue-600" : "bg-gray-300"
-              } mr-4`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                hoveredIcon === "facebook" ? "scale-110" : ""
+              } ${user.facebook ? "bg-blue-600" : "bg-gray-300"} mr-4`}
             >
-              <FaFacebook className="text-white text-sm" />
+              <FaFacebook
+                className={`text-white text-sm ${
+                  hoveredIcon === "facebook" ? "animate-bounce" : ""
+                }`}
+              />
             </div>
             <div className="flex-1">
               {user.facebook ? (
@@ -441,13 +562,27 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
 
           {/* LinkedIn */}
-          <div className="relative z-10 flex mb-6">
+          <div
+            className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+              ${
+                animateItems
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 -translate-x-4"
+              } delay-800
+              hover:translate-x-2`}
+            onMouseEnter={() => setHoveredIcon("linkedin")}
+            onMouseLeave={() => setHoveredIcon(null)}
+          >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                user.linkedin ? "bg-blue-700" : "bg-gray-300"
-              } mr-4`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                hoveredIcon === "linkedin" ? "scale-110" : ""
+              } ${user.linkedin ? "bg-blue-700" : "bg-gray-300"} mr-4`}
             >
-              <FaLinkedin className="text-white text-sm" />
+              <FaLinkedin
+                className={`text-white text-sm ${
+                  hoveredIcon === "linkedin" ? "animate-bounce" : ""
+                }`}
+              />
             </div>
             <div className="flex-1">
               {user.linkedin ? (
@@ -476,13 +611,27 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
 
           {/* GitHub */}
-          <div className="relative z-10 flex">
+          <div
+            className={`relative z-10 flex transition-all duration-500 transform 
+              ${
+                animateItems
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 -translate-x-4"
+              } delay-900
+              hover:translate-x-2`}
+            onMouseEnter={() => setHoveredIcon("github")}
+            onMouseLeave={() => setHoveredIcon(null)}
+          >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                user.github ? "bg-gray-800" : "bg-gray-300"
-              } mr-4`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                hoveredIcon === "github" ? "scale-110" : ""
+              } ${user.github ? "bg-gray-800" : "bg-gray-300"} mr-4`}
             >
-              <FaGithub className="text-white text-sm" />
+              <FaGithub
+                className={`text-white text-sm ${
+                  hoveredIcon === "github" ? "animate-bounce" : ""
+                }`}
+              />
             </div>
             <div className="flex-1">
               {user.github ? (
@@ -508,7 +657,15 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
 
       {/* Profile Completeness section */}
       {isOwnProfile && (
-        <div className="mt-8 pt-4 border-t border-gray-200">
+        <div
+          className={`mt-8 pt-4 border-t border-gray-200 transition-all duration-500 
+          ${
+            animateItems
+              ? "opacity-100 transform translate-y-0"
+              : "opacity-0 transform translate-y-4"
+          } 
+          delay-1000`}
+        >
           <div className="flex justify-between mb-2">
             <h4 className="text-md font-semibold text-gray-700">
               Profile Completeness
@@ -517,9 +674,9 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
               {calculateProfileCompleteness(user)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
             <div
-              className="bg-blue-600 h-2.5 rounded-full"
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-1500 ease-out"
               style={{ width: `${calculateProfileCompleteness(user)}%` }}
             ></div>
           </div>

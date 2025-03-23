@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
 
       {/* Dashboard - different display on mobile vs desktop */}
       <div
-        className={`bg-white shadow-xl overflow-y-auto overflow-x-hidden transition-all duration-300 z-40
+        className={`bg-white shadow-xl overflow-y-auto overflow-x-hidden transition-all duration-300 hover:shadow-2xl z-40
           ${
             mobileMenuOpen
               ? "fixed inset-0 p-4" // Fullscreen on mobile when open
@@ -243,6 +243,13 @@ const Dashboard: React.FC = () => {
 
         {/* Divider */}
         <div className="border-t border-gray-200 my-4"></div>
+
+        {/* Footer - adăugat între divider și logout button */}
+        <div className={`text-center mb-4 ${isCompressed ? "lg:hidden" : ""}`}>
+          <p className="text-xs text-gray-300 font-light tracking-wider">
+            © 2025 LIONSHPERE BY TAVI GINGU
+          </p>
+        </div>
 
         {/* Logout Button */}
         <button

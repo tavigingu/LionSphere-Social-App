@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/AuthStore";
 import usePostStore from "../../store/PostStore";
 import axios from "axios";
+import UserListModal from "../UserListModal";
 
 interface PostCardProps {
   _id: string;
@@ -60,6 +61,9 @@ const PostCard: React.FC<PostCardProps> = ({
     >
   >({});
   const [commentText, setCommentText] = useState("");
+
+  // State for UserListModal
+  const [isLikesModalOpen, setIsLikesModalOpen] = useState(false);
 
   const handleDeletePost = async () => {
     if (_id && currentUser) {
@@ -125,6 +129,45 @@ const PostCard: React.FC<PostCardProps> = ({
     };
     fetchCommentUsers();
   }, [comments]);
+
+  // Function to fetch users who liked the post
+  const fetchLikes = async (page: number, limit: number) => {
+    try {
+      // In a real application, you would make an API call here
+      // For now, we'll simulate a response by using the likes array
+      const likedUsers = [];
+
+      // Get users for each like ID (with pagination)
+      const startIndex = (page - 1) * limit;
+      const endIndex = Math.min(startIndex + limit, likes.length);
+
+      for (let i = startIndex; i < endIndex; i++) {
+        if (i >= likes.length) break;
+
+        try {
+          const response = await axios.get(
+            `http://localhost:5001/user/${likes[i]}`
+          );
+          if (response.data.success) {
+            likedUsers.push(response.data.user);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to fetch user data for like ID ${likes[i]}:`,
+            error
+          );
+        }
+      }
+
+      return {
+        users: likedUsers,
+        hasMore: endIndex < likes.length,
+      };
+    } catch (error) {
+      console.error("Error fetching likes:", error);
+      return { users: [], hasMore: false };
+    }
+  };
 
   // Handle outside clicks to close the menu
   useEffect(() => {
@@ -209,37 +252,46 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         )}
       </div>
-      <div className="px-4 py-3 flex space-x-6">
-        <button
-          onClick={onLike}
-          className="flex items-center transition-colors"
-        >
-          {isLiked ? (
-            <div className="flex items-center">
+      <div className="px-4 py-3 flex space-x-8">
+        {/* Like Button Section */}
+        <div className="flex flex-col items-center">
+          <button onClick={onLike} className="transition-colors">
+            {isLiked ? (
               <FaHeart
-                className="mr-2 text-2xl text-purple-500 filter drop-shadow-lg"
+                className="text-2xl text-purple-500 filter drop-shadow-lg"
                 style={{
                   filter: "drop-shadow(0 0 3px rgba(147, 51, 234, 0.5))",
                 }}
               />
-              <span className="text-purple-500">{likes.length}</span>
-            </div>
-          ) : (
-            <div className="flex items-center text-gray-700 hover:text-purple-500 transition-colors">
-              <FaRegHeart className="text-2xl" />
-              <span className="ml-2 text-sm">{likes.length}</span>
-            </div>
-          )}
-        </button>
-        <button
-          className="flex items-center text-gray-700 hover:text-blue-500 transition-colors"
-          onClick={() => setShowAllComments(!showAllComments)}
-        >
-          <div className="flex items-center">
+            ) : (
+              <FaRegHeart className="text-2xl text-gray-700 hover:text-purple-500 transition-colors" />
+            )}
+          </button>
+          {/* Likes count button, clearly separated from like button */}
+          <button
+            onClick={() => likes.length > 0 && setIsLikesModalOpen(true)}
+            className={`mt-1 text-sm ${
+              likes.length > 0
+                ? "cursor-pointer hover:text-purple-500 hover:underline"
+                : "cursor-default"
+            } ${isLiked ? "text-purple-500" : "text-gray-700"}`}
+          >
+            {likes.length} {likes.length === 1 ? "like" : "likes"}
+          </button>
+        </div>
+
+        {/* Comment Button Section */}
+        <div className="flex flex-col items-center">
+          <button
+            className="transition-colors text-gray-700 hover:text-blue-500"
+            onClick={() => setShowAllComments(!showAllComments)}
+          >
             <FaRegComment className="text-2xl" />
-            <span className="ml-2 text-sm">{comments.length}</span>
-          </div>
-        </button>
+          </button>
+          {/* <span className="mt-1 text-sm text-gray-700">
+            {comments.length} {comments.length === 1 ? "comment" : "comments"}
+          </span> */}
+        </div>
       </div>
       <div className="px-4 pb-3">
         <div className="flex">
@@ -383,6 +435,15 @@ const PostCard: React.FC<PostCardProps> = ({
           </button>
         </form>
       </div>
+
+      {/* User List Modal for Likes */}
+      <UserListModal
+        isOpen={isLikesModalOpen}
+        onClose={() => setIsLikesModalOpen(false)}
+        title="Likes"
+        fetchUsers={fetchLikes}
+        postId={_id}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IUser } from "../../types/AuthTypes";
 import { FaPen, FaTimes, FaCheck, FaCamera } from "react-icons/fa";
 import { updateUser, followUser, unfollowUser } from "../../api/User";
@@ -30,6 +30,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     "profile" | "cover" | null
   >(null);
   const [error, setError] = useState<string | null>(null);
+  const [isHoveringCover, setIsHoveringCover] = useState(false);
+  const [isHoveringProfile, setIsHoveringProfile] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   const [formData, setFormData] = useState({
     firstname: user?.firstname || "",
@@ -39,9 +42,19 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     coverPicture: user?.coverPicture || "",
   });
 
+  // Trigger entrance animation after component mounts
+  useEffect(() => {
+    // Small delay for better perceived performance
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   if (!user) {
     return (
-      <div className="w-full max-w-xl lg:mx-0 lg:ml-6 bg-white rounded-xl shadow-xl overflow-hidden mb-6 p-6">
+      <div className="w-full max-w-xl lg:mx-0 lg:ml-6 bg-white rounded-xl shadow-xl overflow-hidden mb-6 p-6 duration-300 hover:shadow-2xl opacity-0 animate-pulse">
         <div className="flex justify-center items-center h-40">
           <p className="text-gray-500">Loading user profile...</p>
         </div>
@@ -107,10 +120,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       setLoading(false);
     }
   };
-  
+
   const handleFollowToggle = async () => {
     if (!currentUser || !user || !onFollowToggle) return;
-    
+
     setFollowLoading(true);
     try {
       if (isFollowing) {
@@ -121,7 +134,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       // Call the callback to update parent component state
       onFollowToggle();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update follow status");
+      setError(
+        err instanceof Error ? err.message : "Failed to update follow status"
+      );
     } finally {
       setFollowLoading(false);
     }
@@ -139,11 +154,22 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     setError(null);
   };
 
+  // Dynamic classes for entrance animation
+  const containerClasses = `w-full max-w-xl lg:mx-0 bg-white rounded-xl shadow-xl overflow-hidden mb-6 duration-400 hover:shadow-2xl 
+    ${
+      isVisible
+        ? "opacity-100 transform translate-y-0"
+        : "opacity-0 transform -translate-y-8"
+    } 
+    transition-all ease-out`;
+
   return (
-    <div className="w-full max-w-xl lg:mx-0 bg-white rounded-xl shadow-xl overflow-hidden mb-6">
+    <div className={containerClasses}>
       {/* Cover Image with Edit option */}
       <div
-        className="h-48 bg-cover bg-center relative"
+        className={`h-48 bg-cover bg-center relative transition duration-500 ease-in-out ${
+          isVisible ? "opacity-100" : "opacity-0"
+        }`}
         style={
           (isEditing ? formData.coverPicture : user.coverPicture)
             ? {
@@ -153,6 +179,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               }
             : { background: "linear-gradient(to right, #3b82f6, #8b5cf6)" }
         }
+        onMouseEnter={() => setIsHoveringCover(true)}
+        onMouseLeave={() => setIsHoveringCover(false)}
       >
         {isEditing && (
           <div className="absolute bottom-4 right-4">
@@ -181,8 +209,21 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       {/* Profile Information */}
       <div className="px-6 py-5 relative">
         {/* Profile Picture */}
-        <div className="absolute -top-16 mt-5 left-6">
-          <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden relative">
+        <div
+          className={`absolute -top-20 mt-5 left-6 transition-all duration-1000 ease-out 
+            ${
+              isVisible
+                ? "opacity-100 transform translate-y-0"
+                : "opacity-0 transform translate-y-6"
+            }`}
+          onMouseEnter={() => setIsHoveringProfile(true)}
+          onMouseLeave={() => setIsHoveringProfile(false)}
+        >
+          <div
+            className={`w-40 h-40 rounded-full border-4 border-white overflow-hidden relative transition-all duration-300 ease-in-out ${
+              isHoveringProfile ? "scale-110 shadow-lg" : ""
+            } ${isHoveringCover ? "opacity-70" : "opacity-100"}`}
+          >
             {(isEditing ? formData.profilePicture : user.profilePicture) ? (
               <img
                 src={isEditing ? formData.profilePicture : user.profilePicture}
@@ -221,8 +262,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </div>
         </div>
 
-        {/* User Details */}
-        <div className="ml-36 -mt-4">
+        {/* User Details - Adjusted margin to accommodate larger profile image */}
+        <div
+          className={`ml-44 -mt-1 transition-all duration-700 ${
+            isVisible
+              ? "opacity-100 transform translate-x-0 delay-200"
+              : "opacity-0 transform translate-x-8"
+          }`}
+        >
           <div className="flex justify-between items-start">
             <div>
               {isEditing ? (
@@ -315,7 +362,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           )}
 
           {/* Bio section - Aligned with left edge */}
-          <div className="mt-8 -ml-36 px-6">
+          <div
+            className={`mt-8 -ml-40 px-6 transition-all duration-700 ${
+              isVisible
+                ? "opacity-100 transform translate-y-0 delay-300"
+                : "opacity-0 transform translate-y-4"
+            }`}
+          >
             <h4 className="text-md font-semibold text-gray-700 mb-2">About</h4>
             {isEditing ? (
               <textarea
@@ -338,7 +391,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </div>
 
           {/* Stats - Added post count */}
-          <div className="mt-6 flex space-x-8 ml-30 px-6">
+          <div
+            className={`mt-6 flex space-x-8 ml-30 px-6 transition-all duration-700 ${
+              isVisible
+                ? "opacity-100 transform translate-y-0 delay-400"
+                : "opacity-0 transform translate-y-4"
+            }`}
+          >
             <div className="text-center">
               <p className="font-bold text-gray-800">{postCount}</p>
               <p className="text-gray-500 text-sm">Posts</p>

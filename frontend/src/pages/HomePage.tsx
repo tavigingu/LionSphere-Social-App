@@ -6,6 +6,7 @@ import ProfileSide from "../components/Home/ProfileSide";
 import PostCard from "../components/Home/PostCard";
 import Dashboard from "../components/Home/Dashboard";
 import PeopleYouMayKnow from "../components/Home/PeopleYouMayKnow";
+import PostCreationForm from "../components/PostCreationForm";
 
 const HomePage: React.FC = () => {
   const { user } = useAuthStore();
@@ -44,8 +45,11 @@ const HomePage: React.FC = () => {
         <div className="flex flex-col lg:flex-row">
           {/* Left sidebar with profile - hidden on mobile */}
           <div className="hidden lg:block lg:w-80 mb-6 lg:mb-0">
-            <div className="lg:sticky lg:top-4">
+            <div className="lg:sticky lg:top-4 space-y-6">
               <ProfileSide />
+
+              {/* Am mutat PeopleYouMayKnow sub ProfileSide */}
+              <PeopleYouMayKnow />
             </div>
           </div>
 
@@ -53,10 +57,10 @@ const HomePage: React.FC = () => {
           <div className="w-full lg:flex-1 mx-0 lg:mx-6">
             {/* Main content wrapper with consistent width */}
             <div className="max-w-2xl mx-auto">
-              {/* People You May Know section - visible at the top of feed */}
-              <div className="mb-6">
-                <PeopleYouMayKnow />
-              </div>
+              {/* Post creation form */}
+              {/* <div className="mb-6">
+                <PostCreationForm onPostCreated={handlePostCreated} />
+              </div> */}
 
               {/* Loading indicator */}
               {loading && (

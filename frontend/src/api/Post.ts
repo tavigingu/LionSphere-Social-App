@@ -36,22 +36,68 @@ export const getuserPosts = async( userId: string) : Promise<IPost[]> => {
   }
 }
 
+// export const likePost = async (postId: string, userId: string) : Promise<void> => {
+//     try {
+//         const response = await axios.put<{ message: string, success: boolean }>(
+//             `${BASE_URL}/post/${postId}/like`,
+//             { userId }
+//         ) 
+//         if(!response.data.success) {
+//             throw new Error(response.data.message || 'Failed to like/unlike post');
+//         }
+//     } catch(error) {
+//         if (axios.isAxiosError(error)) {
+//             console.error('Failed to like/unlike post:', error.response?.data);
+//             throw new Error(error.response?.data?.message || 'Failed to like/unlike post');
+//     }
+//         throw error;
+//     }
+// }
+
 export const likePost = async (postId: string, userId: string) : Promise<void> => {
-    try {
-        const response = await axios.put<{ message: string, success: boolean }>(
-            `${BASE_URL}/post/${postId}/like`,
-            { userId }
-        ) 
-        if(!response.data.success) {
-            throw new Error(response.data.message || 'Failed to like/unlike post');
-        }
-    } catch(error) {
-        if (axios.isAxiosError(error)) {
-            console.error('Failed to like/unlike post:', error.response?.data);
-            throw new Error(error.response?.data?.message || 'Failed to like/unlike post');
-    }
-        throw error;
-    }
+  try {
+      const response = await axios.put<{ 
+          message: string, 
+          success: boolean, 
+          action: 'liked' | 'unliked',
+          post: {
+              userId: string;
+              _id: string;
+          }
+      }>(
+          `${BASE_URL}/post/${postId}/like`,
+          { userId }
+      );
+      
+      if(!response.data.success) {
+          throw new Error(response.data.message || 'Failed to like/unlike post');
+      }
+      
+      // Aici se creează notificarea dacă postarea a fost apreciată (nu dezapreciată)
+      // și dacă utilizatorul care apreciază nu este proprietarul postării
+      if (response.data.action === 'liked' && response.data.post.userId !== userId) {
+          try {
+              // Aici se face apelul către API-ul de notificări pentru a crea notificarea
+              await axios.post(`${BASE_URL}/notification`, {
+                  recipientId: response.data.post.userId,  // Proprietarul postării
+                  senderId: userId,                        // Utilizatorul care a dat like
+                  type: 'like',                           // Tipul notificării
+                  postId: postId,                         // ID-ul postării
+                  message: 'liked your post'              // Mesajul notificării
+              });
+          } catch (err) {
+              // Continuă chiar dacă crearea notificării eșuează
+              console.error('Failed to create like notification:', err);
+          }
+      }
+  } catch(error) {
+      // Gestionează eroarea
+      if (axios.isAxiosError(error)) {
+          console.error('Failed to like/unlike post:', error.response?.data);
+          throw new Error(error.response?.data?.message || 'Failed to like/unlike post');
+      }
+      throw error;
+  }
 }
 
 export const createPost = async (postData: {

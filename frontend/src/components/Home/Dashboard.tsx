@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaHome,
@@ -12,17 +12,35 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import useAuthStore from "../../store/AuthStore";
+import useNotificationStore from "../../store/NotificationStore";
 import SearchSidebar from "../Home/SearchSidebar";
-import PostCreationForm from "../PostCreationForm"; // Import the PostCreationForm
+import PostCreationForm from "../PostCreationForm";
+import NotificationPanel from "../Home/NotificationPanel";
 
 const Dashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
+  const { unreadCount, fetchUnreadCount } = useNotificationStore();
   const navigate = useNavigate();
   const [activeButton, setActiveButton] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCompressed, setIsCompressed] = useState(false);
-  const [isPostFormOpen, setIsPostFormOpen] = useState(false); // State for post form visibility
+  const [isPostFormOpen, setIsPostFormOpen] = useState(false);
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+
+  // Fetch unread notification count when user is available
+  useEffect(() => {
+    if (user?._id) {
+      fetchUnreadCount(user._id);
+
+      // Set up polling for notifications
+      const interval = setInterval(() => {
+        fetchUnreadCount(user._id);
+      }, 30000); // Check every 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [user, fetchUnreadCount]);
 
   const handleLogout = async () => {
     try {
@@ -40,13 +58,28 @@ const Dashboard: React.FC = () => {
     if (buttonName === "search") {
       setIsSearchOpen(true);
       setIsCompressed(true);
+      setIsNotificationPanelOpen(false);
+      return;
+    }
+
+    if (buttonName === "notifications") {
+      setIsNotificationPanelOpen(true);
+      setIsSearchOpen(false);
+      setIsCompressed(true);
       return;
     }
 
     if (buttonName === "create") {
-      setIsPostFormOpen(true); // Open the post creation form
+      setIsPostFormOpen(true);
+      setIsNotificationPanelOpen(false);
+      setIsSearchOpen(false);
       return;
     }
+
+    // Close sidebars when navigating
+    setIsNotificationPanelOpen(false);
+    setIsSearchOpen(false);
+    setIsCompressed(false);
 
     switch (buttonName) {
       case "home":
@@ -62,6 +95,14 @@ const Dashboard: React.FC = () => {
     setIsSearchOpen(false);
     setIsCompressed(false);
     if (activeButton === "search") {
+      setActiveButton("home");
+    }
+  };
+
+  const handleCloseNotifications = () => {
+    setIsNotificationPanelOpen(false);
+    setIsCompressed(false);
+    if (activeButton === "notifications") {
       setActiveButton("home");
     }
   };
@@ -83,7 +124,14 @@ const Dashboard: React.FC = () => {
     } transition-all duration-200`;
   };
 
-  const NavButton = ({ name, icon, label }) => (
+  interface NavButtonProps {
+    name: string;
+    icon: React.ReactNode;
+    label: string;
+    badge?: number | null;
+  }
+
+  const NavButton = ({ name, icon, label, badge = null }: NavButtonProps) => (
     <button
       onClick={() => handleClick(name)}
       className={`flex items-center w-full p-3 text-left rounded-lg transition-all duration-200 ${
@@ -93,7 +141,14 @@ const Dashboard: React.FC = () => {
       }`}
       style={{ cursor: "pointer" }}
     >
-      {icon}
+      <div className="relative">
+        {icon}
+        {badge !== null && badge > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {badge > 9 ? "9+" : badge}
+          </span>
+        )}
+      </div>
       <span className={`flex-1 ${isCompressed ? "lg:hidden" : ""}`}>
         {label}
       </span>
@@ -188,6 +243,7 @@ const Dashboard: React.FC = () => {
               />
             }
             label="Notifications"
+            badge={unreadCount}
           />
           <NavButton
             name="create"
@@ -274,6 +330,12 @@ const Dashboard: React.FC = () => {
 
       {/* Search Sidebar */}
       <SearchSidebar isOpen={isSearchOpen} onClose={handleCloseSearch} />
+
+      {/* Notification Panel */}
+      <NotificationPanel
+        isOpen={isNotificationPanelOpen}
+        onClose={handleCloseNotifications}
+      />
 
       {/* Post Creation Form Modal */}
       {isPostFormOpen && (

@@ -107,23 +107,72 @@ export const deletePost = async (req, res) => {
 }
 
 // like/dislike a post
+// export const likePost = async (req, res) => {  
+//     try {
+//         const postId = req.params.id;
+//         const { userId } = req.body;
+        
+//         const post = await PostModel.findById(postId);
+//         if(!post.likes.includes(userId)) {
+//             await post.updateOne({ $push: { likes: userId } });
+//             res.status(200).json({
+//                 message: "Post liked successfully",
+//                 success: true
+//             });
+//         } else {
+//             await post.updateOne({ $pull: { likes: userId } });
+//             res.status(200).json({
+//                 message: "Post unliked successfully",
+//                 success: true });
+//         }
+
+//     } catch (error) {
+//         res.status(500).json({
+//             message: error.message || error,
+//             success: false
+//         });
+//     }
+// }
 export const likePost = async (req, res) => {  
     try {
         const postId = req.params.id;
         const { userId } = req.body;
         
         const post = await PostModel.findById(postId);
+        
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found",
+                success: false
+            });
+        }
+        
+        let action;
+        
         if(!post.likes.includes(userId)) {
             await post.updateOne({ $push: { likes: userId } });
+            action = 'liked';
             res.status(200).json({
                 message: "Post liked successfully",
-                success: true
+                success: true,
+                action,
+                post: {
+                    _id: post._id,
+                    userId: post.userId
+                }
             });
         } else {
             await post.updateOne({ $pull: { likes: userId } });
+            action = 'unliked';
             res.status(200).json({
                 message: "Post unliked successfully",
-                success: true });
+                success: true,
+                action,
+                post: {
+                    _id: post._id,
+                    userId: post.userId
+                }
+            });
         }
 
     } catch (error) {
@@ -134,17 +183,64 @@ export const likePost = async (req, res) => {
     }
 }
 
+
+// export const commentPost = async (req, res) => {
+//     try {
+//         const postId = req.params.id;
+//         const { userId, text } = req.body;
+        
+//         const post = await PostModel.findById(postId);
+//         await post.updateOne({ $push: { comments: { userId, text } } });
+
+//         res.status(200).json({
+//             message: "Comment added successfully",
+//             success: true
+//         });
+
+//     } catch (error) {
+//         res.status(500).json({
+//             message: error.message || error,
+//             success: false
+//         });
+//     }
+// }
+
 export const commentPost = async (req, res) => {
     try {
         const postId = req.params.id;
         const { userId, text } = req.body;
         
         const post = await PostModel.findById(postId);
-        await post.updateOne({ $push: { comments: { userId, text } } });
+        
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found",
+                success: false
+            });
+        }
+        
+        // Create comment object with a unique ID
+        const newComment = {
+            userId,
+            text,
+            _id: new mongoose.Types.ObjectId(),
+            createdAt: new Date()
+        };
+        
+        // Add the comment to the post
+        await post.updateOne({ $push: { comments: newComment } });
 
         res.status(200).json({
             message: "Comment added successfully",
-            success: true
+            success: true,
+            post: {
+                _id: post._id,
+                userId: post.userId
+            },
+            comment: {
+                _id: newComment._id,
+                text: newComment.text
+            }
         });
 
     } catch (error) {

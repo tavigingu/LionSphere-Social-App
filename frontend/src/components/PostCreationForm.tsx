@@ -1,25 +1,25 @@
 import { ChangeEvent, useState, FormEvent } from "react";
-import { FaImage, FaVideo, FaSmile } from "react-icons/fa";
+import { FaPlus, FaTimes } from "react-icons/fa";
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
 import uploadFile from "../helpers/uploadFile";
 
-interface PostCreatFormProps {
+interface PostCreationFormProps {
   onPostCreated?: () => void;
 }
 
-const PostCreationForm: React.FC<PostCreatFormProps> = ({ onPostCreated }) => {
+const PostCreationForm: React.FC<PostCreationFormProps> = ({
+  onPostCreated,
+}) => {
   const { user } = useAuthStore();
   const { createNewPost, loading, error, clearError } = usePostStore();
 
   const [desc, setDesc] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Curăță erorile când se modifică conținutul
   const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     if (error) clearError();
     if (localError) setLocalError(null);
@@ -56,8 +56,8 @@ const PostCreationForm: React.FC<PostCreatFormProps> = ({ onPostCreated }) => {
       return;
     }
 
-    if (!desc.trim() && !selectedFile) {
-      setLocalError("Post must have text or image");
+    if (!selectedFile) {
+      setLocalError("A photo is required to create a post");
       return;
     }
 
@@ -75,7 +75,7 @@ const PostCreationForm: React.FC<PostCreatFormProps> = ({ onPostCreated }) => {
             `Upload failed: ${err instanceof Error ? err.message : String(err)}`
           );
           setIsUploading(false);
-          return; // Exit early if upload fails
+          return;
         }
         setIsUploading(false);
       }
@@ -86,7 +86,6 @@ const PostCreationForm: React.FC<PostCreatFormProps> = ({ onPostCreated }) => {
         image: imageUrl,
       });
 
-      // Reset form after successful post creation
       setDesc("");
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -101,94 +100,108 @@ const PostCreationForm: React.FC<PostCreatFormProps> = ({ onPostCreated }) => {
     }
   };
 
-  const isPostButtonDisabled =
-    (!desc.trim() && !selectedFile) || loading || isUploading;
+  const isPostButtonDisabled = !selectedFile || loading || isUploading;
 
   return (
-    <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl min-h-[200px] lg:min-w-[750px] backdrop-blur-sm bg-white/5 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-800 transition-all duration-300">
+    <div className="relative">
+      {/* Close Button */}
+      <button
+        onClick={onPostCreated}
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+      >
+        <FaTimes size={20} />
+      </button>
+
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Create a Post</h2>
+
+      {/* User Info */}
+      {user && (
+        <div className="flex items-center mb-4">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mr-3">
+            {user.profilePicture ? (
+              <img
+                src={user.profilePicture}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-white text-sm font-bold">
+                {user.username?.charAt(0).toUpperCase() || "U"}
+              </span>
+            )}
+          </div>
+          <div>
+            <p className="font-medium text-gray-800">{user.username}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Form */}
       <form onSubmit={handleSubmit}>
+        {/* Description Textarea */}
         <textarea
-          placeholder="Ce ai în minte azi?"
           value={desc}
           onChange={handleTextChange}
-          className="w-full bg-transparent border border-gray-700 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          rows={3}
+          // placeholder="What's on your mind?"
+          className="w-full p-3 rounded-lg border text-gray-700 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4"
+          rows={4}
         />
 
-        {/* File preview */}
-        {previewUrl && (
-          <div className="relative mt-2 mb-2">
+        {/* File Preview */}
+        {previewUrl ? (
+          <div className="relative mb-4">
             <img
               src={previewUrl}
               alt="Preview"
-              className="max-h-40 rounded-lg object-contain"
+              className="w-full h-80 object-cover rounded-lg" // Adjusted height for a taller, portrait-like appearance
             />
             <button
-              type="button"
               onClick={removeSelectedFile}
-              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition"
+              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
             >
-              ✕
+              <FaTimes size={16} />
             </button>
           </div>
-        )}
-
-        {/* Upload progress */}
-        {isUploading && (
-          <div className="w-full bg-gray-700 rounded-full h-2 my-2">
-            <div
-              className="bg-blue-500 h-2 rounded-full"
-              style={{ width: `${uploadProgress}%` }}
-            />
-          </div>
-        )}
-
-        {/* Error message - hidden by default */}
-        {(error || localError) && (
-          <div className="text-red-400 text-sm mt-2 p-2 bg-red-500/10 rounded hidden">
-            {error || localError}
-          </div>
-        )}
-
-        <div className="flex justify-between mt-3">
-          <div className="flex space-x-2">
-            <label className="cursor-pointer flex items-center text-blue-400 hover:text-blue-500 px-2 py-1">
-              <FaImage className="mr-1" />
-              <span>Fotografie</span>
+        ) : (
+          <div className="mb-4 flex justify-center">
+            <label className="cursor-pointer">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200">
+                <FaPlus className="text-white" size={24} />
+              </div>
               <input
                 type="file"
-                className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
+                className="hidden"
               />
             </label>
-            <button
-              type="button"
-              className="flex items-center text-green-400 hover:text-green-500 px-2 py-1"
-            >
-              <FaVideo className="mr-1" />
-              <span>Video</span>
-            </button>
-            <button
-              type="button"
-              className="flex items-center text-yellow-400 hover:text-yellow-500 px-2 py-1"
-            >
-              <FaSmile className="mr-1" />
-              <span>Emoji</span>
-            </button>
           </div>
-          <button
-            type="submit"
-            disabled={isPostButtonDisabled}
-            className={`${
-              isPostButtonDisabled
-                ? "bg-blue-500/50"
-                : "bg-blue-600 hover:bg-blue-700"
-            } text-white font-medium py-1 px-4 rounded-lg transition`}
-          >
-            {loading || isUploading ? "Se postează..." : "Postează"}
-          </button>
-        </div>
+        )}
+
+        {/* Instruction Text */}
+        {!previewUrl && (
+          <p className="text-center text-sm text-gray-500 mb-4">
+            Create your post
+          </p>
+        )}
+
+        {/* Error Message */}
+        {(error || localError) && (
+          <p className="text-red-500 text-sm mb-4">{error || localError}</p>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isPostButtonDisabled}
+          className={`w-full py-2 rounded-lg font-medium transition-all duration-200 ${
+            isPostButtonDisabled
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
+          }`}
+        >
+          {isUploading ? "Uploading..." : loading ? "Posting..." : "Post"}
+        </button>
       </form>
     </div>
   );

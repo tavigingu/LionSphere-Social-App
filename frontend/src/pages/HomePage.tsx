@@ -6,7 +6,6 @@ import ProfileSide from "../components/Home/ProfileSide";
 import PostCard from "../components/Home/PostCard";
 import Dashboard from "../components/Home/Dashboard";
 import PeopleYouMayKnow from "../components/Home/PeopleYouMayKnow";
-import PostCreationForm from "../components/PostCreationForm";
 
 const HomePage: React.FC = () => {
   const { user } = useAuthStore();
@@ -27,12 +26,6 @@ const HomePage: React.FC = () => {
   const handleLikePost = async (postId: string) => {
     if (user && user._id) {
       await likeSinglePost(postId, user._id);
-    }
-  };
-
-  const handlePostCreated = () => {
-    if (user && user._id) {
-      fetchTimelinePosts(user._id);
     }
   };
 

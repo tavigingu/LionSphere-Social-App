@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import useAuthStore from "../../store/AuthStore";
 import SearchSidebar from "../Home/SearchSidebar";
+import PostCreationForm from "../PostCreationForm"; // Import the PostCreationForm
 
 const Dashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
@@ -21,6 +22,7 @@ const Dashboard: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCompressed, setIsCompressed] = useState(false);
+  const [isPostFormOpen, setIsPostFormOpen] = useState(false); // State for post form visibility
 
   const handleLogout = async () => {
     try {
@@ -33,16 +35,19 @@ const Dashboard: React.FC = () => {
 
   const handleClick = (buttonName: string) => {
     setActiveButton(buttonName);
-    setMobileMenuOpen(false); // Close the mobile menu when selecting an option
+    setMobileMenuOpen(false);
 
-    // Handle special cases
     if (buttonName === "search") {
       setIsSearchOpen(true);
       setIsCompressed(true);
       return;
     }
 
-    // Handle navigation based on the button clicked
+    if (buttonName === "create") {
+      setIsPostFormOpen(true); // Open the post creation form
+      return;
+    }
+
     switch (buttonName) {
       case "home":
         navigate("/home");
@@ -50,7 +55,6 @@ const Dashboard: React.FC = () => {
       case "profile":
         navigate("/profile");
         break;
-      // Add other navigation cases as needed
     }
   };
 
@@ -62,19 +66,23 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Function to determine icon size
+  const handleClosePostForm = () => {
+    setIsPostFormOpen(false);
+    if (activeButton === "create") {
+      setActiveButton("home");
+    }
+  };
+
   const getIconSize = (buttonName: string) => {
     return activeButton === buttonName ? 24 : 20;
   };
 
-  // Function to determine icon class
   const getIconClass = (buttonName: string) => {
     return `mr-4 ${
       activeButton === buttonName ? "text-blue-600" : "text-blue-500"
     } transition-all duration-200`;
   };
 
-  // Button component for consistent styling
   const NavButton = ({ name, icon, label }) => (
     <button
       onClick={() => handleClick(name)}
@@ -94,7 +102,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      {/* Mobile menu toggle - visible only on mobile devices */}
+      {/* Mobile menu toggle */}
       <div className="fixed top-4 right-4 z-50 lg:hidden">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -104,22 +112,18 @@ const Dashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Dashboard - different display on mobile vs desktop */}
+      {/* Dashboard Sidebar */}
       <div
         className={`bg-white shadow-xl overflow-y-auto overflow-x-hidden transition-all duration-300 hover:shadow-2xl z-40
           ${
             mobileMenuOpen
-              ? "fixed inset-0 p-4" // Fullscreen on mobile when open
-              : "fixed -right-80 top-0 bottom-0 w-80 p-4 lg:right-0" // Hidden on mobile, visible on desktop
+              ? "fixed inset-0 p-4"
+              : "fixed -right-80 top-0 bottom-0 w-80 p-4 lg:right-0"
           } 
-          ${
-            isCompressed
-              ? "lg:w-20" // Compressed when search is open
-              : "lg:w-80" // Normal width
-          }
+          ${isCompressed ? "lg:w-20" : "lg:w-80"}
           lg:p-4 lg:fixed lg:right-0 lg:top-0 lg:bottom-0 flex flex-col`}
       >
-        {/* Mobile header with close button - only on mobile */}
+        {/* Mobile header */}
         <div className="flex justify-between items-center mb-6 lg:hidden">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
             LionSphere
@@ -132,7 +136,7 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Desktop Title - hidden on mobile and when compressed */}
+        {/* Desktop Title */}
         <div
           className={`hidden ${
             isCompressed ? "lg:hidden" : "lg:block"
@@ -155,7 +159,6 @@ const Dashboard: React.FC = () => {
             }
             label="Home"
           />
-
           <NavButton
             name="search"
             icon={
@@ -166,7 +169,6 @@ const Dashboard: React.FC = () => {
             }
             label="Search"
           />
-
           <NavButton
             name="messages"
             icon={
@@ -177,7 +179,6 @@ const Dashboard: React.FC = () => {
             }
             label="Messages"
           />
-
           <NavButton
             name="notifications"
             icon={
@@ -188,7 +189,6 @@ const Dashboard: React.FC = () => {
             }
             label="Notifications"
           />
-
           <NavButton
             name="create"
             icon={
@@ -199,7 +199,6 @@ const Dashboard: React.FC = () => {
             }
             label="Create"
           />
-
           <NavButton
             name="profile"
             icon={
@@ -212,7 +211,7 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* User info section - hide details when compressed */}
+        {/* User info section */}
         {user && (
           <div className="mt-4 p-3 rounded-lg bg-gray-50 flex items-center">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mr-3">
@@ -244,7 +243,7 @@ const Dashboard: React.FC = () => {
         {/* Divider */}
         <div className="border-t border-gray-200 my-4"></div>
 
-        {/* Footer - adăugat între divider și logout button */}
+        {/* Footer */}
         <div className={`text-center mb-4 ${isCompressed ? "lg:hidden" : ""}`}>
           <p className="text-xs text-gray-300 font-light tracking-wider">
             © 2025 LIONSHPERE BY TAVI GINGU
@@ -275,6 +274,19 @@ const Dashboard: React.FC = () => {
 
       {/* Search Sidebar */}
       <SearchSidebar isOpen={isSearchOpen} onClose={handleCloseSearch} />
+
+      {/* Post Creation Form Modal */}
+      {isPostFormOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            onClick={handleClosePostForm}
+          />
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+            <PostCreationForm onPostCreated={handleClosePostForm} />
+          </div>
+        </>
+      )}
     </>
   );
 };

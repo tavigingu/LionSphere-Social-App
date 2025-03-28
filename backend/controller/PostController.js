@@ -1,5 +1,6 @@
 import PostModel from "../models/PostModel.js";
 import UserModel from "../models/UserModel.js";
+import NotificationModel from "../models/NotificationModel.js";
 
 export const createPost = async (req, res) => {
     const newPost = new PostModel(req.body);
@@ -219,17 +220,20 @@ export const commentPost = async (req, res) => {
             });
         }
         
-        // Create comment object with a unique ID
+        // Create a simple comment object without mongoose ObjectId
         const newComment = {
             userId,
             text,
-            _id: new mongoose.Types.ObjectId(),
             createdAt: new Date()
         };
         
         // Add the comment to the post
         await post.updateOne({ $push: { comments: newComment } });
 
+        // Get the updated post to see the added comment
+        const updatedPost = await PostModel.findById(postId);
+        const addedComment = updatedPost.comments[updatedPost.comments.length - 1];
+        
         res.status(200).json({
             message: "Comment added successfully",
             success: true,
@@ -238,8 +242,8 @@ export const commentPost = async (req, res) => {
                 userId: post.userId
             },
             comment: {
-                _id: newComment._id,
-                text: newComment.text
+                _id: addedComment._id,
+                text: addedComment.text
             }
         });
 

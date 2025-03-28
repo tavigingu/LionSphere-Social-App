@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaHome,
   FaSearch,
@@ -21,23 +21,31 @@ const Dashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
   const { unreadCount, fetchUnreadCount } = useNotificationStore();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [activeButton, setActiveButton] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isCompressed, setIsCompressed] = useState(false);
-  const [isPostFormOpen, setIsPostFormOpen] = useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  const [isPostFormOpen, setIsPostFormOpen] = useState(false);
 
-  // Fetch unread notification count when user is available
+  // Set active button based on current route
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes("/profile")) {
+      setActiveButton("profile");
+    } else if (path.includes("/home")) {
+      setActiveButton("home");
+    }
+  }, [location.pathname]);
+
+  // Fetch unread notification count
   useEffect(() => {
     if (user?._id) {
       fetchUnreadCount(user._id);
-
-      // Set up polling for notifications
       const interval = setInterval(() => {
         fetchUnreadCount(user._id);
-      }, 30000); // Check every 30 seconds
-
+      }, 30000);
       return () => clearInterval(interval);
     }
   }, [user, fetchUnreadCount]);
@@ -55,71 +63,60 @@ const Dashboard: React.FC = () => {
     setActiveButton(buttonName);
     setMobileMenuOpen(false);
 
+    // Gestionăm panourile explicit
     if (buttonName === "search") {
       setIsSearchOpen(true);
-      setIsCompressed(true);
       setIsNotificationPanelOpen(false);
-      return;
-    }
-
-    if (buttonName === "notifications") {
+      setIsPostFormOpen(false);
+    } else if (buttonName === "notifications") {
       setIsNotificationPanelOpen(true);
       setIsSearchOpen(false);
-      setIsCompressed(true);
-      return;
-    }
-
-    if (buttonName === "create") {
+      setIsPostFormOpen(false);
+    } else if (buttonName === "create") {
       setIsPostFormOpen(true);
-      setIsNotificationPanelOpen(false);
       setIsSearchOpen(false);
-      return;
-    }
-
-    // Close sidebars when navigating
-    setIsNotificationPanelOpen(false);
-    setIsSearchOpen(false);
-    setIsCompressed(false);
-
-    switch (buttonName) {
-      case "home":
-        navigate("/home");
-        break;
-      case "profile":
-        navigate("/profile");
-        break;
+      setIsNotificationPanelOpen(false);
+    } else {
+      // Pentru "home", "profile" sau altele, închidem toate panourile
+      setIsSearchOpen(false);
+      setIsNotificationPanelOpen(false);
+      setIsPostFormOpen(false);
+      if (buttonName === "home") navigate("/home");
+      if (buttonName === "profile") navigate("/profile");
     }
   };
 
   const handleCloseSearch = () => {
     setIsSearchOpen(false);
-    setIsCompressed(false);
-    if (activeButton === "search") {
-      setActiveButton("home");
-    }
+    setActiveButton(
+      location.pathname.includes("/profile") ? "profile" : "home"
+    );
   };
 
   const handleCloseNotifications = () => {
     setIsNotificationPanelOpen(false);
-    setIsCompressed(false);
-    if (activeButton === "notifications") {
-      setActiveButton("home");
-    }
+    setActiveButton(
+      location.pathname.includes("/profile") ? "profile" : "home"
+    );
   };
 
   const handleClosePostForm = () => {
     setIsPostFormOpen(false);
-    if (activeButton === "create") {
-      setActiveButton("home");
-    }
+    setActiveButton(
+      location.pathname.includes("/profile") ? "profile" : "home"
+    );
   };
+
+  // Dashboard-ul este minimalist dacă oricare panou este deschis
+  const isMinimalist =
+    isSearchOpen || isNotificationPanelOpen || isPostFormOpen;
 
   const getIconSize = (buttonName: string) => {
     return activeButton === buttonName ? 24 : 20;
   };
 
   const getIconClass = (buttonName: string) => {
-    return `mr-4 ${
+    return `${!isMinimalist ? "mr-4" : ""} ${
       activeButton === buttonName ? "text-blue-600" : "text-blue-500"
     } transition-all duration-200`;
   };
@@ -138,7 +135,7 @@ const Dashboard: React.FC = () => {
         activeButton === name
           ? "font-bold text-blue-600 bg-blue-50"
           : "font-normal text-gray-700 hover:bg-gray-100"
-      }`}
+      } ${isMinimalist ? "justify-center" : ""}`}
       style={{ cursor: "pointer" }}
     >
       <div className="relative">
@@ -149,9 +146,7 @@ const Dashboard: React.FC = () => {
           </span>
         )}
       </div>
-      <span className={`flex-1 ${isCompressed ? "lg:hidden" : ""}`}>
-        {label}
-      </span>
+      {!isMinimalist && <span className="flex-1">{label}</span>}
     </button>
   );
 
@@ -173,9 +168,9 @@ const Dashboard: React.FC = () => {
           ${
             mobileMenuOpen
               ? "fixed inset-0 p-4"
-              : "fixed -right-80 top-0 bottom-0 w-80 p-4 lg:right-0"
-          } 
-          ${isCompressed ? "lg:w-20" : "lg:w-80"}
+              : "fixed -right-80 top-0 bottom-0 p-4 lg:right-0"
+          }
+          ${isMinimalist ? "lg:w-20" : "lg:w-80"}
           lg:p-4 lg:fixed lg:right-0 lg:top-0 lg:bottom-0 flex flex-col`}
       >
         {/* Mobile header */}
@@ -191,15 +186,17 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Desktop Title */}
-        <div
-          className={`hidden ${
-            isCompressed ? "lg:hidden" : "lg:block"
-          } mb-8 p-2`}
-        >
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
-            LionSphere
-          </h1>
+        {/* Desktop Logo - "LS" in minimalist mode */}
+        <div className="hidden lg:flex justify-center mb-8 p-2">
+          {isMinimalist ? (
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
+              LS
+            </h1>
+          ) : (
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
+              LionSphere
+            </h1>
+          )}
         </div>
 
         {/* Navigation Menu */}
@@ -267,10 +264,20 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* User info section */}
+        {/* User info - just profile pic in minimalist mode */}
         {user && (
-          <div className="mt-4 p-3 rounded-lg bg-gray-50 flex items-center">
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mr-3">
+          <div
+            className={`mt-4 ${
+              isMinimalist
+                ? "flex justify-center"
+                : "p-3 rounded-lg bg-gray-50 flex items-center"
+            }`}
+          >
+            <div
+              className={`${
+                isMinimalist ? "w-10 h-10" : "w-10 h-10 mr-3"
+              } rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center`}
+            >
               {user.profilePicture ? (
                 <img
                   src={user.profilePicture}
@@ -283,44 +290,44 @@ const Dashboard: React.FC = () => {
                 </span>
               )}
             </div>
-            <div
-              className={`flex-1 overflow-hidden ${
-                isCompressed ? "lg:hidden" : ""
-              }`}
-            >
-              <p className="font-medium text-gray-800 truncate">
-                {user.username}
-              </p>
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
-            </div>
+
+            {/* Full user info in normal mode */}
+            {!isMinimalist && (
+              <div className="flex-1 overflow-hidden">
+                <p className="font-medium text-gray-800 truncate">
+                  {user.username}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Divider */}
-        <div className="border-t border-gray-200 my-4"></div>
+        {/* Divider and footer - hidden in minimalist mode */}
+        {!isMinimalist && <div className="border-t border-gray-200 my-4"></div>}
 
-        {/* Footer */}
-        <div className={`text-center mb-4 ${isCompressed ? "lg:hidden" : ""}`}>
-          <p className="text-xs text-gray-300 font-light tracking-wider">
-            © 2025 LIONSHPERE BY TAVI GINGU
-          </p>
-        </div>
+        {!isMinimalist && (
+          <div className="text-center mb-4">
+            <p className="text-xs text-gray-300 font-light tracking-wider">
+              © 2025 LIONSHPERE BY TAVI GINGU
+            </p>
+          </div>
+        )}
 
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="flex items-center w-full p-3 text-left rounded-lg transition-all duration-200 mt-auto font-normal text-red-600 hover:bg-red-50"
+          className={`flex items-center w-full p-3 text-left rounded-lg transition-all duration-200 mt-auto font-normal text-red-600 hover:bg-red-50 ${
+            isMinimalist ? "justify-center" : ""
+          }`}
           style={{ cursor: "pointer" }}
         >
-          <FaSignOutAlt
-            className="mr-4 transition-all duration-200"
-            size={20}
-          />
-          <span className={`${isCompressed ? "lg:hidden" : ""}`}>Log out</span>
+          <FaSignOutAlt className="transition-all duration-200" size={20} />
+          {!isMinimalist && <span className="ml-4">Log out</span>}
         </button>
       </div>
 
-      {/* Overlay for mobile menu */}
+      {/* Mobile menu overlay */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
@@ -328,14 +335,17 @@ const Dashboard: React.FC = () => {
         />
       )}
 
-      {/* Search Sidebar */}
-      <SearchSidebar isOpen={isSearchOpen} onClose={handleCloseSearch} />
+      {/* Panouri laterale */}
+      <div style={{ zIndex: 50 }}>
+        <SearchSidebar isOpen={isSearchOpen} onClose={handleCloseSearch} />
+      </div>
 
-      {/* Notification Panel */}
-      <NotificationPanel
-        isOpen={isNotificationPanelOpen}
-        onClose={handleCloseNotifications}
-      />
+      <div style={{ zIndex: 50 }}>
+        <NotificationPanel
+          isOpen={isNotificationPanelOpen}
+          onClose={handleCloseNotifications}
+        />
+      </div>
 
       {/* Post Creation Form Modal */}
       {isPostFormOpen && (

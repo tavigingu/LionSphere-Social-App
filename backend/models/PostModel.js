@@ -12,6 +12,7 @@ const PostSchema = mongoose.Schema(
     },
     likes: [String],
     image: String,
+    savedBy: [{ type: String }],
     createdAt: {
             type: Date,
             default: Date.now 

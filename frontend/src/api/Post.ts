@@ -36,24 +36,6 @@ export const getuserPosts = async( userId: string) : Promise<IPost[]> => {
   }
 }
 
-// export const likePost = async (postId: string, userId: string) : Promise<void> => {
-//     try {
-//         const response = await axios.put<{ message: string, success: boolean }>(
-//             `${BASE_URL}/post/${postId}/like`,
-//             { userId }
-//         ) 
-//         if(!response.data.success) {
-//             throw new Error(response.data.message || 'Failed to like/unlike post');
-//         }
-//     } catch(error) {
-//         if (axios.isAxiosError(error)) {
-//             console.error('Failed to like/unlike post:', error.response?.data);
-//             throw new Error(error.response?.data?.message || 'Failed to like/unlike post');
-//     }
-//         throw error;
-//     }
-// }
-
 export const likePost = async (postId: string, userId: string) : Promise<void> => {
   try {
       const response = await axios.put<{ 
@@ -140,24 +122,102 @@ export const createPost = async (postData: {
     }
 };
 
-export const commentOnPost = async ( postId: string, userId: string, text: string): Promise<void> => {
+
+// export const commentOnPost = async (postId: string, userId: string, text: string): Promise<void> => {
+//   try {
+//     const response = await axios.put<{
+//       message: string, 
+//       success: boolean,
+//       post: {
+//         userId: string;
+//         _id: string;
+//       },
+//       comment: {
+//         _id: string;
+//         text: string;
+//       }
+//     }>(
+//       `${BASE_URL}/post/${postId}/comment`,
+//       { userId, text }
+//     );
+
+//     if(!response.data.success) {
+//       throw new Error(response.data.message || 'Failed to comment on post');
+//     }
+    
+//     // Create notification if the commenter is not the post owner
+//     if (response.data.post.userId !== userId) {
+//       try {
+//         // Create notification for comment
+//         await axios.post(`${BASE_URL}/notification`, {
+//           recipientId: response.data.post.userId,  // Post owner
+//           senderId: userId,                        // Commenter
+//           type: 'comment',                         // Notification type
+//           postId: postId,                          // Post ID
+//           commentId: response.data.comment._id,    // Comment ID
+//           message: 'commented on your post'        // Notification message
+//         });
+//       } catch (err) {
+//         // Continue even if notification creation fails
+//         console.error('Failed to create comment notification:', err);
+//       }
+//     }
+//   } catch(error) {
+//     if (axios.isAxiosError(error)) {
+//       console.error('Failed to comment on post:', error.response?.data);
+//       throw new Error(error.response?.data?.message || 'Failed to comment on post');
+//     }
+//     throw error;
+//   }
+// }
+
+export const commentOnPost = async (postId: string, userId: string, text: string): Promise<void> => {
   try {
-    const response = await axios.put<{message: string, success:boolean}>(
+    const response = await axios.put<{
+      message: string, 
+      success: boolean,
+      post: {
+        userId: string;
+        _id: string;
+      },
+      comment: {
+        _id: string;
+        text: string;
+      }
+    }>(
       `${BASE_URL}/post/${postId}/comment`,
-      { userId, text}
+      { userId, text }
     );
 
     if(!response.data.success) {
       throw new Error(response.data.message || 'Failed to comment on post');
     }
+    
+    // Create notification if the commenter is not the post owner
+    if (response.data.post.userId !== userId) {
+      try {
+        // Create notification for comment
+        await axios.post(`${BASE_URL}/notification`, {
+          recipientId: response.data.post.userId,  // Post owner
+          senderId: userId,                        // Commenter
+          type: 'comment',                         // Notification type
+          postId: postId,                          // Post ID
+          commentId: response.data.comment._id,    // Comment ID
+          message: `commented: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"` // Include comment text in notification
+        });
+      } catch (err) {
+        // Continue even if notification creation fails
+        console.error('Failed to create comment notification:', err);
+      }
+    }
   } catch(error) {
     if (axios.isAxiosError(error)) {
       console.error('Failed to comment on post:', error.response?.data);
-      throw new Error(error.response?.data?.message || 'Failed to comment on post')   
+      throw new Error(error.response?.data?.message || 'Failed to comment on post');
     }
     throw error;
   }
-} 
+}
 
 export const deletePost = async (postId: string, userId: string): Promise<void> => {
   try {

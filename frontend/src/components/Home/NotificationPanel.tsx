@@ -22,7 +22,6 @@ interface NotificationPanelProps {
   onClose: () => void;
 }
 
-// Stocăm informații despre postare pentru a afișa imaginea
 interface PostDetails {
   image?: string;
 }
@@ -112,11 +111,9 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     };
   }, [isOpen, onClose]);
 
-  // Navigate to user profile
   const navigateToUserProfile = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
     navigate(`/profile/${userId}`);
-    // Mark notification as read if clicked from notification
     const notificationId = (
       e.currentTarget.closest("[data-notification-id]") as HTMLElement
     )?.dataset.notificationId;
@@ -125,23 +122,30 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     }
   };
 
-  // Handle notification click
   const handleNotificationClick = (
     notificationId: string,
     type: string,
     postId?: string,
     userId?: string
   ) => {
-    // Set expanded state for this notification
     setExpandedNotification(
       expandedNotification === notificationId ? null : notificationId
     );
-
-    // Mark as read
     markNotificationAsRead(notificationId);
   };
 
-  // Handle mark all as read
+  const handlePostThumbnailClick = (
+    e: React.MouseEvent,
+    postId: string,
+    notificationId: string
+  ) => {
+    e.stopPropagation();
+    setExpandedNotification(
+      expandedNotification === notificationId ? null : notificationId
+    );
+    markNotificationAsRead(notificationId);
+  };
+
   const handleMarkAllAsRead = () => {
     if (user?._id) {
       setIsAnimating(true);
@@ -153,36 +157,27 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     }
   };
 
-  // Handle delete notification with animation
   const handleDeleteNotification = (
     e: React.MouseEvent,
     notificationId: string
   ) => {
     e.stopPropagation();
-
     const element = e.currentTarget.closest(
       ".notification-item"
     ) as HTMLElement;
     if (element) {
-      // Add exit animation class
       element.style.height = `${element.offsetHeight}px`;
       element.classList.add("notification-exit");
-
-      // After animation completes, delete the notification
       setTimeout(() => {
         if (user?._id) {
           removeNotification(notificationId, user._id);
         }
       }, 300);
-    } else {
-      // Fallback if animation doesn't work
-      if (user?._id) {
-        removeNotification(notificationId, user._id);
-      }
+    } else if (user?._id) {
+      removeNotification(notificationId, user._id);
     }
   };
 
-  // Get icon based on notification type
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "like":
@@ -222,17 +217,17 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     <div
       ref={notificationPanelRef}
       className={`fixed inset-y-0 bg-white shadow-xl transition-all duration-300 ease-in-out z-50 ${
-        isOpen ? "right-0 w-80 md:w-96" : "-right-full w-0"
+        isOpen ? "right-20 w-80 md:w-96" : "-right-full w-0"
       } overflow-hidden flex flex-col`}
     >
-      <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-white">Notifications</h2>
+      <div className="p-4 flex justify-between items-center mb-2 border-b border-gray-200">
+        <h2 className="text-xl font-bold text-gray-800">Notifications</h2>
         <div className="flex items-center">
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAllAsRead}
               disabled={isAnimating}
-              className="mr-2 text-white hover:text-blue-100 transition-colors flex items-center text-sm"
+              className="mr-2 text-blue-500 hover:text-blue-700 transition-colors flex items-center text-sm"
               title="Mark all as read"
             >
               <FaCheckDouble className="mr-1" />
@@ -241,7 +236,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
           )}
           <button
             onClick={onClose}
-            className="p-2 text-white hover:text-blue-100 rounded-full hover:bg-white/10 transition-colors"
+            className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
           >
             <FaTimes />
           </button>
@@ -307,7 +302,6 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                 }`}
               >
                 <div className="flex items-start">
-                  {/* User avatar - clickable to profile */}
                   <div
                     className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mr-3 flex-shrink-0 cursor-pointer transition-transform duration-300 hover:scale-110 hover:shadow-md"
                     onClick={(e) =>
@@ -329,7 +323,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                     )}
                   </div>
 
-                  <div className="flex-grow">
+                  <div className="flex-grow mr-14">
                     <div className="flex items-start">
                       <div className="flex-shrink-0 mr-3 mt-1">
                         {getNotificationIcon(notification.type)}
@@ -355,8 +349,6 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                         </p>
                       </div>
                     </div>
-
-                    {/* Expanded view with post image (conditionally shown) */}
                     {expandedNotification === notification._id &&
                       notification.postId && (
                         <motion.div
@@ -370,7 +362,10 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                               src={postDetails[notification.postId].image}
                               alt="Post"
                               className="w-full h-32 object-cover rounded-lg shadow-sm"
-                              onClick={() => navigate(`/home`)} // Replace with specific post view when available
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/home`);
+                              }}
                             />
                           ) : (
                             <div className="w-full h-24 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -384,10 +379,18 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                       )}
                   </div>
 
-                  {/* Show post thumbnail for like/comment notifications */}
                   {notification.postId &&
                     postDetails[notification.postId]?.image && (
-                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 transition-all duration-300 hover:scale-110 hover:shadow-md">
+                      <div
+                        className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 transition-all duration-300 hover:scale-110 hover:shadow-md"
+                        onClick={(e) =>
+                          handlePostThumbnailClick(
+                            e,
+                            notification.postId as string,
+                            notification._id
+                          )
+                        }
+                      >
                         <img
                           src={postDetails[notification.postId].image}
                           alt="Post thumbnail"
@@ -396,7 +399,6 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                       </div>
                     )}
 
-                  {/* Delete button with animation */}
                   <motion.button
                     whileHover={{ scale: 1.2, rotate: 15 }}
                     whileTap={{ scale: 0.9 }}
@@ -415,14 +417,12 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
         </div>
       )}
 
-      {/* Footer */}
-      <div className="p-3 bg-gradient-to-r from-blue-500/5 to-purple-600/5 text-center border-t border-gray-200">
+      <div className="p-3 bg-gray-50 text-center border-t border-gray-200">
         <p className="text-xs text-gray-500">
           Tap a notification to expand details
         </p>
       </div>
 
-      {/* CSS pentru animația de ștergere */}
       <style jsx>{`
         .notification-exit {
           animation: slideOut 0.3s forwards;

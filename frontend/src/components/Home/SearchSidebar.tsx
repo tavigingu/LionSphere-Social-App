@@ -17,7 +17,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Auto focus the search input when sidebar opens
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
@@ -25,13 +24,11 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
         if (searchInput) {
           searchInput.focus();
         }
-      }, 300); // Delay to allow animation to complete
-
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
-  // Handle clicks outside to close the sidebar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -51,55 +48,27 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen, onClose]);
 
-  // Search users by username
   const searchUsers = async () => {
     if (!searchTerm.trim()) {
-      console.log("[Frontend] Search term is empty, clearing results");
       setSearchResults([]);
       return;
     }
 
-    console.log("[Frontend] Starting search for:", searchTerm);
     setLoading(true);
     setError(null);
 
     try {
-      console.log(
-        "[Frontend] Making request to API:",
-        `http://localhost:5001/user/search?username=${searchTerm}`
-      );
-
       const response = await axios.get(
         `http://localhost:5001/user/search?username=${searchTerm}`
       );
-      console.log("[Frontend] API Response received:", response);
-
       if (response.data.success) {
-        console.log(
-          "[Frontend] Search successful, found",
-          response.data.users.length,
-          "users"
-        );
         setSearchResults(response.data.users);
       } else {
-        console.error(
-          "[Frontend] Search request failed:",
-          response.data.message
-        );
         setError("Failed to search users");
       }
     } catch (err) {
-      console.error("[Frontend] Error in search request:", err);
-      if (axios.isAxiosError(err)) {
-        console.error("[Frontend] Axios error details:", {
-          status: err.response?.status,
-          data: err.response?.data,
-          headers: err.response?.headers,
-        });
-      }
       setError("An error occurred while searching");
     } finally {
-      console.log("[Frontend] Search request completed");
       setLoading(false);
     }
   };
@@ -116,8 +85,8 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className={`fixed inset-y-0 right-0 bg-white shadow-xl transition-all duration-300 hover:shadow-2xl ease-in-out z-50 ${
-        isOpen ? "w-80" : "w-0 opacity-0"
+      className={`fixed inset-y-0 bg-white shadow-xl transition-all duration-300 hover:shadow-2xl ease-in-out z-50 ${
+        isOpen ? "right-20 w-80" : "w-0 opacity-0"
       } overflow-hidden flex flex-col`}
       ref={searchRef}
     >
@@ -212,7 +181,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Footer cu text - poziționat la sfârșitul conținutului și mereu vizibil */}
         <div className="mt-auto border-t border-gray-200">
           <div className="py-4 text-center">
             <p className="text-xs text-gray-300 font-medium tracking-wider">

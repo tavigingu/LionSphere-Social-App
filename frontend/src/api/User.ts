@@ -109,29 +109,6 @@ export const checkFollowStatus = (user: IUser, currentUserId: string): boolean =
     return followers.includes(currentUserId);
   };
 
-  // export const getSuggestedUsers = async (currentUserId: string): Promise<IUser[]> => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${BASE_URL}/user/suggestions`,
-  //       { userId: currentUserId }
-  //     );
-      
-  //     console.log(response.data);
-      
-  //     if (response.data.success) {
-  //       return response.data.users;
-  //     } else {
-  //       throw new Error(response.data.message || 'Failed to fetch suggested users');
-  //     }
-  //   } catch (error) {
-  //     if (axios.isAxiosError(error)) {
-  //       console.error('Error fetching suggested users:', error.response?.data);
-  //       throw new Error(error.response?.data?.message || 'Error fetching suggested users');
-  //     }
-  //     throw error;
-  //   }
-  // };
-
   export const getSuggestedUsers = async (currentUserId: string): Promise<IUser[]> => {
     try {
       const response = await axios.get(

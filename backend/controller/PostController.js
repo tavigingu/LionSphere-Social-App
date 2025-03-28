@@ -354,3 +354,86 @@ export const getUserPosts = async (req, res) => {
         });
     }
 };
+
+export const savePost = async (req, res) => {  
+    try {
+        console.log("a intrat in savePost");
+
+        const postId = req.params.id;
+        const { userId } = req.body;
+        
+        const post = await PostModel.findById(postId);
+        
+        console.log("post", post);
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found",
+                success: false
+            });
+        }
+        console.log("a trecut de post");
+        
+        // Check if the post is already saved by the user
+        if (!post.savedBy) {
+            post.savedBy = [];  // Initialize if it doesn't exist yet
+        }
+        
+        let action;
+        
+        if (!post.savedBy.includes(userId)) {
+            // Save the post
+            await post.updateOne({ $push: { savedBy: userId } });
+            action = 'saved';
+            res.status(200).json({
+                message: "Post saved successfully",
+                success: true,
+                action,
+                post: {
+                    _id: post._id,
+                    userId: post.userId
+                }
+            });
+        } else {
+            // Unsave the post
+            await post.updateOne({ $pull: { savedBy: userId } });
+            action = 'unsaved';
+            res.status(200).json({
+                message: "Post removed from saved",
+                success: true,
+                action,
+                post: {
+                    _id: post._id,
+                    userId: post.userId
+                }
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};
+
+// Get saved posts for a user
+export const getSavedPosts = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        
+        // Find all posts that have this userId in their savedBy array
+        const savedPosts = await PostModel.find({
+            savedBy: { $in: [userId] }
+        }).sort({ createdAt: -1 });  // Newest first
+        
+        res.status(200).json({
+            message: "Saved posts fetched successfully",
+            success: true,
+            posts: savedPosts
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+}

@@ -4,6 +4,8 @@ import {
   FaRegComment,
   FaEllipsisV,
   FaTrash,
+  FaBookmark,
+  FaRegBookmark,
 } from "react-icons/fa";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +20,7 @@ interface PostCardProps {
   desc: string;
   image?: string;
   likes: string[];
+  savedBy?: string[];
   comments?: {
     userId: string;
     text: string;
@@ -25,7 +28,9 @@ interface PostCardProps {
     createdAt?: string;
   }[];
   onLike?: () => void;
+  onSave?: () => void;
   isLiked?: boolean;
+  isSaved?: boolean;
 }
 
 const PostCard: React.FC<PostCardProps> = ({
@@ -33,14 +38,17 @@ const PostCard: React.FC<PostCardProps> = ({
   userId,
   desc,
   likes,
+  savedBy = [],
   image,
   comments = [],
   onLike,
+  onSave,
   isLiked = false,
+  isSaved = false,
 }) => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuthStore();
-  const { addComment, deletePost } = usePostStore();
+  const { addComment, deletePost, savePost } = usePostStore();
   const [postUser, setPostUser] = useState<{
     profilePicture?: string;
     username: string;
@@ -61,6 +69,12 @@ const PostCard: React.FC<PostCardProps> = ({
     >
   >({});
   const [commentText, setCommentText] = useState("");
+  const [localSaved, setLocalSaved] = useState(isSaved);
+
+  // Actualizăm starea locală când props-ul se schimbă
+  useEffect(() => {
+    setLocalSaved(isSaved);
+  }, [isSaved]);
 
   // State for UserListModal
   const [isLikesModalOpen, setIsLikesModalOpen] = useState(false);
@@ -72,6 +86,26 @@ const PostCard: React.FC<PostCardProps> = ({
         setShowMenu(false);
       } catch (error) {
         console.error("Error deleting post:", error);
+      }
+    }
+  };
+
+  // Funcție pentru salvarea postării cu actualizarea stării locale
+  const handleSavePost = async () => {
+    if (_id && currentUser) {
+      try {
+        // Actualizăm starea locală preventiv pentru UX mai bun
+        setLocalSaved(!localSaved);
+
+        // Executăm acțiunea reală de save/unsave
+        await savePost(_id, currentUser._id);
+
+        // Apelăm callback-ul pentru a notifica părintele
+        if (onSave) onSave();
+      } catch (error) {
+        // Revertim starea locală în caz de eroare
+        setLocalSaved(localSaved);
+        console.error("Error saving post:", error);
       }
     }
   };
@@ -252,45 +286,68 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         )}
       </div>
-      <div className="px-4 py-3 flex space-x-8">
-        {/* Like Button Section */}
-        <div className="flex flex-col items-center">
-          <button onClick={onLike} className="transition-colors">
-            {isLiked ? (
-              <FaHeart
-                className="text-2xl text-purple-500 filter drop-shadow-lg"
+      <div className="px-4 py-3 flex items-center justify-between">
+        {/* Left side: Like and Comment buttons */}
+        <div className="flex space-x-8">
+          {/* Like Button Section */}
+          <div className="flex flex-col items-center">
+            <button onClick={onLike} className="transition-colors">
+              {isLiked ? (
+                <FaHeart
+                  className="text-2xl text-purple-500 filter drop-shadow-lg"
+                  style={{
+                    filter: "drop-shadow(0 0 3px rgba(147, 51, 234, 0.5))",
+                  }}
+                />
+              ) : (
+                <FaRegHeart className="text-2xl text-gray-700 hover:text-purple-500 transition-colors" />
+              )}
+            </button>
+            {/* Likes count button, clearly separated from like button */}
+            <button
+              onClick={() => likes.length > 0 && setIsLikesModalOpen(true)}
+              className={`mt-1 text-sm ${
+                likes.length > 0
+                  ? "cursor-pointer hover:text-purple-500 hover:underline"
+                  : "cursor-default"
+              } ${isLiked ? "text-purple-500" : "text-gray-700"}`}
+            >
+              {likes.length} {likes.length === 1 ? "like" : "likes"}
+            </button>
+          </div>
+
+          {/* Comment Button Section */}
+          <div className="flex flex-col items-center">
+            <button
+              className="transition-colors text-gray-700 hover:text-blue-500"
+              onClick={() => setShowAllComments(!showAllComments)}
+            >
+              <FaRegComment className="text-2xl" />
+            </button>
+            <span className="mt-1 text-sm text-gray-700">
+              {comments.length} {comments.length === 1 ? "comment" : "comments"}
+            </span>
+          </div>
+        </div>
+
+        {/* Right side: Save button - cu gradient îmbunătățit */}
+        <div className="flex flex-col items-center -mt-6">
+          <button onClick={handleSavePost} className="transition-colors">
+            {localSaved ? (
+              <FaBookmark
+                className="text-2xl"
                 style={{
-                  filter: "drop-shadow(0 0 3px rgba(147, 51, 234, 0.5))",
+                  color: "#f59e0b", // Culoare de bază portocalie
+                  filter: "drop-shadow(0 0 3px rgba(245, 158, 11, 0.5))",
+                  background: "linear-gradient(to right, #f59e0b, #ef4444)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
                 }}
               />
             ) : (
-              <FaRegHeart className="text-2xl text-gray-700 hover:text-purple-500 transition-colors" />
+              <FaRegBookmark className="text-2xl text-gray-700 hover:text-yellow-500 transition-colors" />
             )}
           </button>
-          {/* Likes count button, clearly separated from like button */}
-          <button
-            onClick={() => likes.length > 0 && setIsLikesModalOpen(true)}
-            className={`mt-1 text-sm ${
-              likes.length > 0
-                ? "cursor-pointer hover:text-purple-500 hover:underline"
-                : "cursor-default"
-            } ${isLiked ? "text-purple-500" : "text-gray-700"}`}
-          >
-            {likes.length} {likes.length === 1 ? "like" : "likes"}
-          </button>
-        </div>
-
-        {/* Comment Button Section */}
-        <div className="flex flex-col items-center">
-          <button
-            className="transition-colors text-gray-700 hover:text-blue-500"
-            onClick={() => setShowAllComments(!showAllComments)}
-          >
-            <FaRegComment className="text-2xl" />
-          </button>
-          {/* <span className="mt-1 text-sm text-gray-700">
-            {comments.length} {comments.length === 1 ? "comment" : "comments"}
-          </span> */}
         </div>
       </div>
       <div className="px-4 pb-3">
@@ -304,6 +361,7 @@ const PostCard: React.FC<PostCardProps> = ({
           <p className="text-gray-800 ml-2">{desc}</p>
         </div>
       </div>
+
       {comments.length > 0 && (
         <div className="px-4 pb-3 border-t border-gray-100 pt-3">
           <div className="space-y-3 max-h-60 overflow-y-auto">

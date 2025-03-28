@@ -4,6 +4,7 @@ export interface IPost {
   username: string;
   desc: string;
   likes: string[];
+  savedBy?: string[]; // Added savedBy array
   image?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -31,6 +32,7 @@ export interface PostState {
   posts: IPost[];
   timelinePosts: IPost[];
   userPosts: IPost[];
+  savedPosts: IPost[]; // Added savedPosts array
   currentPost: IPost | null;
   loading: boolean;
   error: string | null;

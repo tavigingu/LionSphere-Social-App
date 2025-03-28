@@ -22,7 +22,6 @@ export const getTimelinePosts = async (userId: string ): Promise<IPost[]> => {
     }
 }
 
-  //getuserposts to do
 export const getuserPosts = async( userId: string) : Promise<IPost[]> => {
   try{
     const response = await axios.get<getPostsResponse>(`${BASE_URL}/post/${userId}/posts`);
@@ -82,6 +81,60 @@ export const likePost = async (postId: string, userId: string) : Promise<void> =
   }
 }
 
+// Actualizare funcție savePost pentru a evita slash-ul final
+export const savePost = async (postId: string, userId: string): Promise<void> => {
+  try {
+    console.log(`Saving post with ID: ${postId} for user: ${userId}`);
+    const response = await axios.put<{ 
+        message: string, 
+        success: boolean, 
+        action: 'saved' | 'unsaved',
+        post: {
+            userId: string;
+            _id: string;
+        }
+    }>(
+        `${BASE_URL}/post/${postId}/save`, // Fără slash final
+        { userId }
+    );
+    
+    console.log('Save post response:', response.data);
+    
+    if(!response.data.success) {
+        throw new Error(response.data.message || 'Failed to save/unsave post');
+    }
+  } catch(error) {
+    if (axios.isAxiosError(error)) {
+        console.error('Failed to save/unsave post:', error.response?.data);
+        throw new Error(error.response?.data?.message || 'Failed to save/unsave post');
+    }
+    throw error;
+  }
+};
+
+// Funcție pentru a obține postările salvate
+export const getSavedPosts = async (userId: string): Promise<IPost[]> => {
+  try {
+    const response = await axios.get<{
+      message: string,
+      success: boolean,
+      posts: IPost[]
+    }>(`${BASE_URL}/post/${userId}/saved`);
+    
+    if(response.data.success) {
+      return response.data.posts;
+    } else {
+      throw new Error(response.data.message || 'Failed to fetch saved posts');
+    }
+  } catch(error) {
+    if (axios.isAxiosError(error)) {
+        console.error('Failed to fetch saved posts:', error.response?.data);
+        throw new Error(error.response?.data?.message || 'Failed to fetch saved posts');
+    }
+    throw error;
+  }
+};
+
 export const createPost = async (postData: {
     userId: string;
     desc: string;
@@ -121,55 +174,6 @@ export const createPost = async (postData: {
       throw error;
     }
 };
-
-
-// export const commentOnPost = async (postId: string, userId: string, text: string): Promise<void> => {
-//   try {
-//     const response = await axios.put<{
-//       message: string, 
-//       success: boolean,
-//       post: {
-//         userId: string;
-//         _id: string;
-//       },
-//       comment: {
-//         _id: string;
-//         text: string;
-//       }
-//     }>(
-//       `${BASE_URL}/post/${postId}/comment`,
-//       { userId, text }
-//     );
-
-//     if(!response.data.success) {
-//       throw new Error(response.data.message || 'Failed to comment on post');
-//     }
-    
-//     // Create notification if the commenter is not the post owner
-//     if (response.data.post.userId !== userId) {
-//       try {
-//         // Create notification for comment
-//         await axios.post(`${BASE_URL}/notification`, {
-//           recipientId: response.data.post.userId,  // Post owner
-//           senderId: userId,                        // Commenter
-//           type: 'comment',                         // Notification type
-//           postId: postId,                          // Post ID
-//           commentId: response.data.comment._id,    // Comment ID
-//           message: 'commented on your post'        // Notification message
-//         });
-//       } catch (err) {
-//         // Continue even if notification creation fails
-//         console.error('Failed to create comment notification:', err);
-//       }
-//     }
-//   } catch(error) {
-//     if (axios.isAxiosError(error)) {
-//       console.error('Failed to comment on post:', error.response?.data);
-//       throw new Error(error.response?.data?.message || 'Failed to comment on post');
-//     }
-//     throw error;
-//   }
-// }
 
 export const commentOnPost = async (postId: string, userId: string, text: string): Promise<void> => {
   try {
@@ -236,5 +240,3 @@ export const deletePost = async (postId: string, userId: string): Promise<void> 
     throw error;
   }
 };
-
-

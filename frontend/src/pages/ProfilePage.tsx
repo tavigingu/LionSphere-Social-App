@@ -15,11 +15,18 @@ import { followUser, unfollowUser, checkFollowStatus } from "../api/User";
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser } = useAuthStore();
-  const { likePost: likeSinglePost } = usePostStore();
+  const {
+    likePost: likeSinglePost,
+    savePost: savePostFunction,
+    fetchSavedPosts,
+    fetchUserPosts,
+  } = usePostStore();
   const navigate = useNavigate();
 
   const [profileUser, setProfileUser] = useState<IUser | null>(null);
   const [userPosts, setUserPosts] = useState<IPost[]>([]);
+  const [savedPosts, setSavedPosts] = useState<IPost[]>([]);
+  const [activeTab, setActiveTab] = useState<"posts" | "saved">("posts");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -65,6 +72,17 @@ const ProfilePage: React.FC = () => {
             );
             setUserPosts(userPosts);
           }
+
+          // If viewing own profile, fetch saved posts
+          if (isOwnProfile && currentUser) {
+            const savedPostsResponse = await axios.get(
+              `http://localhost:5001/post/${currentUser._id}/saved`
+            );
+
+            if (savedPostsResponse.data.success) {
+              setSavedPosts(savedPostsResponse.data.posts);
+            }
+          }
         } else {
           setError("Failed to fetch user data");
         }
@@ -79,13 +97,30 @@ const ProfilePage: React.FC = () => {
     fetchProfileData();
   }, [targetUserId, navigate, currentUser, isOwnProfile]);
 
+  // Handler for refreshing saved posts when needed
+  const refreshSavedPosts = async () => {
+    if (currentUser && isOwnProfile) {
+      try {
+        const savedPostsResponse = await axios.get(
+          `http://localhost:5001/post/${currentUser._id}/saved`
+        );
+
+        if (savedPostsResponse.data.success) {
+          setSavedPosts(savedPostsResponse.data.posts);
+        }
+      } catch (err) {
+        console.error("Error refreshing saved posts:", err);
+      }
+    }
+  };
+
   const handleLikePost = async (postId: string) => {
     if (currentUser && currentUser._id) {
       await likeSinglePost(postId, currentUser._id);
 
       // Update the local state to reflect the like change
-      setUserPosts((prevPosts) =>
-        prevPosts.map((post) => {
+      const updatePostsWithLike = (posts: IPost[]) =>
+        posts.map((post) => {
           if (post._id === postId) {
             const isLiked = post.likes.includes(currentUser._id);
             return {
@@ -96,8 +131,66 @@ const ProfilePage: React.FC = () => {
             };
           }
           return post;
-        })
-      );
+        });
+
+      if (activeTab === "posts") {
+        setUserPosts(updatePostsWithLike(userPosts));
+      } else {
+        setSavedPosts(updatePostsWithLike(savedPosts));
+      }
+    }
+  };
+
+  const handleSavePost = async (postId: string) => {
+    if (currentUser && currentUser._id) {
+      await savePostFunction(postId, currentUser._id);
+
+      // Update the local state based on which tab we're viewing
+      if (activeTab === "posts") {
+        // In posts tab - just update the savedBy status
+        const updatedPosts = userPosts.map((post) => {
+          if (post._id === postId) {
+            const isSaved = post.savedBy?.includes(currentUser._id);
+            return {
+              ...post,
+              savedBy: isSaved
+                ? (post.savedBy || []).filter((id) => id !== currentUser._id)
+                : [...(post.savedBy || []), currentUser._id],
+            };
+          }
+          return post;
+        });
+        setUserPosts(updatedPosts);
+      } else {
+        // In saved tab - remove the post if unsaved
+        const post = savedPosts.find((p) => p._id === postId);
+        if (post) {
+          const isSaved = post.savedBy?.includes(currentUser._id);
+          if (isSaved) {
+            // If already saved, unsaving - remove it from view
+            setSavedPosts(savedPosts.filter((p) => p._id !== postId));
+          } else {
+            // Should never happen in saved tab, but handle it anyway
+            const updatedPosts = savedPosts.map((p) => {
+              if (p._id === postId) {
+                return {
+                  ...p,
+                  savedBy: [...(p.savedBy || []), currentUser._id],
+                };
+              }
+              return p;
+            });
+            setSavedPosts(updatedPosts);
+          }
+        }
+      }
+
+      // Always refresh saved posts if in saved tab
+      if (activeTab === "saved") {
+        setTimeout(() => {
+          refreshSavedPosts();
+        }, 300); // Short delay to allow backend to update
+      }
     }
   };
 
@@ -145,6 +238,15 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleTabChange = (tab: "posts" | "saved") => {
+    setActiveTab(tab);
+
+    // If switching to saved tab, refresh saved posts
+    if (tab === "saved" && isOwnProfile && currentUser) {
+      refreshSavedPosts();
+    }
+  };
+
   if (loading) {
     return (
       <div className="relative min-h-screen text-white">
@@ -177,6 +279,9 @@ const ProfilePage: React.FC = () => {
       </div>
     );
   }
+
+  // Get posts based on active tab
+  const displayPosts = activeTab === "posts" ? userPosts : savedPosts;
 
   return (
     <div className="relative min-h-screen text-white">
@@ -212,35 +317,70 @@ const ProfilePage: React.FC = () => {
                 />
               </div>
 
-              {/* Butonul de follow a fost mutat în ProfileHeader */}
+              {/* Tab navigation - only show if viewing own profile */}
+              {isOwnProfile && (
+                <div className="flex mb-6">
+                  <button
+                    onClick={() => handleTabChange("posts")}
+                    className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
+                      activeTab === "posts"
+                        ? "border-blue-500 text-blue-500"
+                        : "border-transparent text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    Posts
+                  </button>
+                  <button
+                    onClick={() => handleTabChange("saved")}
+                    className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
+                      activeTab === "saved"
+                        ? "border-blue-500 text-blue-500"
+                        : "border-transparent text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    Saved
+                  </button>
+                </div>
+              )}
 
-              {/* User's posts section */}
+              {/* Posts section header */}
               <div className="mt-6">
-                <h2 className="text-xl font-bold mb-4 text-white">Posts</h2>
+                <h2 className="text-xl font-bold mb-4 text-white">
+                  {activeTab === "posts" ? "Posts" : "Saved Posts"}
+                </h2>
 
-                {userPosts.length === 0 ? (
+                {displayPosts.length === 0 ? (
                   <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-center">
                     <p className="text-white">
-                      {isOwnProfile
-                        ? "You haven't created any posts yet."
-                        : "This user hasn't created any posts yet."}
+                      {activeTab === "posts"
+                        ? isOwnProfile
+                          ? "You haven't created any posts yet."
+                          : "This user hasn't created any posts yet."
+                        : "You haven't saved any posts yet."}
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {userPosts.map((post) => (
+                    {displayPosts.map((post) => (
                       <PostCard
                         key={post._id}
                         _id={post._id || ""}
                         userId={post.userId}
                         desc={post.desc}
                         likes={post.likes || []}
+                        savedBy={post.savedBy || []}
                         image={post.image}
                         comments={post.comments || []}
                         onLike={() => post._id && handleLikePost(post._id)}
+                        onSave={() => post._id && handleSavePost(post._id)}
                         isLiked={
                           currentUser
                             ? post.likes?.includes(currentUser._id)
+                            : false
+                        }
+                        isSaved={
+                          currentUser && post.savedBy
+                            ? post.savedBy.includes(currentUser._id)
                             : false
                         }
                       />

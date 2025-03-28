@@ -15,6 +15,7 @@ const HomePage: React.FC = () => {
     error,
     fetchTimelinePosts,
     likePost: likeSinglePost,
+    savePost: savePostFunction,
   } = usePostStore();
 
   useEffect(() => {
@@ -26,6 +27,12 @@ const HomePage: React.FC = () => {
   const handleLikePost = async (postId: string) => {
     if (user && user._id) {
       await likeSinglePost(postId, user._id);
+    }
+  };
+
+  const handleSavePost = async (postId: string) => {
+    if (user && user._id) {
+      await savePostFunction(postId, user._id);
     }
   };
 
@@ -50,11 +57,6 @@ const HomePage: React.FC = () => {
           <div className="w-full lg:flex-1 mx-0 lg:mx-6">
             {/* Main content wrapper with consistent width */}
             <div className="max-w-2xl mx-auto">
-              {/* Post creation form */}
-              {/* <div className="mb-6">
-                <PostCreationForm onPostCreated={handlePostCreated} />
-              </div> */}
-
               {/* Loading indicator */}
               {loading && (
                 <div className="flex justify-center items-center p-4">
@@ -80,10 +82,17 @@ const HomePage: React.FC = () => {
                       userId={post.userId}
                       desc={post.desc}
                       likes={post.likes || []}
+                      savedBy={post.savedBy || []}
                       image={post.image}
                       comments={post.comments || []}
                       onLike={() => post._id && handleLikePost(post._id)}
+                      onSave={() => post._id && handleSavePost(post._id)}
                       isLiked={user ? post.likes?.includes(user._id) : false}
+                      isSaved={
+                        user && post.savedBy
+                          ? post.savedBy.includes(user._id)
+                          : false
+                      }
                     />
                   ))}
                 </div>

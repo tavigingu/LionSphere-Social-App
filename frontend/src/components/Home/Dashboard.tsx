@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// frontend/src/components/Home/Dashboard.tsx
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaHome,
@@ -10,11 +11,14 @@ import {
   FaSignOutAlt,
   FaBars,
   FaTimes,
+  FaCamera,
+  FaEdit,
 } from "react-icons/fa";
 import useAuthStore from "../../store/AuthStore";
 import useNotificationStore from "../../store/NotificationStore";
 import SearchSidebar from "../Home/SearchSidebar";
 import PostCreationForm from "../PostCreationForm";
+import StoryCreationForm from "../Home/StoryCreationForm"; // Importă componenta de creare story
 import NotificationPanel from "../Home/NotificationPanel";
 
 const Dashboard: React.FC = () => {
@@ -28,6 +32,9 @@ const Dashboard: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
   const [isPostFormOpen, setIsPostFormOpen] = useState(false);
+  const [isStoryFormOpen, setIsStoryFormOpen] = useState(false);
+  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const createMenuRef = useRef<HTMLDivElement>(null);
 
   // Set active button based on current route
   useEffect(() => {
@@ -50,6 +57,23 @@ const Dashboard: React.FC = () => {
     }
   }, [user, fetchUnreadCount]);
 
+  // Handle clicks outside create menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        createMenuRef.current &&
+        !createMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsCreateMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -63,27 +87,37 @@ const Dashboard: React.FC = () => {
     setActiveButton(buttonName);
     setMobileMenuOpen(false);
 
-    // Gestionăm panourile explicit
-    if (buttonName === "search") {
-      setIsSearchOpen(true);
-      setIsNotificationPanelOpen(false);
-      setIsPostFormOpen(false);
-    } else if (buttonName === "notifications") {
-      setIsNotificationPanelOpen(true);
-      setIsSearchOpen(false);
-      setIsPostFormOpen(false);
-    } else if (buttonName === "create") {
-      setIsPostFormOpen(true);
-      setIsSearchOpen(false);
-      setIsNotificationPanelOpen(false);
+    // Închide toate panourile și meniurile
+    setIsSearchOpen(false);
+    setIsNotificationPanelOpen(false);
+    setIsPostFormOpen(false);
+    setIsStoryFormOpen(false);
+
+    // Dacă am dat click pe butonul create, gestionăm toggleul meniului
+    if (buttonName === "create") {
+      setIsCreateMenuOpen(!isCreateMenuOpen);
     } else {
-      // Pentru "home", "profile" sau altele, închidem toate panourile
-      setIsSearchOpen(false);
-      setIsNotificationPanelOpen(false);
-      setIsPostFormOpen(false);
-      if (buttonName === "home") navigate("/home");
-      if (buttonName === "profile") navigate("/profile");
+      setIsCreateMenuOpen(false); // Închide meniul de creare la click pe alte butoane
+
+      // Navigare pentru alte butoane
+      if (buttonName === "search") {
+        setIsSearchOpen(true);
+      } else if (buttonName === "notifications") {
+        setIsNotificationPanelOpen(true);
+      } else if (buttonName === "home") navigate("/home");
+      else if (buttonName === "profile") navigate("/profile");
     }
+  };
+
+  // Funcții pentru gestionarea formularelor
+  const handleCreatePost = () => {
+    setIsCreateMenuOpen(false);
+    setIsPostFormOpen(true);
+  };
+
+  const handleCreateStory = () => {
+    setIsCreateMenuOpen(false);
+    setIsStoryFormOpen(true);
   };
 
   const handleCloseSearch = () => {
@@ -107,9 +141,19 @@ const Dashboard: React.FC = () => {
     );
   };
 
+  const handleCloseStoryForm = () => {
+    setIsStoryFormOpen(false);
+    setActiveButton(
+      location.pathname.includes("/profile") ? "profile" : "home"
+    );
+  };
+
   // Dashboard-ul este minimalist dacă oricare panou este deschis
   const isMinimalist =
-    isSearchOpen || isNotificationPanelOpen || isPostFormOpen;
+    isSearchOpen ||
+    isNotificationPanelOpen ||
+    isPostFormOpen ||
+    isStoryFormOpen;
 
   const getIconSize = (buttonName: string) => {
     return activeButton === buttonName ? 24 : 20;
@@ -126,11 +170,18 @@ const Dashboard: React.FC = () => {
     icon: React.ReactNode;
     label: string;
     badge?: number | null;
+    onClick?: () => void;
   }
 
-  const NavButton = ({ name, icon, label, badge = null }: NavButtonProps) => (
+  const NavButton = ({
+    name,
+    icon,
+    label,
+    badge = null,
+    onClick,
+  }: NavButtonProps) => (
     <button
-      onClick={() => handleClick(name)}
+      onClick={() => (onClick ? onClick() : handleClick(name))}
       className={`flex items-center w-full p-3 text-left rounded-lg transition-all duration-200 ${
         activeButton === name
           ? "font-bold text-blue-600 bg-blue-50"
@@ -242,16 +293,45 @@ const Dashboard: React.FC = () => {
             label="Notifications"
             badge={unreadCount}
           />
-          <NavButton
-            name="create"
-            icon={
-              <FaPlusCircle
-                className={getIconClass("create")}
-                size={getIconSize("create")}
-              />
-            }
-            label="Create"
-          />
+
+          {/* Butonul Create cu meniul expandabil */}
+          <div className="relative" ref={createMenuRef}>
+            <NavButton
+              name="create"
+              icon={
+                <FaPlusCircle
+                  className={getIconClass("create")}
+                  size={getIconSize("create")}
+                />
+              }
+              label="Create"
+            />
+
+            {/* Meniu expandat pentru creare */}
+            {isCreateMenuOpen && (
+              <div
+                className={`absolute ${
+                  isMinimalist ? "left-full ml-2" : "top-full left-0"
+                } mt-1 bg-white rounded-lg shadow-lg w-52 py-2 z-10 transition-all duration-200 border border-gray-200`}
+              >
+                <button
+                  onClick={handleCreateStory}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
+                  <FaCamera className="mr-3 text-blue-500" />
+                  <span>Create Story</span>
+                </button>
+                <button
+                  onClick={handleCreatePost}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
+                  <FaEdit className="mr-3 text-blue-500" />
+                  <span>Create Post</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           <NavButton
             name="profile"
             icon={
@@ -356,6 +436,19 @@ const Dashboard: React.FC = () => {
           />
           <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
             <PostCreationForm onPostCreated={handleClosePostForm} />
+          </div>
+        </>
+      )}
+
+      {/* Story Creation Form Modal */}
+      {isStoryFormOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            onClick={handleCloseStoryForm}
+          />
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+            <StoryCreationForm onStoryCreated={handleCloseStoryForm} />
           </div>
         </>
       )}

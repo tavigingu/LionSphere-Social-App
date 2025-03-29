@@ -240,3 +240,149 @@ export const deletePost = async (postId: string, userId: string): Promise<void> 
     throw error;
   }
 };
+
+export const replyToComment = async (
+  postId: string,
+  commentId: string,
+  userId: string,
+  text: string
+): Promise<void> => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/post/${postId}/comment/${commentId}/reply`,
+      { userId, text }
+    );
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to reply to comment');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to reply to comment:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to reply to comment');
+    }
+    throw error;
+  }
+};
+
+// Like/unlike a comment
+export const likeComment = async (
+  postId: string,
+  commentId: string,
+  userId: string
+): Promise<{ action: 'liked' | 'unliked', likes: string[] }> => {
+  try {
+    const response = await axios.put<{
+      message: string;
+      success: boolean;
+      action: 'liked' | 'unliked';
+      comment: {
+        _id: string;
+        likes: string[];
+      };
+    }>(
+      `${BASE_URL}/post/${postId}/comment/${commentId}/like`,
+      { userId }
+    );
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to like/unlike comment');
+    }
+
+    return {
+      action: response.data.action,
+      likes: response.data.comment.likes
+    };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to like/unlike comment:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to like/unlike comment');
+    }
+    throw error;
+  }
+};
+
+// Like/unlike a reply
+export const likeReply = async (
+  postId: string,
+  commentId: string,
+  replyId: string,
+  userId: string
+): Promise<{ action: 'liked' | 'unliked', likes: string[] }> => {
+  try {
+    const response = await axios.put<{
+      message: string;
+      success: boolean;
+      action: 'liked' | 'unliked';
+      reply: {
+        _id: string;
+        likes: string[];
+      };
+    }>(
+      `${BASE_URL}/post/${postId}/comment/${commentId}/reply/${replyId}/like`,
+      { userId }
+    );
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to like/unlike reply');
+    }
+
+    return {
+      action: response.data.action,
+      likes: response.data.reply.likes
+    };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to like/unlike reply:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to like/unlike reply');
+    }
+    throw error;
+  }
+};
+
+export const deleteComment = async (
+  postId: string, 
+  commentId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const response = await axios.delete(
+      `${BASE_URL}/post/${postId}/comment/${commentId}`,
+      { data: { userId } }
+    );
+    
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to delete comment');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to delete comment:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to delete comment');
+    }
+    throw error;
+  }
+};
+
+export const deleteReply = async (
+  postId: string,
+  commentId: string,
+  replyId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const response = await axios.delete(
+      `${BASE_URL}/post/${postId}/comment/${commentId}/reply/${replyId}`,
+      { data: { userId } }
+    );
+    
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to delete reply');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to delete reply:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to delete reply');
+    }
+    throw error;
+  }
+};

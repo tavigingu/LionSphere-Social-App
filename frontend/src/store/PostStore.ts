@@ -1,4 +1,4 @@
-import { getTimelinePosts, likePost as likePostApi, createPost as createPostApi, commentOnPost, deletePost as deletePostApi, savePost as savePostApi, getSavedPosts as getSavedPostsApi } from "../api/Post";
+import { getTimelinePosts, likePost as likePostApi, createPost as createPostApi, commentOnPost, deletePost as deletePostApi, savePost as savePostApi, getSavedPosts as getSavedPostsApi, replyToComment, likeComment, likeReply } from "../api/Post";
 import { PostState, IPost } from "../types/PostTypes";
 import { create } from 'zustand';
 
@@ -11,6 +11,9 @@ interface PostStore extends PostState {
     deletePost: (postId: string, userId: string) => Promise<void>;
     addComment: (postId: string, userId: string, text: string) => Promise<void>;
     fetchSavedPosts: (userId: string) => Promise<void>;
+    replyToComment: (postId: string, commentId: string, userId: string, text: string) => Promise<void>;
+    likeComment: (postId: string, commentId: string, userId: string) => Promise<void>;
+    likeReply: (postId: string, commentId: string, replyId: string, userId: string) => Promise<void>;
     clearError: () => void;
     resetState: () => void;
 }
@@ -228,6 +231,109 @@ const usePostStore = create<PostStore>((set, get) => ({
             }
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to add comment';
+            set({ error: errorMessage });
+        }
+    },
+
+    replyToComment: async (postId, commentId, userId, text) => {
+        try {
+            await replyToComment(postId, commentId, userId, text);
+            
+            // After successfully adding a reply, refresh timeline to get updated posts
+            const currentUser = get().timelinePosts.find(post => post._id === postId)?.userId;
+            if (currentUser) {
+                const posts = await getTimelinePosts(userId);
+                set({
+                    timelinePosts: posts,
+                    posts: posts
+                });
+            }
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to reply to comment';
+            set({ error: errorMessage });
+        }
+    },
+    
+    likeComment: async (postId, commentId, userId) => {
+        try {
+            const result = await likeComment(postId, commentId, userId);
+            
+            // Update the comment likes in all post collections
+            const updatePostsWithCommentLike = (posts: IPost[]) =>
+                posts.map((post) => {
+                    if (post._id === postId) {
+                        return {
+                            ...post,
+                            comments: post.comments?.map(comment => {
+                                if (comment._id === commentId) {
+                                    return {
+                                        ...comment,
+                                        likes: result.action === 'liked'
+                                            ? [...(comment.likes || []), userId]
+                                            : (comment.likes || []).filter(id => id !== userId)
+                                    };
+                                }
+                                return comment;
+                            })
+                        };
+                    }
+                    return post;
+                });
+            
+            set((state) => ({
+                timelinePosts: updatePostsWithCommentLike(state.timelinePosts),
+                userPosts: updatePostsWithCommentLike(state.userPosts),
+                savedPosts: updatePostsWithCommentLike(state.savedPosts),
+                posts: updatePostsWithCommentLike(state.posts)
+            }));
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to like comment';
+            set({ error: errorMessage });
+        }
+    },
+    
+    likeReply: async (postId, commentId, replyId, userId) => {
+        try {
+            const result = await likeReply(postId, commentId, replyId, userId);
+            
+            // Update the reply likes in all post collections
+            const updatePostsWithReplyLike = (posts: IPost[]) =>
+                posts.map((post) => {
+                    if (post._id === postId) {
+                        return {
+                            ...post,
+                            comments: post.comments?.map(comment => {
+                                if (comment._id === commentId) {
+                                    return {
+                                        ...comment,
+                                        replies: comment.replies?.map(reply => {
+                                            if (reply._id === replyId) {
+                                                return {
+                                                    ...reply,
+                                                    likes: result.action === 'liked'
+                                                        ? [...(reply.likes || []), userId]
+                                                        : (reply.likes || []).filter(id => id !== userId)
+                                                };
+                                            }
+                                            return reply;
+                                        })
+                                    };
+                                }
+                                return comment;
+                            })
+                        };
+                    }
+                    return post;
+                });
+            
+            set((state) => ({
+                timelinePosts: updatePostsWithReplyLike(state.timelinePosts),
+                userPosts: updatePostsWithReplyLike(state.userPosts),
+                savedPosts: updatePostsWithReplyLike(state.savedPosts),
+                posts: updatePostsWithReplyLike(state.posts)
+            }));
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to like reply';
             set({ error: errorMessage });
         }
     },

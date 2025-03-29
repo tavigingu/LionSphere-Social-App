@@ -10,6 +10,9 @@ import AuthRoute from "./routes/AuthRoute.js";
 import UserRoute from "./routes/UserRoute.js";
 import PostRoute from "./routes/PostRoute.js";
 import NotificationRoute from "./routes/NotificationRoute.js";
+import StoryRoute from "./routes/StoryRoute.js";
+import cron from 'node-cron';
+import { cleanExpiredStories } from "./controller/StoryController.js";
 
 dotenv.config();
 
@@ -32,10 +35,20 @@ connectDB().then(()=>{
     })
 })
 
+cron.schedule('0 * * * *', async () => {
+    console.log('Running cleanup job for expired stories');
+    try {
+        const deletedCount = await cleanExpiredStories();
+        console.log(`Cleanup completed: ${deletedCount} stories removed`);
+    } catch (error) {
+        console.error('Cleanup job failed:', error);
+    }
+});
+
 app.use('/auth', AuthRoute);
 app.use('/user', UserRoute);
 app.use('/post', PostRoute);
 app.use('/notification', NotificationRoute);
-
+app.use('/story', StoryRoute);
 
 

@@ -107,33 +107,6 @@ export const deletePost = async (req, res) => {
     }
 }
 
-// like/dislike a post
-// export const likePost = async (req, res) => {  
-//     try {
-//         const postId = req.params.id;
-//         const { userId } = req.body;
-        
-//         const post = await PostModel.findById(postId);
-//         if(!post.likes.includes(userId)) {
-//             await post.updateOne({ $push: { likes: userId } });
-//             res.status(200).json({
-//                 message: "Post liked successfully",
-//                 success: true
-//             });
-//         } else {
-//             await post.updateOne({ $pull: { likes: userId } });
-//             res.status(200).json({
-//                 message: "Post unliked successfully",
-//                 success: true });
-//         }
-
-//     } catch (error) {
-//         res.status(500).json({
-//             message: error.message || error,
-//             success: false
-//         });
-//     }
-// }
 export const likePost = async (req, res) => {  
     try {
         const postId = req.params.id;
@@ -184,27 +157,6 @@ export const likePost = async (req, res) => {
     }
 }
 
-
-// export const commentPost = async (req, res) => {
-//     try {
-//         const postId = req.params.id;
-//         const { userId, text } = req.body;
-        
-//         const post = await PostModel.findById(postId);
-//         await post.updateOne({ $push: { comments: { userId, text } } });
-
-//         res.status(200).json({
-//             message: "Comment added successfully",
-//             success: true
-//         });
-
-//     } catch (error) {
-//         res.status(500).json({
-//             message: error.message || error,
-//             success: false
-//         });
-//     }
-// }
 
 export const commentPost = async (req, res) => {
     try {
@@ -437,3 +389,282 @@ export const getSavedPosts = async (req, res) => {
         });
     }
 }
+
+export const replyToComment = async (req, res) => {
+    try {
+        const postId = req.params.postId;
+        const commentId = req.params.commentId;
+        const { userId, text } = req.body;
+        
+        if (!text || text.trim() === '') {
+            return res.status(400).json({
+                message: "Reply text is required",
+                success: false
+            });
+        }
+        
+        const post = await PostModel.findById(postId);
+        
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found",
+                success: false
+            });
+        }
+        
+        // Find the comment to reply to
+        const commentIndex = post.comments.findIndex(
+            comment => comment._id.toString() === commentId
+        );
+        
+        if (commentIndex === -1) {
+            return res.status(404).json({
+                message: "Comment not found",
+                success: false
+            });
+        }
+        
+        // Create the reply
+        const newReply = {
+            userId,
+            text,
+            createdAt: new Date(),
+            likes: []
+        };
+        
+        // Add the reply to the comment
+        post.comments[commentIndex].replies.push(newReply);
+        await post.save();
+        
+        // Get the updated post to see the added reply
+        const updatedPost = await PostModel.findById(postId);
+        const addedReply = updatedPost.comments[commentIndex].replies[
+            updatedPost.comments[commentIndex].replies.length - 1
+        ];
+        
+        // Create notification for the comment owner if the reply author is different
+        if (post.comments[commentIndex].userId !== userId) {
+            try {
+                await NotificationModel.create({
+                    recipientId: post.comments[commentIndex].userId,
+                    senderId: userId,
+                    type: 'comment',
+                    postId,
+                    commentId,
+                    message: `replied to your comment: "${text.substring(0, 40)}${text.length > 40 ? '...' : ''}"`,
+                    read: false
+                });
+            } catch (err) {
+                console.error('Failed to create reply notification:', err);
+                // Continue even if notification creation fails
+            }
+        }
+        
+        res.status(200).json({
+            message: "Reply added successfully",
+            success: true,
+            reply: addedReply
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};
+
+// Like/unlike a comment
+export const likeComment = async (req, res) => {
+    try {
+        const postId = req.params.postId;
+        const commentId = req.params.commentId;
+        const { userId } = req.body;
+        
+        const post = await PostModel.findById(postId);
+        
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found",
+                success: false
+            });
+        }
+        
+        // Find the comment to like
+        const commentIndex = post.comments.findIndex(
+            comment => comment._id.toString() === commentId
+        );
+        
+        if (commentIndex === -1) {
+            return res.status(404).json({
+                message: "Comment not found",
+                success: false
+            });
+        }
+        
+        // Get the comment likes array (initialize if not existing)
+        if (!post.comments[commentIndex].likes) {
+            post.comments[commentIndex].likes = [];
+        }
+        
+        // Check if the user already liked the comment
+        const likedIndex = post.comments[commentIndex].likes.indexOf(userId);
+        let action;
+        
+        if (likedIndex === -1) {
+            // Like the comment
+            post.comments[commentIndex].likes.push(userId);
+            action = 'liked';
+        } else {
+            // Unlike the comment
+            post.comments[commentIndex].likes.splice(likedIndex, 1);
+            action = 'unliked';
+        }
+        
+        await post.save();
+        
+        // Create notification if the comment is liked (not unliked)
+        if (action === 'liked' && post.comments[commentIndex].userId !== userId) {
+            try {
+              // Get a truncated version of the comment text for the notification
+              const commentText = post.comments[commentIndex].text;
+              const truncatedText = commentText.length > 40 
+                ? `${commentText.substring(0, 40)}...` 
+                : commentText;
+                
+              await NotificationModel.create({
+                recipientId: post.comments[commentIndex].userId,
+                senderId: userId,
+                type: 'like',
+                postId,
+                commentId,
+                message: `liked your comment: "${truncatedText}"`,
+                read: false
+              });
+            } catch (err) {
+              console.error('Failed to create comment like notification:', err);
+              // Continue even if notification creation fails
+            }
+          }
+        
+        res.status(200).json({
+            message: `Comment ${action} successfully`,
+            success: true,
+            action,
+            comment: {
+                _id: commentId,
+                likes: post.comments[commentIndex].likes
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};
+
+// Like/unlike a reply
+export const likeReply = async (req, res) => {
+    try {
+        const postId = req.params.postId;
+        const commentId = req.params.commentId;
+        const replyId = req.params.replyId;
+        const { userId } = req.body;
+        
+        const post = await PostModel.findById(postId);
+        
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found",
+                success: false
+            });
+        }
+        
+        // Find the comment containing the reply
+        const commentIndex = post.comments.findIndex(
+            comment => comment._id.toString() === commentId
+        );
+        
+        if (commentIndex === -1) {
+            return res.status(404).json({
+                message: "Comment not found",
+                success: false
+            });
+        }
+        
+        // Find the reply to like
+        const replyIndex = post.comments[commentIndex].replies.findIndex(
+            reply => reply._id.toString() === replyId
+        );
+        
+        if (replyIndex === -1) {
+            return res.status(404).json({
+                message: "Reply not found",
+                success: false
+            });
+        }
+        
+        // Get the reply likes array (initialize if not existing)
+        if (!post.comments[commentIndex].replies[replyIndex].likes) {
+            post.comments[commentIndex].replies[replyIndex].likes = [];
+        }
+        
+        // Check if the user already liked the reply
+        const likedIndex = post.comments[commentIndex].replies[replyIndex].likes.indexOf(userId);
+        let action;
+        
+        if (likedIndex === -1) {
+            // Like the reply
+            post.comments[commentIndex].replies[replyIndex].likes.push(userId);
+            action = 'liked';
+        } else {
+            // Unlike the reply
+            post.comments[commentIndex].replies[replyIndex].likes.splice(likedIndex, 1);
+            action = 'unliked';
+        }
+        
+        await post.save();
+        
+        // Create notification if the reply is liked (not unliked)
+        if (action === 'liked' && post.comments[commentIndex].replies[replyIndex].userId !== userId) {
+            try {
+              // Get a truncated version of the reply text for the notification
+              const replyText = post.comments[commentIndex].replies[replyIndex].text;
+              const truncatedText = replyText.length > 40 
+                ? `${replyText.substring(0, 40)}...` 
+                : replyText;
+                
+              await NotificationModel.create({
+                recipientId: post.comments[commentIndex].replies[replyIndex].userId,
+                senderId: userId,
+                type: 'like',
+                postId,
+                commentId,
+                message: `liked your reply: "${truncatedText}"`,
+                read: false
+              });
+            } catch (err) {
+              console.error('Failed to create reply like notification:', err);
+              // Continue even if notification creation fails
+            }
+          }
+        
+        res.status(200).json({
+            message: `Reply ${action} successfully`,
+            success: true,
+            action,
+            reply: {
+                _id: replyId,
+                likes: post.comments[commentIndex].replies[replyIndex].likes
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};

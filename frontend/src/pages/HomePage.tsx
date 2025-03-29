@@ -1,11 +1,15 @@
+// frontend/src/pages/HomePage.tsx
 import { useEffect } from "react";
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
+import useStoryStore from "../store/StoryStore"; // Import StoryStore
 import Background from "../components/Home/Background";
 import ProfileSide from "../components/Home/ProfileSide";
 import PostCard from "../components/Home/PostCard";
 import Dashboard from "../components/Home/Dashboard";
 import PeopleYouMayKnow from "../components/Home/PeopleYouMayKnow";
+import StoryCircles from "../components/Home/StoryCircles"; // Import StoryCircles
+import StoryViewer from "../components/Home/StoryViewer"; // Import StoryViewer
 
 const HomePage: React.FC = () => {
   const { user } = useAuthStore();
@@ -17,6 +21,9 @@ const HomePage: React.FC = () => {
     likePost: likeSinglePost,
     savePost: savePostFunction,
   } = usePostStore();
+
+  // Add story store state
+  const { activeStoryGroup } = useStoryStore();
 
   useEffect(() => {
     if (user && user._id) {
@@ -48,7 +55,7 @@ const HomePage: React.FC = () => {
             <div className="lg:sticky lg:top-4 space-y-6">
               <ProfileSide />
 
-              {/* Am mutat PeopleYouMayKnow sub ProfileSide */}
+              {/* PeopleYouMayKnow under ProfileSide */}
               <PeopleYouMayKnow />
             </div>
           </div>
@@ -57,6 +64,9 @@ const HomePage: React.FC = () => {
           <div className="w-full lg:flex-1 mx-0 lg:mx-6">
             {/* Main content wrapper with consistent width */}
             <div className="max-w-2xl mx-auto">
+              {/* Add Stories Component */}
+              <StoryCircles />
+
               {/* Loading indicator */}
               {loading && (
                 <div className="flex justify-center items-center p-4">
@@ -104,6 +114,9 @@ const HomePage: React.FC = () => {
 
       {/* Right-side fixed dashboard */}
       <Dashboard />
+
+      {/* Story Viewer (conditionally rendered) */}
+      {activeStoryGroup && <StoryViewer />}
     </div>
   );
 };

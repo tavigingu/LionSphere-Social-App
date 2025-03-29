@@ -6,7 +6,7 @@ import {
     viewStory as markStoryAsViewed,
     deleteStory as removeStory
 } from '../api/Story';
-import { StoryState, IStory } from '../types/StoryTypes';
+import { StoryState, IStory, IStoryGroup } from '../types/StoryTypes';
 
 interface StoryStore extends StoryState {
     fetchStories: (userId: string) => Promise<void>;
@@ -14,6 +14,7 @@ interface StoryStore extends StoryState {
     viewStory: (storyId: string, userId: string) => Promise<void>;
     deleteStory: (storyId: string, userId: string) => Promise<void>;
     setActiveStoryGroup: (groupIndex: number) => void;
+    setActiveStoryIndex: (index: number) => void;
     nextStory: () => void;
     prevStory: () => void;
     closeStories: () => void;
@@ -36,14 +37,44 @@ const useStoryStore = create<StoryStore>((set, get) => ({
         set({ loading: true, error: null });
         try {
             const storyGroups = await fetchTimelineStories(userId);
+            console.log("Fetched story groups:", storyGroups);
             
-            // Calculează care grupuri au stories nevăzute
-            const updatedGroups = storyGroups.map(group => {
+            // Sort story groups: current user first, then unseen stories, then others
+            const sortedGroups = [...storyGroups].sort((a, b) => {
+                // Current user is always first
+                if (a.userId === userId) return -1;
+                if (b.userId === userId) return 1;
+
+                // Then stories with unseen content
+                const aHasUnseen = a.stories.some(story => !story.viewers.includes(userId));
+                const bHasUnseen = b.stories.some(story => !story.viewers.includes(userId));
+                
+                if (aHasUnseen && !bHasUnseen) return -1;
+                if (!aHasUnseen && bHasUnseen) return 1;
+
+                // Finally by created date (newest first)
+                const aLatestDate = Math.max(...a.stories.map(s => new Date(s.createdAt).getTime()));
+                const bLatestDate = Math.max(...b.stories.map(s => new Date(s.createdAt).getTime()));
+                return bLatestDate - aLatestDate;
+            });
+            
+            // Calculate which groups have unseen stories
+            const updatedGroups = sortedGroups.map(group => {
                 const hasUnseenStories = group.stories.some(story => 
                     !story.viewers.includes(userId)
                 );
-                return { ...group, hasUnseenStories };
+                // Sort stories by date, newest first
+                const sortedStories = [...group.stories].sort(
+                    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                );
+                return { 
+                    ...group, 
+                    hasUnseenStories,
+                    stories: sortedStories
+                };
             });
+            
+            console.log("Processed story groups:", updatedGroups);
             
             set({ 
                 storyGroups: updatedGroups,
@@ -51,6 +82,7 @@ const useStoryStore = create<StoryStore>((set, get) => ({
             });
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to fetch stories';
+            console.error("Error fetching stories:", errorMessage);
             set({ error: errorMessage, loading: false });
         }
     },
@@ -58,28 +90,35 @@ const useStoryStore = create<StoryStore>((set, get) => ({
     createStory: async (storyData) => {
         set({ loading: true, error: null });
         try {
+            console.log("Creating story with data:", storyData);
             const newStory = await createNewStory(storyData);
+            console.log("Story created successfully:", newStory);
             
-            // Actualizează state-ul adăugând noul story
+            // Update state by adding the new story
             set((state) => {
                 const currentGroups = [...state.storyGroups];
                 const userGroupIndex = currentGroups.findIndex(g => g.userId === storyData.userId);
                 
                 if (userGroupIndex !== -1) {
-                    // Adaugă story la grupul existent
+                    // Add story to existing group
                     const updatedGroup = {
                         ...currentGroups[userGroupIndex],
                         stories: [newStory, ...currentGroups[userGroupIndex].stories],
                         hasUnseenStories: true
                     };
                     currentGroups[userGroupIndex] = updatedGroup;
+                    
+                    // Move user's group to the front if it's not already
+                    if (userGroupIndex > 0) {
+                        const userGroup = currentGroups.splice(userGroupIndex, 1)[0];
+                        currentGroups.unshift(userGroup);
+                    }
                 } else {
-                    // Crează un nou grup pentru utilizator
-                    // În mod normal, ar trebui să obținem datele utilizatorului, dar vom folosi ce avem
+                    // Create a new group for user
                     currentGroups.unshift({
                         userId: storyData.userId,
-                        username: 'You', // Ar trebui înlocuit cu numele real
-                        profilePicture: undefined, // Ar trebui înlocuit cu poza reală
+                        username: 'You', // Should be replaced with real name
+                        profilePicture: undefined, // Should be replaced with real picture
                         stories: [newStory],
                         hasUnseenStories: true
                     });
@@ -91,6 +130,7 @@ const useStoryStore = create<StoryStore>((set, get) => ({
             return newStory;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to create story';
+            console.error("Error creating story:", errorMessage);
             set({ error: errorMessage, loading: false });
             throw error;
         }
@@ -98,9 +138,10 @@ const useStoryStore = create<StoryStore>((set, get) => ({
     
     viewStory: async (storyId: string, userId: string) => {
         try {
+            console.log("Marking story as viewed:", storyId, "by user:", userId);
             await markStoryAsViewed(storyId, userId);
             
-            // Actualizează state-ul local pentru a reflecta vizualizarea
+            // Update local state to reflect the view
             set((state) => {
                 const updatedGroups = state.storyGroups.map(group => {
                     const updatedStories = group.stories.map(story => {
@@ -113,7 +154,7 @@ const useStoryStore = create<StoryStore>((set, get) => ({
                         return story;
                     });
                     
-                    // Recalculează dacă grupul are stories nevăzute
+                    // Recalculate if the group has unseen stories
                     const hasUnseenStories = updatedStories.some(story => 
                         !story.viewers.includes(userId)
                     );
@@ -125,7 +166,7 @@ const useStoryStore = create<StoryStore>((set, get) => ({
                     };
                 });
                 
-                // Actualizează activeStoryGroup dacă este necesar
+                // Update activeStoryGroup if necessary
                 let activeGroup = state.activeStoryGroup;
                 if (activeGroup) {
                     const groupIndex = updatedGroups.findIndex(g => g.userId === activeGroup!.userId);
@@ -141,22 +182,23 @@ const useStoryStore = create<StoryStore>((set, get) => ({
             });
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to mark story as viewed';
-            console.error(errorMessage);
-            // Nu setăm eroarea în state pentru a nu întrerupe experiența utilizatorului
+            console.error("Error marking story as viewed:", errorMessage);
+            // Don't set error in state to avoid disrupting user experience
         }
     },
     
     deleteStory: async (storyId: string, userId: string) => {
         try {
+            console.log("Deleting story:", storyId, "by user:", userId);
             await removeStory(storyId, userId);
             
-            // Actualizează state-ul ștergând story-ul
+            // Update state by removing the story
             set((state) => {
                 const updatedGroups = state.storyGroups.map(group => {
-                    // Exclude story-ul șters
+                    // Filter out the deleted story
                     const updatedStories = group.stories.filter(story => story._id !== storyId);
                     
-                    // Recalculează dacă grupul are stories nevăzute
+                    // Recalculate if the group has unseen stories
                     const hasUnseenStories = updatedStories.some(story => 
                         !story.viewers.includes(userId)
                     );
@@ -166,9 +208,9 @@ const useStoryStore = create<StoryStore>((set, get) => ({
                         stories: updatedStories,
                         hasUnseenStories
                     };
-                }).filter(group => group.stories.length > 0); // Elimină grupurile fără stories
+                }).filter(group => group.stories.length > 0); // Remove groups without stories
                 
-                // Închide vizualizatorul de stories dacă story-ul activ a fost șters
+                // Check if we need to close the story viewer
                 let activeGroup = state.activeStoryGroup;
                 let activeIndex = state.activeStoryIndex;
                 let shouldClose = false;
@@ -176,11 +218,11 @@ const useStoryStore = create<StoryStore>((set, get) => ({
                 if (activeGroup) {
                     const groupIndex = updatedGroups.findIndex(g => g.userId === activeGroup!.userId);
                     if (groupIndex === -1) {
-                        // Grupul a fost eliminat complet
+                        // Group was removed completely
                         shouldClose = true;
                     } else {
                         activeGroup = updatedGroups[groupIndex];
-                        // Verifică dacă story-ul activ a fost șters
+                        // Check if active story was deleted
                         if (activeIndex >= activeGroup.stories.length) {
                             if (activeGroup.stories.length > 0) {
                                 activeIndex = activeGroup.stories.length - 1;
@@ -199,6 +241,7 @@ const useStoryStore = create<StoryStore>((set, get) => ({
             });
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to delete story';
+            console.error("Error deleting story:", errorMessage);
             set({ error: errorMessage });
         }
     },
@@ -206,32 +249,56 @@ const useStoryStore = create<StoryStore>((set, get) => ({
     setActiveStoryGroup: (groupIndex: number) => {
         const { storyGroups } = get();
         
+        console.log("Setting active story group with index:", groupIndex);
+        console.log("Available story groups:", storyGroups);
+        
         if (groupIndex >= 0 && groupIndex < storyGroups.length) {
+            const activeGroup = storyGroups[groupIndex];
+            console.log("Selected active group:", activeGroup);
+            
+            // Start with the first unseen story if possible
+            const firstUnseenIndex = activeGroup.stories.findIndex(
+                story => !story.viewers.includes(get().storyGroups[0]?.userId || '')
+            );
+            
             set({ 
-                activeStoryGroup: storyGroups[groupIndex],
-                activeStoryIndex: 0
+                activeStoryGroup: activeGroup,
+                activeStoryIndex: firstUnseenIndex !== -1 ? firstUnseenIndex : 0
             });
+        } else {
+            console.error("Invalid story group index:", groupIndex);
         }
     },
     
     nextStory: () => {
         const { activeStoryGroup, activeStoryIndex, storyGroups } = get();
         
-        if (!activeStoryGroup) return;
+        if (!activeStoryGroup) {
+            console.log("No active story group to navigate");
+            return;
+        }
+        
+        console.log("Current active story index:", activeStoryIndex);
+        console.log("Total stories in group:", activeStoryGroup.stories.length);
         
         if (activeStoryIndex < activeStoryGroup.stories.length - 1) {
-            // Următorul story din același grup
+            // Next story in same group
+            console.log("Moving to next story in same group");
             set({ activeStoryIndex: activeStoryIndex + 1 });
         } else {
-            // Următorul grup
+            // Next group
             const currentGroupIndex = storyGroups.findIndex(g => g.userId === activeStoryGroup.userId);
+            console.log("Current group index:", currentGroupIndex);
+            
             if (currentGroupIndex !== -1 && currentGroupIndex < storyGroups.length - 1) {
+                console.log("Moving to next group");
                 set({ 
                     activeStoryGroup: storyGroups[currentGroupIndex + 1],
                     activeStoryIndex: 0
                 });
             } else {
-                // Am ajuns la final, închidem vizualizatorul
+                // Reached end, close viewer
+                console.log("Reached the end of all stories, closing viewer");
                 set({ activeStoryGroup: null, activeStoryIndex: 0 });
             }
         }
@@ -240,32 +307,55 @@ const useStoryStore = create<StoryStore>((set, get) => ({
     prevStory: () => {
         const { activeStoryGroup, activeStoryIndex, storyGroups } = get();
         
-        if (!activeStoryGroup) return;
+        if (!activeStoryGroup) {
+            console.log("No active story group to navigate");
+            return;
+        }
+        
+        console.log("Current active story index:", activeStoryIndex);
         
         if (activeStoryIndex > 0) {
-            // Story-ul anterior din același grup
+            // Previous story in same group
+            console.log("Moving to previous story in same group");
             set({ activeStoryIndex: activeStoryIndex - 1 });
         } else {
-            // Grupul anterior
+            // Previous group
             const currentGroupIndex = storyGroups.findIndex(g => g.userId === activeStoryGroup.userId);
+            console.log("Current group index:", currentGroupIndex);
+            
             if (currentGroupIndex > 0) {
                 const prevGroup = storyGroups[currentGroupIndex - 1];
+                console.log("Moving to previous group:", prevGroup);
                 set({ 
                     activeStoryGroup: prevGroup,
                     activeStoryIndex: prevGroup.stories.length - 1
                 });
+            } else {
+                console.log("Already at first story of first group");
             }
-            // Dacă suntem la primul story din primul grup, nu facem nimic
+            // If at first story of first group, do nothing
         }
     },
     
     closeStories: () => {
+        console.log("Closing story viewer");
         set({ activeStoryGroup: null, activeStoryIndex: 0 });
     },
     
     clearError: () => set({ error: null }),
     
-    resetState: () => set(initialState)
+    resetState: () => set(initialState),
+
+    setActiveStoryIndex: (index: number) => {
+        const { activeStoryGroup } = get();
+        
+        if (activeStoryGroup && index >= 0 && index < activeStoryGroup.stories.length) {
+            console.log("Setting active story index to:", index);
+            set({ activeStoryIndex: index });
+        } else {
+            console.error("Invalid story index:", index);
+        }
+    },
 }));
 
 export default useStoryStore;

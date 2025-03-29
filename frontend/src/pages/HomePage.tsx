@@ -15,21 +15,34 @@ const HomePage: React.FC = () => {
   const { user } = useAuthStore();
   const {
     timelinePosts,
-    loading,
-    error,
+    loading: postsLoading,
+    error: postsError,
     fetchTimelinePosts,
     likePost: likeSinglePost,
     savePost: savePostFunction,
   } = usePostStore();
 
-  // Add story store state
-  const { activeStoryGroup } = useStoryStore();
+  // Add story store state with explicit destructuring
+  const {
+    activeStoryGroup,
+    fetchStories,
+    loading: storiesLoading,
+    error: storiesError,
+  } = useStoryStore();
 
+  // Fetch posts and stories when the component mounts
   useEffect(() => {
     if (user && user._id) {
+      console.log("Fetching timeline posts and stories for user:", user._id);
       fetchTimelinePosts(user._id);
+      fetchStories(user._id); // Ensure stories are fetched
     }
-  }, [user, fetchTimelinePosts]);
+  }, [user, fetchTimelinePosts, fetchStories]);
+
+  // Log for debugging
+  useEffect(() => {
+    console.log("Active story group in HomePage:", activeStoryGroup);
+  }, [activeStoryGroup]);
 
   const handleLikePost = async (postId: string) => {
     if (user && user._id) {
@@ -64,18 +77,39 @@ const HomePage: React.FC = () => {
           <div className="w-full lg:flex-1 mx-0 lg:mx-6">
             {/* Main content wrapper with consistent width */}
             <div className="max-w-2xl mx-auto">
+              {/* Display loading or error state for stories */}
+              {storiesLoading && (
+                <div className="flex justify-center items-center p-4 mb-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+                  <span className="ml-2 text-gray-300">Loading stories...</span>
+                </div>
+              )}
+
+              {storiesError && (
+                <div className="bg-red-400 bg-opacity-20 text-white p-3 rounded-lg mb-4">
+                  <p>Error loading stories: {storiesError}</p>
+                </div>
+              )}
+
               {/* Add Stories Component */}
               <StoryCircles />
 
-              {/* Loading indicator */}
-              {loading && (
+              {/* Loading indicator for posts */}
+              {postsLoading && (
                 <div className="flex justify-center items-center p-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
               )}
 
+              {/* Error message for posts */}
+              {postsError && (
+                <div className="bg-red-400 bg-opacity-20 text-white p-4 rounded-lg mb-4">
+                  <p>Error loading posts: {postsError}</p>
+                </div>
+              )}
+
               {/* Message when no posts */}
-              {!loading && timelinePosts.length === 0 ? (
+              {!postsLoading && timelinePosts.length === 0 ? (
                 <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl">
                   <p className="text-lg text-gray-300">No posts to display.</p>
                   <p className="text-gray-400 mt-2">

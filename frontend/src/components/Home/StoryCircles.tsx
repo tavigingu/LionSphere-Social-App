@@ -4,6 +4,7 @@ import { FaPlus } from "react-icons/fa";
 import useAuthStore from "../../store/AuthStore";
 import useStoryStore from "../../store/StoryStore";
 import uploadFile from "../../helpers/uploadFile";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface StoryCirclesProps {
   onCreateStory?: () => void;
@@ -16,6 +17,7 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [hoveredStory, setHoveredStory] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?._id) {
@@ -33,66 +35,91 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
     setError(null);
 
     try {
-      // Upload imagineea la Cloudinary
+      // Upload image to Cloudinary
       const uploadResponse = await uploadFile(file);
 
-      // Crează story-ul
+      // Create the story
       await createStory({
         userId: user._id,
         image: uploadResponse.secure_url,
-        caption: "", // Opțional, poate fi implementat un input pentru descriere
+        caption: "", // Optional, could add an input for description
       });
 
       if (onCreateStory) {
         onCreateStory();
       }
 
-      // Reîncarcă stories pentru a include noul story
+      // Reload stories to include the new one
       fetchStories(user._id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload story");
       console.error("Error creating story:", err);
     } finally {
       setIsUploading(false);
-      // Reset input-ul de fișiere
+      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     }
   };
 
-  const handleStoryClick = (index: number) => {
-    setActiveStoryGroup(index);
+  const handleStoryClick = (index: number, groupId: string) => {
+    console.log("Setting active story group:", index);
+    console.log("Story group ID:", groupId);
+
+    // Find the group index based on ID in case the order has changed
+    const realIndex = storyGroups.findIndex(
+      (group) => group.userId === groupId
+    );
+    if (realIndex !== -1) {
+      setActiveStoryGroup(realIndex);
+    } else {
+      console.error("Could not find story group with ID:", groupId);
+      setActiveStoryGroup(index); // Fallback to the provided index
+    }
   };
 
-  // Sortează grupurile astfel încât utilizatorul curent să fie primul, apoi cele cu stories nevăzute
+  // Make sure the user's own stories are first, then sort by unseen/seen status
   const sortedGroups = [...storyGroups].sort((a, b) => {
-    // Utilizatorul curent este întotdeauna primul
+    // Current user is always first
     if (a.userId === user?._id) return -1;
     if (b.userId === user?._id) return 1;
 
-    // Apoi, stories nevăzute
+    // Then stories with unseen content
     if (a.hasUnseenStories && !b.hasUnseenStories) return -1;
     if (!a.hasUnseenStories && b.hasUnseenStories) return 1;
 
-    // În final, după timestamp (presupunem că ordinea existentă reflectă asta)
+    // Finally, sort by timestamp (assuming the existing order reflects this)
     return 0;
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-xl p-4 mb-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white rounded-xl shadow-xl p-4 mb-6"
+    >
       <h3 className="font-semibold text-gray-800 mb-4">Stories</h3>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm"
+        >
           {error}
-        </div>
+        </motion.div>
       )}
 
       <div className="flex overflow-x-auto space-x-3 pb-2 no-scrollbar">
         {/* Add Story button - only for current user */}
         {user && (
-          <div className="flex flex-col items-center min-w-[72px]">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex flex-col items-center min-w-[72px]"
+          >
             <label className="cursor-pointer relative">
               <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white shadow-sm">
                 {isUploading ? (
@@ -134,51 +161,88 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
             <span className="mt-1 text-xs text-gray-700 font-medium">
               Add Story
             </span>
-          </div>
+          </motion.div>
         )}
 
         {/* Story circles for each user */}
         {sortedGroups.map((group, index) => (
-          <div
+          <motion.div
             key={group.userId}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className="flex flex-col items-center min-w-[72px]"
+            onHoverStart={() => setHoveredStory(group.userId)}
+            onHoverEnd={() => setHoveredStory(null)}
           >
             <button
-              onClick={() => handleStoryClick(index)}
-              className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                group.hasUnseenStories
-                  ? "border-2 border-gradient-to-r from-blue-500 to-purple-500"
-                  : "border-2 border-gray-300"
-              }`}
-              style={{
-                borderImage: group.hasUnseenStories
-                  ? "linear-gradient(to right, #3b82f6, #8b5cf6) 1"
-                  : undefined,
-              }}
+              onClick={() => handleStoryClick(index, group.userId)}
+              aria-label={`View ${group.username}'s story`}
+              className="relative"
             >
-              <div className="w-14 h-14 rounded-full overflow-hidden">
-                {group.profilePicture ? (
-                  <img
-                    src={group.profilePicture}
-                    alt={`${group.username}'s profile`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-r from-blue-500to-purple-500 flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">
-                      {group.username.charAt(0).toUpperCase()}
-                    </span>
+              {/* Story Circle with Ring Indicator */}
+              <div className={`relative w-16 h-16`}>
+                {/* Gradient Ring for Unseen Stories */}
+                {group.hasUnseenStories && (
+                  <div
+                    className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500"
+                    style={{
+                      padding: "2px",
+                      animation: "rotate 4s linear infinite",
+                    }}
+                  >
+                    <div className="w-full h-full rounded-full bg-white"></div>
                   </div>
                 )}
+
+                {/* Gray Ring for Seen Stories */}
+                {!group.hasUnseenStories && (
+                  <div className="absolute inset-0 rounded-full border-2 border-gray-300"></div>
+                )}
+
+                {/* Profile Picture */}
+                <div
+                  className={`absolute inset-0 m-0.5 rounded-full overflow-hidden ${
+                    hoveredStory === group.userId
+                      ? "scale-95 transition-transform duration-300"
+                      : ""
+                  }`}
+                >
+                  {group.profilePicture ? (
+                    <img
+                      src={group.profilePicture}
+                      alt={`${group.username}'s profile`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                      <span className="text-white text-lg font-bold">
+                        {group.username.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </button>
             <span className="mt-1 text-xs text-gray-700 font-medium truncate w-full text-center">
               {group.userId === user?._id ? "Your Story" : group.username}
             </span>
-          </div>
+          </motion.div>
         ))}
       </div>
-    </div>
+
+      {/* Animation styles */}
+      <style jsx>{`
+        @keyframes rotate {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+    </motion.div>
   );
 };
+
 export default StoryCircles;

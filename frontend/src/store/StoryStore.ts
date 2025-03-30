@@ -4,15 +4,26 @@ import {
     getTimelineStories as fetchTimelineStories,
     createStory as createNewStory,
     viewStory as markStoryAsViewed,
-    deleteStory as removeStory
+    deleteStory as removeStory,
+    likeStory as toggleStoryLike,
+    getStoryLikes as fetchStoryLikes
 } from '../api/Story';
 import { StoryState, IStory, IStoryGroup } from '../types/StoryTypes';
+
+// Define a proper interface for the user who liked a story
+interface StoryLiker {
+  _id: string;
+  username: string;
+  profilePicture?: string;
+}
 
 interface StoryStore extends StoryState {
     fetchStories: (userId: string) => Promise<void>;
     createStory: (storyData: { userId: string; image: string; caption?: string }) => Promise<IStory>;
     viewStory: (storyId: string, userId: string) => Promise<void>;
     deleteStory: (storyId: string, userId: string) => Promise<void>;
+    likeStory: (storyId: string, userId: string) => Promise<void>;
+    getStoryLikes: (storyId: string) => Promise<StoryLiker[]>;
     setActiveStoryGroup: (groupIndex: number) => void;
     setActiveStoryIndex: (index: number) => void;
     nextStory: () => void;
@@ -184,6 +195,65 @@ const useStoryStore = create<StoryStore>((set, get) => ({
             const errorMessage = error instanceof Error ? error.message : 'Failed to mark story as viewed';
             console.error("Error marking story as viewed:", errorMessage);
             // Don't set error in state to avoid disrupting user experience
+        }
+    },
+    
+    likeStory: async (storyId: string, userId: string) => {
+        try {
+            console.log("Toggling like for story:", storyId, "by user:", userId);
+            const { action, story } = await toggleStoryLike(storyId, userId);
+            
+            // Update local state to reflect the like/unlike
+            set((state) => {
+                const updatedGroups = state.storyGroups.map(group => {
+                    const updatedStories = group.stories.map(s => {
+                        if (s._id === storyId) {
+                            return {
+                                ...s,
+                                likes: story.likes // Use the updated likes array from the response
+                            };
+                        }
+                        return s;
+                    });
+                    
+                    return {
+                        ...group,
+                        stories: updatedStories
+                    };
+                });
+                
+                // Update activeStoryGroup if necessary
+                let activeGroup = state.activeStoryGroup;
+                if (activeGroup) {
+                    const groupIndex = updatedGroups.findIndex(g => g.userId === activeGroup!.userId);
+                    if (groupIndex !== -1) {
+                        activeGroup = updatedGroups[groupIndex];
+                    }
+                }
+                
+                return { 
+                    storyGroups: updatedGroups,
+                    activeStoryGroup: activeGroup
+                };
+            });
+            
+            return;
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to like/unlike story';
+            console.error("Error liking/unliking story:", errorMessage);
+            throw error;
+        }
+    },
+    
+    getStoryLikes: async (storyId: string) => {
+        try {
+            console.log("Fetching likes for story:", storyId);
+            const likes = await fetchStoryLikes(storyId);
+            return likes;
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch story likes';
+            console.error("Error fetching story likes:", errorMessage);
+            throw error;
         }
     },
     

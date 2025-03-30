@@ -1,6 +1,7 @@
 // backend/controller/StoryController.js
 import StoryModel from "../models/StoryModel.js";
 import UserModel from "../models/UserModel.js";
+import NotificationModel from "../models/NotificationModel.js";
 
 // Creează un nou story
 export const createStory = async (req, res) => {
@@ -18,7 +19,8 @@ export const createStory = async (req, res) => {
             userId,
             image,
             caption,
-            viewers: []
+            viewers: [],
+            likes: [] // Initialize empty likes array
         });
         
         const savedStory = await newStory.save();
@@ -108,6 +110,67 @@ export const getTimelineStories = async (req, res) => {
     }
 };
 
+// Like or unlike a story
+export const likeStory = async (req, res) => {
+    try {
+        const storyId = req.params.storyId;
+        const { userId } = req.body;
+        
+        const story = await StoryModel.findById(storyId);
+        
+        if (!story) {
+            return res.status(404).json({
+                message: "Story not found",
+                success: false
+            });
+        }
+        
+        let action;
+        
+        if (!story.likes.includes(userId)) {
+            // Like the story
+            await story.updateOne({ $push: { likes: userId } });
+            action = 'liked';
+            
+            // Create notification if the user who liked is not the story owner
+            if (story.userId !== userId) {
+                try {
+                    await NotificationModel.create({
+                        recipientId: story.userId,
+                        senderId: userId,
+                        type: 'like',
+                        message: 'liked your story',
+                        read: false
+                    });
+                } catch (err) {
+                    console.error('Failed to create like notification:', err);
+                    // Continue even if notification creation fails
+                }
+            }
+        } else {
+            // Unlike the story
+            await story.updateOne({ $pull: { likes: userId } });
+            action = 'unliked';
+        }
+        
+        // Get updated story
+        const updatedStory = await StoryModel.findById(storyId);
+        
+        res.status(200).json({
+            message: `Story ${action} successfully`,
+            success: true,
+            action,
+            story: updatedStory
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};
+
 // Marchează un story ca vizualizat de un utilizator
 export const viewStory = async (req, res) => {
     try {
@@ -169,6 +232,53 @@ export const deleteStory = async (req, res) => {
             message: "Story deleted successfully",
             success: true
         });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};
+
+// Get story likes
+export const getStoryLikes = async (req, res) => {
+    try {
+        const storyId = req.params.storyId;
+        
+        const story = await StoryModel.findById(storyId);
+        
+        if (!story) {
+            return res.status(404).json({
+                message: "Story not found",
+                success: false
+            });
+        }
+        
+        // Get user details for each like
+        const likes = [];
+        for (const userId of story.likes) {
+            try {
+                const user = await UserModel.findById(userId)
+                    .select('username profilePicture');
+                
+                if (user) {
+                    likes.push({
+                        _id: userId,
+                        username: user.username,
+                        profilePicture: user.profilePicture
+                    });
+                }
+            } catch (error) {
+                console.error(`Error fetching user ${userId}:`, error);
+            }
+        }
+        
+        res.status(200).json({
+            message: "Story likes fetched successfully",
+            success: true,
+            likes
+        });
+        
     } catch (error) {
         res.status(500).json({
             message: error.message || error,

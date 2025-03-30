@@ -5,6 +5,7 @@ export interface IStory {
     image: string;
     caption?: string;
     viewers: string[];
+    likes: string[];  // Added likes array
     createdAt: string;
     expiresAt: string;
 }

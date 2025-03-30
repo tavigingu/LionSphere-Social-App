@@ -13,12 +13,14 @@ import {
   FaTimes,
   FaCamera,
   FaEdit,
+  FaChevronDown,
 } from "react-icons/fa";
+import { motion } from "framer-motion";
 import useAuthStore from "../../store/AuthStore";
 import useNotificationStore from "../../store/NotificationStore";
 import SearchSidebar from "../Home/SearchSidebar";
 import PostCreationForm from "../PostCreationForm";
-import StoryCreationForm from "../Home/StoryCreationForm"; // Importă componenta de creare story
+import StoryCreationForm from "../Home/StoryCreationForm";
 import NotificationPanel from "../Home/NotificationPanel";
 
 const Dashboard: React.FC = () => {
@@ -33,7 +35,6 @@ const Dashboard: React.FC = () => {
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
   const [isPostFormOpen, setIsPostFormOpen] = useState(false);
   const [isStoryFormOpen, setIsStoryFormOpen] = useState(false);
-  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const createMenuRef = useRef<HTMLDivElement>(null);
 
   // Set active button based on current route
@@ -64,7 +65,11 @@ const Dashboard: React.FC = () => {
         createMenuRef.current &&
         !createMenuRef.current.contains(event.target as Node)
       ) {
-        setIsCreateMenuOpen(false);
+        // Închide meniul dacă s-a făcut click în afara lui
+        const createButton = document.querySelector(`[data-button="create"]`);
+        if (createButton && !createButton.contains(event.target as Node)) {
+          setActiveButton((prev) => (prev === "create" ? "home" : prev));
+        }
       }
     };
 
@@ -84,6 +89,12 @@ const Dashboard: React.FC = () => {
   };
 
   const handleClick = (buttonName: string) => {
+    // Dacă dăm click pe butonul care e deja activ și e butonul create,
+    // nu facem nimic (deja e deschis meniul)
+    if (activeButton === buttonName && buttonName === "create") {
+      return;
+    }
+
     setActiveButton(buttonName);
     setMobileMenuOpen(false);
 
@@ -93,30 +104,27 @@ const Dashboard: React.FC = () => {
     setIsPostFormOpen(false);
     setIsStoryFormOpen(false);
 
-    // Dacă am dat click pe butonul create, gestionăm toggleul meniului
-    if (buttonName === "create") {
-      setIsCreateMenuOpen(!isCreateMenuOpen);
-    } else {
-      setIsCreateMenuOpen(false); // Închide meniul de creare la click pe alte butoane
-
-      // Navigare pentru alte butoane
-      if (buttonName === "search") {
-        setIsSearchOpen(true);
-      } else if (buttonName === "notifications") {
-        setIsNotificationPanelOpen(true);
-      } else if (buttonName === "home") navigate("/home");
-      else if (buttonName === "profile") navigate("/profile");
+    // Navigare pentru alte butoane
+    if (buttonName === "search") {
+      setIsSearchOpen(true);
+    } else if (buttonName === "notifications") {
+      setIsNotificationPanelOpen(true);
+    } else if (buttonName === "home") {
+      navigate("/home");
+    } else if (buttonName === "profile") {
+      navigate("/profile");
     }
+    // Pentru create nu facem nimic - meniul se afișează automat când e activ butonul
   };
 
   // Funcții pentru gestionarea formularelor
   const handleCreatePost = () => {
-    setIsCreateMenuOpen(false);
+    setActiveButton("home"); // Reset la butonul activ
     setIsPostFormOpen(true);
   };
 
   const handleCreateStory = () => {
-    setIsCreateMenuOpen(false);
+    setActiveButton("home"); // Reset la butonul activ
     setIsStoryFormOpen(true);
   };
 
@@ -136,16 +144,10 @@ const Dashboard: React.FC = () => {
 
   const handleClosePostForm = () => {
     setIsPostFormOpen(false);
-    setActiveButton(
-      location.pathname.includes("/profile") ? "profile" : "home"
-    );
   };
 
   const handleCloseStoryForm = () => {
     setIsStoryFormOpen(false);
-    setActiveButton(
-      location.pathname.includes("/profile") ? "profile" : "home"
-    );
   };
 
   // Dashboard-ul este minimalist dacă oricare panou este deschis
@@ -173,33 +175,98 @@ const Dashboard: React.FC = () => {
     onClick?: () => void;
   }
 
-  const NavButton = ({
+  const NavButton: React.FC<NavButtonProps> = ({
     name,
     icon,
     label,
     badge = null,
     onClick,
-  }: NavButtonProps) => (
-    <button
-      onClick={() => (onClick ? onClick() : handleClick(name))}
-      className={`flex items-center w-full p-3 text-left rounded-lg transition-all duration-200 ${
-        activeButton === name
-          ? "font-bold text-blue-600 bg-blue-50"
-          : "font-normal text-gray-700 hover:bg-gray-100"
-      } ${isMinimalist ? "justify-center" : ""}`}
-      style={{ cursor: "pointer" }}
-    >
-      <div className="relative">
-        {icon}
-        {badge !== null && badge > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-            {badge > 9 ? "9+" : badge}
-          </span>
+  }) => {
+    const isCreateButton = name === "create";
+
+    return (
+      <div
+        className="relative"
+        ref={isCreateButton ? createMenuRef : undefined}
+      >
+        <button
+          data-button={name}
+          onClick={() => (onClick ? onClick() : handleClick(name))}
+          className={`flex items-center w-full p-3 text-left rounded-lg transition-all duration-200 ${
+            activeButton === name
+              ? "font-bold text-blue-600 bg-blue-50"
+              : "font-normal text-gray-700 hover:bg-gray-100"
+          } ${isMinimalist ? "justify-center" : ""}`}
+          style={{ cursor: "pointer" }}
+        >
+          <div className="relative">
+            {icon}
+            {badge !== null && badge > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {badge > 9 ? "9+" : badge}
+              </span>
+            )}
+          </div>
+          {!isMinimalist && (
+            <div className="flex justify-between items-center w-full">
+              <span className="flex-1">{label}</span>
+              {isCreateButton && (
+                <span
+                  className={`transition-transform duration-300 ${
+                    activeButton === "create" ? "rotate-180" : ""
+                  }`}
+                >
+                  <FaChevronDown size={12} />
+                </span>
+              )}
+            </div>
+          )}
+        </button>
+
+        {/* Meniu extins pentru Create */}
+        {isCreateButton && activeButton === "create" && (
+          <div
+            className={`absolute ${
+              isMinimalist ? "left-full ml-2" : "top-full left-0"
+            } mt-1 bg-white rounded-lg shadow-lg w-full py-2 z-10 transition-all duration-300 border border-gray-200 overflow-hidden`}
+          >
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            >
+              <button
+                onClick={handleCreateStory}
+                className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              >
+                <FaCamera className="mr-3 text-blue-500" />
+                <span>Create Story</span>
+              </button>
+            </motion.div>
+
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 500,
+                damping: 30,
+                delay: 0.1,
+              }}
+            >
+              <button
+                onClick={handleCreatePost}
+                className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              >
+                <FaEdit className="mr-3 text-blue-500" />
+                <span>Create Post</span>
+              </button>
+            </motion.div>
+          </div>
         )}
       </div>
-      {!isMinimalist && <span className="flex-1">{label}</span>}
-    </button>
-  );
+    );
+  };
 
   return (
     <>
@@ -295,42 +362,16 @@ const Dashboard: React.FC = () => {
           />
 
           {/* Butonul Create cu meniul expandabil */}
-          <div className="relative" ref={createMenuRef}>
-            <NavButton
-              name="create"
-              icon={
-                <FaPlusCircle
-                  className={getIconClass("create")}
-                  size={getIconSize("create")}
-                />
-              }
-              label="Create"
-            />
-
-            {/* Meniu expandat pentru creare */}
-            {isCreateMenuOpen && (
-              <div
-                className={`absolute ${
-                  isMinimalist ? "left-full ml-2" : "top-full left-0"
-                } mt-1 bg-white rounded-lg shadow-lg w-52 py-2 z-10 transition-all duration-200 border border-gray-200`}
-              >
-                <button
-                  onClick={handleCreateStory}
-                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                >
-                  <FaCamera className="mr-3 text-blue-500" />
-                  <span>Create Story</span>
-                </button>
-                <button
-                  onClick={handleCreatePost}
-                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                >
-                  <FaEdit className="mr-3 text-blue-500" />
-                  <span>Create Post</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <NavButton
+            name="create"
+            icon={
+              <FaPlusCircle
+                className={getIconClass("create")}
+                size={getIconSize("create")}
+              />
+            }
+            label="Create"
+          />
 
           <NavButton
             name="profile"
@@ -442,15 +483,7 @@ const Dashboard: React.FC = () => {
 
       {/* Story Creation Form Modal */}
       {isStoryFormOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
-            onClick={handleCloseStoryForm}
-          />
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
-            <StoryCreationForm onStoryCreated={handleCloseStoryForm} />
-          </div>
-        </>
+        <StoryCreationForm onStoryCreated={handleCloseStoryForm} />
       )}
     </>
   );

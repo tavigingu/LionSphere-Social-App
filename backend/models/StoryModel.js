@@ -17,6 +17,7 @@ const StorySchema = mongoose.Schema(
             max: 200
         },
         viewers: [String], // Array de IDs ale utilizatorilor care au văzut story-ul
+        likes: [String],   // New field: Array of user IDs who liked the story
         expiresAt: {
             type: Date,
             required: true,

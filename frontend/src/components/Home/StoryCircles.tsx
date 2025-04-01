@@ -1,4 +1,3 @@
-// frontend/src/components/Home/StoryCircles.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import useAuthStore from "../../store/AuthStore";
@@ -64,9 +63,6 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
   };
 
   const handleStoryClick = (index: number, groupId: string) => {
-    console.log("Setting active story group:", index);
-    console.log("Story group ID:", groupId);
-
     // Find the group index based on ID in case the order has changed
     const realIndex = storyGroups.findIndex(
       (group) => group.userId === groupId
@@ -98,52 +94,64 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white rounded-xl shadow-xl p-4 mb-6"
+      className="bg-white rounded-xl shadow-xl overflow-hidden mb-6 py-8 px-6" // Changed p-6 to py-8 px-6 to increase top padding
     >
-      <h3 className="font-semibold text-gray-800 mb-4">Stories</h3>
+      {/* Removed the Stories header completely */}
 
       {error && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm"
+          className="mb-6 p-3 bg-red-100 text-red-700 rounded-lg text-sm"
         >
           {error}
         </motion.div>
       )}
 
-      <div className="flex overflow-x-auto space-x-3 pb-2 no-scrollbar">
+      <div className="flex overflow-x-auto space-x-4 pt-2 pb-0 no-scrollbar">
+        {" "}
+        {/* Reduced bottom padding from pb-3 to pb-2 */}
         {/* Add Story button - only for current user */}
         {user && (
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex flex-col items-center min-w-[72px]"
+            className="flex flex-col items-center min-w-[84px]"
           >
             <label className="cursor-pointer relative">
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white shadow-sm">
-                {isUploading ? (
-                  <div className="animate-spin h-5 w-5 border-t-2 border-b-2 border-blue-500 rounded-full"></div>
-                ) : (
-                  <>
-                    {user.profilePicture ? (
-                      <div className="w-full h-full rounded-full overflow-hidden relative">
-                        <img
-                          src={user.profilePicture}
-                          alt="Your profile"
-                          className="w-full h-full object-cover filter grayscale opacity-60"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                          <FaPlus className="text-white text-lg" />
+              <div className="w-20 h-20 rounded-full flex items-center justify-center relative">
+                {/* Background gradient ring */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[2px]">
+                  <div className="w-full h-full rounded-full bg-white"></div>
+                </div>
+
+                {/* Image container */}
+                <div className="absolute inset-[3px] rounded-full overflow-hidden z-10">
+                  {isUploading ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <div className="animate-spin h-5 w-5 border-t-2 border-b-2 border-blue-500 rounded-full"></div>
+                    </div>
+                  ) : (
+                    <>
+                      {user.profilePicture ? (
+                        <div className="w-full h-full relative">
+                          <img
+                            src={user.profilePicture}
+                            alt="Your profile"
+                            className="w-full h-full object-cover filter grayscale opacity-60"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                            <FaPlus className="text-white text-lg" />
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <FaPlus className="text-white text-xs" />
-                      </div>
-                    )}
-                  </>
-                )}
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <FaPlus className="text-gray-500 text-xl" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
               <input
                 type="file"
@@ -154,23 +162,22 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
                 disabled={isUploading}
               />
               {/* Indicator blue circle with plus */}
-              <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white">
+              <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white z-20">
                 <FaPlus className="text-white text-xs" />
               </div>
             </label>
-            <span className="mt-1 text-xs text-gray-700 font-medium">
+            <span className="mt-3 text-sm text-gray-700 font-medium">
               Add Story
             </span>
           </motion.div>
         )}
-
         {/* Story circles for each user */}
         {sortedGroups.map((group, index) => (
           <motion.div
             key={group.userId}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex flex-col items-center min-w-[72px]"
+            className="flex flex-col items-center min-w-[84px]"
             onHoverStart={() => setHoveredStory(group.userId)}
             onHoverEnd={() => setHoveredStory(null)}
           >
@@ -179,32 +186,28 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
               aria-label={`View ${group.username}'s story`}
               className="relative"
             >
-              {/* Story Circle with Ring Indicator */}
-              <div className={`relative w-16 h-16`}>
+              {/* Story Circle with improved visual ring */}
+              <div className="relative w-20 h-20">
                 {/* Gradient Ring for Unseen Stories */}
                 {group.hasUnseenStories && (
-                  <div
-                    className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500"
-                    style={{
-                      padding: "2px",
-                      animation: "rotate 4s linear infinite",
-                    }}
-                  >
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[2.5px] animate-story-ring">
                     <div className="w-full h-full rounded-full bg-white"></div>
                   </div>
                 )}
 
                 {/* Gray Ring for Seen Stories */}
                 {!group.hasUnseenStories && (
-                  <div className="absolute inset-0 rounded-full border-2 border-gray-300"></div>
+                  <div className="absolute inset-0 rounded-full border-[2.5px] border-gray-300 p-[2px]">
+                    <div className="w-full h-full rounded-full bg-white"></div>
+                  </div>
                 )}
 
                 {/* Profile Picture */}
                 <div
-                  className={`absolute inset-0 m-0.5 rounded-full overflow-hidden ${
+                  className={`absolute inset-[3px] rounded-full overflow-hidden ${
                     hoveredStory === group.userId
-                      ? "scale-95 transition-transform duration-300"
-                      : ""
+                      ? "transform scale-105 transition-transform duration-300"
+                      : "transition-transform duration-300"
                   }`}
                 >
                   {group.profilePicture ? (
@@ -223,11 +226,17 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
                 </div>
               </div>
             </button>
-            <span className="mt-1 text-xs text-gray-700 font-medium truncate w-full text-center">
+            <span className="mt-3 text-sm text-gray-700 font-medium truncate w-full text-center">
               {group.userId === user?._id ? "Your Story" : group.username}
             </span>
           </motion.div>
         ))}
+        {/* Empty placeholder when no stories */}
+        {sortedGroups.length === 0 && !user && (
+          <div className="flex-1 py-6 flex items-center justify-center">
+            <p className="text-gray-400 text-sm">No stories to display</p>
+          </div>
+        )}
       </div>
 
       {/* Animation styles */}
@@ -239,6 +248,33 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
           100% {
             transform: rotate(360deg);
           }
+        }
+
+        .animate-story-ring {
+          background-size: 300% 300%;
+          animation: gradient-shift 4s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        /* Hide scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </motion.div>

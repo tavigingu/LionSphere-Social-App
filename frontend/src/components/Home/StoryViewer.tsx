@@ -966,6 +966,22 @@ const StoryViewer: React.FC = () => {
             height: "100%",
             objectFit: "cover",
           }}
+          onLoad={() => {
+            console.log("Story image loaded successfully:", currentStory._id);
+            // Force a repaint by triggering a small animation
+            const img = document.querySelector(
+              `img[data-story-id="${currentStory._id}"]`
+            );
+            if (img) {
+              img.animate([{ opacity: 0.99 }, { opacity: 1 }], {
+                duration: 10,
+              });
+            }
+          }}
+          onError={(e) => {
+            console.error("Error loading story image:", e, currentStory.image);
+          }}
+          data-story-id={currentStory._id}
         />
 
         {/* Reaction animation */}

@@ -150,7 +150,9 @@ const ProfileSide: React.FC = () => {
           </div>
 
           <div className="mt-16 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{user.username}</h2>
+            <h2 className="text-3xl font-bold text-gray-800">
+              {user.username}
+            </h2>
             <p className="text-gray-600">
               {user.firstname} {user.lastname}
             </p>
@@ -164,7 +166,9 @@ const ProfileSide: React.FC = () => {
             <div className="text-center">
               <p className="text-gray-500 text-sm">Followers</p>
               <button
-                onClick={() => user.followers.length > 0 && setIsFollowersModalOpen(true)}
+                onClick={() =>
+                  user.followers.length > 0 && setIsFollowersModalOpen(true)
+                }
                 className={`font-bold ${
                   user.followers.length > 0
                     ? "text-blue-600 hover:text-blue-700 cursor-pointer"
@@ -177,7 +181,9 @@ const ProfileSide: React.FC = () => {
             <div className="text-center">
               <p className="text-gray-500 text-sm">Following</p>
               <button
-                onClick={() => user.following.length > 0 && setIsFollowingModalOpen(true)}
+                onClick={() =>
+                  user.following.length > 0 && setIsFollowingModalOpen(true)
+                }
                 className={`font-bold ${
                   user.following.length > 0
                     ? "text-blue-600 hover:text-blue-700 cursor-pointer"

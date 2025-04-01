@@ -3,7 +3,9 @@ import { IUser } from "../../types/AuthTypes";
 import { FaPen, FaTimes, FaCheck, FaCamera } from "react-icons/fa";
 import { updateUser, followUser, unfollowUser } from "../../api/User";
 import useAuthStore from "../../store/AuthStore";
+import useStoryStore from "../../store/StoryStore";
 import uploadFile from "../../helpers/uploadFile";
+import { motion } from "framer-motion";
 
 interface ProfileHeaderProps {
   user: IUser | null;
@@ -12,6 +14,7 @@ interface ProfileHeaderProps {
   isFollowing?: boolean;
   onProfileUpdate?: (updatedUser: IUser) => void;
   onFollowToggle?: () => void;
+  onStoryClick?: (storyGroupIndex: number) => void; // Adăugăm un prop pentru a notifica ProfilePage
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -21,8 +24,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   isFollowing = false,
   onProfileUpdate,
   onFollowToggle,
+  onStoryClick,
 }) => {
   const { user: currentUser } = useAuthStore();
+  const { storyGroups, fetchStories, setActiveStoryGroup } = useStoryStore();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
@@ -42,33 +47,37 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     coverPicture: user?.coverPicture || "",
   });
 
-  // Trigger entrance animation after component mounts
   useEffect(() => {
-    // Small delay for better perceived performance
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 100);
-
+    if (user?._id) {
+      fetchStories(user._id);
+    }
+    const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [user, fetchStories]);
 
-  if (!user) {
-    return (
-      <div className="w-full max-w-xl lg:mx-0 lg:ml-6 bg-white rounded-xl shadow-xl overflow-hidden mb-6 p-6 duration-300 hover:shadow-2xl opacity-0 animate-pulse">
-        <div className="flex justify-center items-center h-40">
-          <p className="text-gray-500">Loading user profile...</p>
-        </div>
-      </div>
+  const userStoryGroup = storyGroups.find(
+    (group) => group.userId === user?._id
+  );
+  const hasStory = !!userStoryGroup;
+  const hasUnseenStories = userStoryGroup?.hasUnseenStories || false;
+
+  const handleProfileClick = () => {
+    if (!hasStory || !user?._id) return;
+    const storyIndex = storyGroups.findIndex(
+      (group) => group.userId === user._id
     );
-  }
+    if (storyIndex !== -1) {
+      setActiveStoryGroup(storyIndex);
+      if (onStoryClick) {
+        onStoryClick(storyIndex); // Notificăm ProfilePage că s-a făcut click pe story
+      }
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = async (
@@ -86,8 +95,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             result.secure_url,
         });
       } catch (err) {
-        setError("Failed to upload image. Please try again.");
-        console.error(err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to upload image. Please try again."
+        );
       } finally {
         setUploadingImage(null);
       }
@@ -96,24 +108,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
   const handleSubmit = async () => {
     if (!currentUser?._id || !user?._id) return;
-
     setLoading(true);
     setError(null);
-
     try {
-      const updatedUser = await updateUser(user._id, currentUser._id, {
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        about: formData.about,
-        profilePicture: formData.profilePicture,
-        coverPicture: formData.coverPicture,
-      });
-
+      const updatedUser = await updateUser(user._id, currentUser._id, formData);
       setIsEditing(false);
-
-      if (onProfileUpdate) {
-        onProfileUpdate(updatedUser);
-      }
+      if (onProfileUpdate) onProfileUpdate(updatedUser);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
@@ -123,15 +123,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
   const handleFollowToggle = async () => {
     if (!currentUser || !user || !onFollowToggle) return;
-
     setFollowLoading(true);
     try {
-      if (isFollowing) {
-        await unfollowUser(user._id, currentUser._id);
-      } else {
-        await followUser(user._id, currentUser._id);
-      }
-      // Call the callback to update parent component state
+      if (isFollowing) await unfollowUser(user._id, currentUser._id);
+      else await followUser(user._id, currentUser._id);
       onFollowToggle();
     } catch (err) {
       setError(
@@ -144,17 +139,16 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
   const cancelEdit = () => {
     setFormData({
-      firstname: user.firstname || "",
-      lastname: user.lastname || "",
-      about: user.about || "",
-      profilePicture: user.profilePicture || "",
-      coverPicture: user.coverPicture || "",
+      firstname: user?.firstname || "",
+      lastname: user?.lastname || "",
+      about: user?.about || "",
+      profilePicture: user?.profilePicture || "",
+      coverPicture: user?.coverPicture || "",
     });
     setIsEditing(false);
     setError(null);
   };
 
-  // Dynamic classes for entrance animation
   const containerClasses = `w-full max-w-xl lg:mx-0 bg-white rounded-xl shadow-xl overflow-hidden mb-6 duration-400 hover:shadow-2xl 
     ${
       isVisible
@@ -163,15 +157,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     } 
     transition-all ease-out`;
 
+  if (!user) {
+    return (
+      <div className="w-full max-w-xl lg:mx-0 lg:ml-6 bg-white rounded-xl shadow-xl overflow-hidden mb-6 p-6 duration-300 hover:shadow-2xl opacity-0 animate-pulse">
+        <div className="flex justify-center items-center h-40">
+          <p className="text-gray-500">Loading user profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={containerClasses}>
-      {/* Cover Image with Edit option */}
+      {/* Cover Image */}
       <div
         className={`h-48 bg-cover bg-center relative transition duration-500 ease-in-out ${
           isVisible ? "opacity-100" : "opacity-0"
         }`}
         style={
-          (isEditing ? formData.coverPicture : user.coverPicture)
+          formData.coverPicture || user.coverPicture
             ? {
                 backgroundImage: `url(${
                   isEditing ? formData.coverPicture : user.coverPicture
@@ -197,8 +201,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </label>
           </div>
         )}
-
-        {/* Editing controls for cover */}
         {isEditing && uploadingImage === "cover" && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
@@ -208,37 +210,57 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
       {/* Profile Information */}
       <div className="px-6 py-5 relative">
-        {/* Profile Picture */}
-        <div
-          className={`absolute -top-20 mt-5 left-6 transition-all duration-1000 ease-out 
-            ${
-              isVisible
-                ? "opacity-100 transform translate-y-0"
-                : "opacity-0 transform translate-y-6"
-            }`}
+        {/* Profile Picture with Story Ring */}
+        <motion.div
+          className={`absolute -top-20 mt-5 left-6 transition-all duration-1000 ease-out ${
+            isVisible
+              ? "opacity-100 transform translate-y-0"
+              : "opacity-0 transform translate-y-6"
+          }`}
           onMouseEnter={() => setIsHoveringProfile(true)}
           onMouseLeave={() => setIsHoveringProfile(false)}
+          whileHover={{ scale: 1.05 }} // Aplicăm hover pe întregul container
         >
-          <div
-            className={`w-40 h-40 rounded-full border-4 border-white overflow-hidden relative transition-all duration-300 ease-in-out ${
-              isHoveringProfile ? "scale-110 shadow-lg" : ""
-            } ${isHoveringCover ? "opacity-70" : "opacity-100"}`}
+          <button
+            onClick={handleProfileClick}
+            disabled={!hasStory || isEditing}
+            className="relative w-40 h-40"
           >
-            {(isEditing ? formData.profilePicture : user.profilePicture) ? (
-              <img
-                src={isEditing ? formData.profilePicture : user.profilePicture}
-                alt={`${user.username}'s profile`}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                <span className="text-white text-4xl font-bold">
-                  {user.username?.charAt(0).toUpperCase() || "U"}
-                </span>
+            {/* Gradient Ring for Unseen Stories */}
+            {hasStory && hasUnseenStories && (
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[3px] animate-story-ring">
+                <div className="w-full h-full rounded-full bg-white"></div>
               </div>
             )}
-
-            {/* Profile picture edit button */}
+            {/* Gray Ring for Seen Stories */}
+            {hasStory && !hasUnseenStories && (
+              <div className="absolute inset-0 rounded-full border-[3px] border-gray-300 p-[2px]">
+                <div className="w-full h-full rounded-full bg-white"></div>
+              </div>
+            )}
+            {/* Profile Picture */}
+            <div
+              className={`absolute inset-[4px] rounded-full overflow-hidden transition-all duration-300 ease-in-out ${
+                isHoveringCover ? "opacity-70" : "opacity-100"
+              }`}
+            >
+              {formData.profilePicture || user.profilePicture ? (
+                <img
+                  src={
+                    isEditing ? formData.profilePicture : user.profilePicture
+                  }
+                  alt={`${user.username}'s profile`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                  <span className="text-white text-4xl font-bold">
+                    {user.username?.charAt(0).toUpperCase() || "U"}
+                  </span>
+                </div>
+              )}
+            </div>
+            {/* Edit Button */}
             {isEditing && (
               <label className="absolute bottom-0 right-0 cursor-pointer">
                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors">
@@ -252,17 +274,15 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 />
               </label>
             )}
-
-            {/* Loading indicator for profile picture upload */}
             {isEditing && uploadingImage === "profile" && (
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
               </div>
             )}
-          </div>
-        </div>
+          </button>
+        </motion.div>
 
-        {/* User Details - Adjusted margin to accommodate larger profile image */}
+        {/* User Details */}
         <div
           className={`ml-44 -mt-1 transition-all duration-700 ${
             isVisible
@@ -302,7 +322,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 </>
               )}
             </div>
-
             {isEditing ? (
               <div className="flex space-x-2">
                 <button
@@ -354,14 +373,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             )}
           </div>
 
-          {/* Error message */}
           {error && (
             <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
               {error}
             </div>
           )}
 
-          {/* Bio section - Aligned with left edge */}
+          {/* Bio */}
           <div
             className={`mt-8 -ml-40 px-6 transition-all duration-700 ${
               isVisible
@@ -390,7 +408,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             )}
           </div>
 
-          {/* Stats - Added post count */}
+          {/* Stats */}
           <div
             className={`mt-6 flex space-x-8 ml-30 px-6 transition-all duration-700 ${
               isVisible
@@ -402,7 +420,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               <p className="font-bold text-gray-800">{postCount}</p>
               <p className="text-gray-500 text-sm">Posts</p>
             </div>
-            <div className="text-center ">
+            <div className="text-center">
               <p className="font-bold text-gray-800">
                 {user.followers?.length || 0}
               </p>
@@ -417,6 +435,28 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Stiluri inline */}
+      <style>
+        {`
+          @keyframes gradient-shift {
+            0% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+            100% {
+              background-position: 0% 50%;
+            }
+          }
+
+          .animate-story-ring {
+            background-size: 300% 300%;
+            animation: gradient-shift 4s ease infinite;
+          }
+        `}
+      </style>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
+import useStoryStore from "../store/StoryStore"; // Adăugăm StoryStore
 import Background from "../components/Home/Background";
 import PostCard from "../components/Home/PostCard";
 import Dashboard from "../components/Home/Dashboard";
@@ -10,6 +11,7 @@ import ProfileHeader from "../components/Profile/ProfileHeader";
 import UserInfoSidebar from "../components/Profile/UserInfoSide";
 import PostGrid from "../components/Profile/PostGrid";
 import PostModal from "../components/Profile/PostModal";
+import StoryViewer from "../components/Home/StoryViewer"; // Adăugăm StoryViewer
 import { IUser } from "../types/AuthTypes";
 import { IPost } from "../types/PostTypes";
 import { followUser, unfollowUser, checkFollowStatus } from "../api/User";
@@ -23,6 +25,7 @@ const ProfilePage: React.FC = () => {
     fetchSavedPosts,
     fetchUserPosts,
   } = usePostStore();
+  const { storyGroups, fetchStories, setActiveStoryGroup } = useStoryStore(); // Adăugăm StoryStore
   const navigate = useNavigate();
 
   const [profileUser, setProfileUser] = useState<IUser | null>(null);
@@ -35,6 +38,7 @@ const ProfilePage: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [selectedPost, setSelectedPost] = useState<IPost | null>(null);
+  const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null); // Starea pentru StoryViewer
 
   const isOwnProfile = currentUser?._id === (userId || currentUser?._id);
   const targetUserId = userId || currentUser?._id;
@@ -80,6 +84,9 @@ const ProfilePage: React.FC = () => {
               setSavedPosts(savedPostsResponse.data.posts);
             }
           }
+
+          // Încărcăm story-urile pentru utilizator
+          await fetchStories(targetUserId);
         } else {
           setError("Failed to fetch user data");
         }
@@ -92,7 +99,7 @@ const ProfilePage: React.FC = () => {
     };
 
     fetchProfileData();
-  }, [targetUserId, navigate, currentUser, isOwnProfile]);
+  }, [targetUserId, navigate, currentUser, isOwnProfile, fetchStories]);
 
   const refreshSavedPosts = async () => {
     if (currentUser && isOwnProfile) {
@@ -133,7 +140,7 @@ const ProfilePage: React.FC = () => {
       } else {
         setSavedPosts(updatePostsWithLike(savedPosts));
       }
-      
+
       if (selectedPost && selectedPost._id === postId) {
         const isLiked = selectedPost.likes.includes(currentUser._id);
         setSelectedPost({
@@ -190,7 +197,9 @@ const ProfilePage: React.FC = () => {
         setSelectedPost({
           ...selectedPost,
           savedBy: isSaved
-            ? (selectedPost.savedBy || []).filter((id) => id !== currentUser._id)
+            ? (selectedPost.savedBy || []).filter(
+                (id) => id !== currentUser._id
+              )
             : [...(selectedPost.savedBy || []), currentUser._id],
         });
       }
@@ -257,6 +266,10 @@ const ProfilePage: React.FC = () => {
     setSelectedPost(post);
   };
 
+  const handleStoryClick = (storyIndex: number) => {
+    setActiveStoryIndex(storyIndex); // Setăm indexul story-ului activ
+  };
+
   if (loading) {
     return (
       <div className="relative min-h-screen text-white">
@@ -318,6 +331,7 @@ const ProfilePage: React.FC = () => {
                   isFollowing={isFollowing}
                   onProfileUpdate={handleProfileUpdate}
                   onFollowToggle={handleFollowToggle}
+                  onStoryClick={handleStoryClick} // Transmitem funcția pentru a gestiona click-ul pe story
                 />
               </div>
 
@@ -372,7 +386,7 @@ const ProfilePage: React.FC = () => {
                         onViewModeChange={handleViewModeChange}
                         onPostClick={handlePostClick}
                       />
-                      
+
                       {viewMode === "list" && (
                         <div className="space-y-6 mt-2">
                           {displayPosts.map((post) => (
@@ -385,8 +399,12 @@ const ProfilePage: React.FC = () => {
                               savedBy={post.savedBy || []}
                               image={post.image}
                               comments={post.comments || []}
-                              onLike={() => post._id && handleLikePost(post._id)}
-                              onSave={() => post._id && handleSavePost(post._id)}
+                              onLike={() =>
+                                post._id && handleLikePost(post._id)
+                              }
+                              onSave={() =>
+                                post._id && handleSavePost(post._id)
+                              }
                               isLiked={
                                 currentUser
                                   ? post.likes?.includes(currentUser._id)
@@ -416,6 +434,17 @@ const ProfilePage: React.FC = () => {
           onClose={() => setSelectedPost(null)}
           onLike={handleLikePost}
           onSave={handleSavePost}
+        />
+      )}
+
+      {/* Afișăm StoryViewer dacă există un story activ */}
+      {activeStoryIndex !== null && storyGroups[activeStoryIndex] && (
+        <StoryViewer
+          storyGroup={storyGroups[activeStoryIndex]}
+          onClose={() => {
+            setActiveStoryIndex(null); // Închidem StoryViewer
+            setActiveStoryGroup(null); // Resetăm starea globală
+          }}
         />
       )}
 

@@ -8,13 +8,39 @@ export const createStory = async (req, res) => {
     try {
         const { userId, image, caption } = req.body;
         
-        if (!userId || !image) {
+        // Enhanced validation
+        if (!userId) {
             return res.status(400).json({
-                message: "User ID and image are required",
+                message: "User ID is required",
                 success: false
             });
         }
         
+        if (!image) {
+            return res.status(400).json({
+                message: "Image is required for a story",
+                success: false
+            });
+        }
+        
+        // Validate image URL format (simple check)
+        if (!image.startsWith('http')) {
+            return res.status(400).json({
+                message: "Invalid image URL format",
+                success: false
+            });
+        }
+        
+        // Validate user exists
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+                success: false
+            });
+        }
+        
+        // Create story with validated data
         const newStory = new StoryModel({
             userId,
             image,
@@ -23,7 +49,11 @@ export const createStory = async (req, res) => {
             likes: [] // Initialize empty likes array
         });
         
+        // Save to database
         const savedStory = await newStory.save();
+        
+        // Log success for debugging
+        console.log(`Story created successfully. ID: ${savedStory._id}, Image URL: ${savedStory.image.substring(0, 50)}...`);
         
         res.status(201).json({
             message: "Story created successfully",
@@ -31,6 +61,7 @@ export const createStory = async (req, res) => {
             story: savedStory
         });
     } catch (error) {
+        console.error("Error creating story:", error);
         res.status(500).json({
             message: error.message || error,
             success: false
@@ -38,12 +69,12 @@ export const createStory = async (req, res) => {
     }
 };
 
-// Obține stories pentru timeline (stories ale utilizatorului și ale prietenilor săi)
+// Get stories for timeline (user and friends)
 export const getTimelineStories = async (req, res) => {
     try {
         const userId = req.params.userId;
         
-        // Obține utilizatorul pentru a lua lista de following
+        // Validate user exists
         const currentUser = await UserModel.findById(userId);
         
         if (!currentUser) {
@@ -53,8 +84,7 @@ export const getTimelineStories = async (req, res) => {
             });
         }
         
-        // Obține story-urile utilizatorului curent și ale utilizatorilor pe care îi urmărește
-        // care nu au expirat
+        // Get stories that haven't expired
         const currentTime = new Date();
         const stories = await StoryModel.find({
             $and: [
@@ -66,7 +96,10 @@ export const getTimelineStories = async (req, res) => {
             ]
         }).sort({ createdAt: -1 });
         
-        // Grupează story-urile după userId
+        // Log the number of stories found
+        console.log(`Found ${stories.length} stories for user ${userId}`);
+        
+        // Group stories by userId
         const storyGroups = {};
         
         for (const story of stories) {
@@ -76,7 +109,7 @@ export const getTimelineStories = async (req, res) => {
             storyGroups[story.userId].push(story);
         }
         
-        // Obține informații de utilizator pentru fiecare grup
+        // Get user information for each group
         const userIds = Object.keys(storyGroups);
         const users = await UserModel.find({ _id: { $in: userIds } })
                                      .select('username profilePicture');
@@ -89,7 +122,7 @@ export const getTimelineStories = async (req, res) => {
             };
         });
         
-        // Formatul de răspuns: { userId, username, profilePicture, stories: [] }
+        // Format response with user details
         const timelineStories = userIds.map(uId => ({
             userId: uId,
             username: userMap[uId]?.username || 'Unknown User',
@@ -97,12 +130,65 @@ export const getTimelineStories = async (req, res) => {
             stories: storyGroups[uId]
         }));
         
+        // Log one story for debugging
+        if (timelineStories.length > 0 && timelineStories[0].stories.length > 0) {
+            const sampleStory = timelineStories[0].stories[0];
+            console.log(`Sample story - ID: ${sampleStory._id}, Image: ${sampleStory.image.substring(0, 50)}...`);
+        }
+        
         res.status(200).json({
             message: "Stories fetched successfully",
             success: true,
             storyGroups: timelineStories
         });
     } catch (error) {
+        console.error("Error getting timeline stories:", error);
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};
+
+// Mark a story as viewed with better database handling
+export const viewStory = async (req, res) => {
+    try {
+        const storyId = req.params.storyId;
+        const { userId } = req.body;
+        
+        if (!userId) {
+            return res.status(400).json({
+                message: "User ID is required",
+                success: false
+            });
+        }
+        
+        const story = await StoryModel.findById(storyId);
+        
+        if (!story) {
+            return res.status(404).json({
+                message: "Story not found",
+                success: false
+            });
+        }
+        
+        // Check if user has already viewed the story
+        if (!story.viewers.includes(userId)) {
+            // Add to viewers array using $addToSet to prevent duplicates
+            await StoryModel.findByIdAndUpdate(
+                storyId,
+                { $addToSet: { viewers: userId } },
+                { new: true }
+            );
+            console.log(`User ${userId} marked as viewer for story ${storyId}`);
+        }
+        
+        res.status(200).json({
+            message: "Story marked as viewed",
+            success: true
+        });
+    } catch (error) {
+        console.error("Error marking story as viewed:", error);
         res.status(500).json({
             message: error.message || error,
             success: false
@@ -171,37 +257,6 @@ export const likeStory = async (req, res) => {
     }
 };
 
-// Marchează un story ca vizualizat de un utilizator
-export const viewStory = async (req, res) => {
-    try {
-        const storyId = req.params.storyId;
-        const { userId } = req.body;
-        
-        const story = await StoryModel.findById(storyId);
-        
-        if (!story) {
-            return res.status(404).json({
-                message: "Story not found",
-                success: false
-            });
-        }
-        
-        // Verifică dacă utilizatorul a văzut deja story-ul
-        if (!story.viewers.includes(userId)) {
-            await story.updateOne({ $push: { viewers: userId } });
-        }
-        
-        res.status(200).json({
-            message: "Story marked as viewed",
-            success: true
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: error.message || error,
-            success: false
-        });
-    }
-};
 
 // Șterge un story
 export const deleteStory = async (req, res) => {

@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthPage from "./pages/AuthPage.tsx";
 import HomePage from "./pages/HomePage.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
+import ChatPage from "./pages/ChatPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/profile/:userId",
     element: <ProfilePage />,
+  },
+  {
+    path: "/chat",
+    element: <ChatPage />, // New chat route
   },
 ]);
 

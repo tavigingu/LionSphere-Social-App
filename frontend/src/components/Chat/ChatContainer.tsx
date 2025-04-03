@@ -48,6 +48,13 @@ const ChatContainer: React.FC = () => {
       disconnectSocket();
     };
   }, [user, fetchChats, initializeSocket, disconnectSocket, navigate]);
+
+  // Auto-select first chat if none is selected
+  useEffect(() => {
+    if (chats.length > 0 && !activeChat) {
+      setActiveChat(chats[0]);
+    }
+  }, [chats, activeChat, setActiveChat]);
   
   const handleChatSelect = (chat: any) => {
     setActiveChat(chat);
@@ -64,15 +71,15 @@ const ChatContainer: React.FC = () => {
   if (!user) return null;
   
   return (
-    <div className="relative min-h-screen bg-gray-100 flex flex-col">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 to-purple-900 flex flex-col">
       {/* Connection Status Indicator */}
       <OnlineIndicator connected={socketConnected} />
       
-      <div className="flex flex-col md:flex-row flex-grow">
+      <div className="flex flex-col md:flex-row flex-grow h-full overflow-hidden">
         {/* Sidebar with chat list */}
-        <div className="w-full md:w-80 bg-white shadow-md md:h-screen overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-800">Messages</h1>
+        <div className="w-full md:w-80 bg-gray-800 bg-opacity-50 backdrop-blur-md md:h-full flex flex-col border-r border-gray-700">
+          <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h1 className="text-xl font-bold text-white">Messages</h1>
             <NewChatButton onClick={handleNewChat} />
           </div>
           
@@ -89,14 +96,14 @@ const ChatContainer: React.FC = () => {
         </div>
         
         {/* Main chat window */}
-        <div className="flex-grow md:h-screen overflow-hidden bg-gray-50">
+        <div className="flex-grow md:h-full flex flex-col bg-gray-800 bg-opacity-30 backdrop-blur-md overflow-hidden">
           {activeChat ? (
             <ChatWindow chat={activeChat} currentUser={user} />
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center p-8 max-w-lg">
-                <h2 className="text-2xl font-bold text-gray-700 mb-4">No chat selected</h2>
-                <p className="text-gray-500 mb-6">
+                <h2 className="text-2xl font-bold text-white mb-4">No chat selected</h2>
+                <p className="text-gray-300 mb-6">
                   Select a conversation from the list or start a new one to begin chatting.
                 </p>
                 <button

@@ -59,12 +59,14 @@ const MessageItem: React.FC<MessageItemProps> = ({
       variants={messageVariants}
       initial="initial"
       animate="animate"
-      className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
+      className={`flex flex-col ${
+        isCurrentUser ? "items-end" : "items-start"
+      } my-1.5`}
     >
       {/* Show sender info (avatar and time) if needed */}
       {showSenderInfo && !isCurrentUser && (
         <div className="flex items-center mb-1">
-          <div className="w-6 h-6 rounded-full overflow-hidden mr-1">
+          <div className="w-6 h-6 rounded-full overflow-hidden mr-1 border border-purple-100 shadow-sm">
             {otherUser.profilePicture ? (
               <img
                 src={otherUser.profilePicture}
@@ -91,10 +93,10 @@ const MessageItem: React.FC<MessageItemProps> = ({
 
       {/* Message bubble */}
       <div
-        className={`px-4 py-2 rounded-2xl max-w-xs sm:max-w-sm break-words ${
+        className={`px-4 py-2 rounded-2xl max-w-xs sm:max-w-sm break-words shadow-sm ${
           isCurrentUser
-            ? "bg-blue-600 text-white rounded-tr-none"
-            : "bg-gray-200 text-gray-800 rounded-tl-none"
+            ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-tr-none"
+            : "bg-white border border-purple-100/40 text-gray-800 rounded-tl-none"
         } ${message.failed ? "opacity-75" : ""}`}
       >
         {/* If message was deleted */}
@@ -110,6 +112,8 @@ const MessageItem: React.FC<MessageItemProps> = ({
         <div
           className={`mt-1 rounded-lg overflow-hidden ${
             isCurrentUser ? "rounded-tr-none" : "rounded-tl-none"
+          } shadow-md border ${
+            isCurrentUser ? "border-purple-300/20" : "border-purple-100/40"
           }`}
         >
           <img
@@ -123,7 +127,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
       {/* Failed message retry button */}
       {message.failed && (
         <div className="mt-1 flex items-center">
-          <button className="text-xs text-red-500 flex items-center">
+          <button className="text-xs text-red-500 flex items-center bg-white/80 px-2 py-1 rounded-full shadow-sm hover:bg-white transition-colors">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-3 w-3 mr-1"

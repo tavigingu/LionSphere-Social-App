@@ -140,7 +140,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
       {/* Messages Container */}
       <div
         ref={messageContainerRef}
-        className="flex-grow overflow-y-auto px-4 py-2 bg-gradient-to-b from-gray-50 to-white"
+        className="flex-grow overflow-y-auto px-4 py-2 bg-gradient-to-b from-blue-50/70 to-purple-50/70"
         onScroll={handleScrollTop}
       >
         {messagesLoading && chatMessages.length === 0 ? (
@@ -194,7 +194,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-20 right-6 bg-blue-500 text-white p-2 rounded-full shadow-lg"
+              className="absolute bottom-20 right-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-full shadow-lg hover:shadow-xl transition-shadow"
               onClick={() =>
                 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
               }

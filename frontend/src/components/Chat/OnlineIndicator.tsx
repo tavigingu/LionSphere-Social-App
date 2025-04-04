@@ -21,7 +21,9 @@ const OnlineIndicator: React.FC<OnlineIndicatorProps> = ({ connected }) => {
   }, [connected]);
 
   const statusText = connected ? "Connected" : "Disconnected";
-  const statusColor = connected ? "bg-green-500" : "bg-red-500";
+  const statusColor = connected
+    ? "from-green-500 to-emerald-600"
+    : "from-red-500 to-pink-600";
 
   return (
     <AnimatePresence>
@@ -33,9 +35,13 @@ const OnlineIndicator: React.FC<OnlineIndicatorProps> = ({ connected }) => {
           transition={{ duration: 0.3 }}
           className="fixed top-4 right-4 z-50"
         >
-          <div className="px-4 py-2 rounded-full bg-white shadow-md flex items-center">
-            <div className={`h-3 w-3 rounded-full ${statusColor} mr-2`}></div>
-            <span className="text-sm font-medium">{statusText}</span>
+          <div className="px-4 py-2 rounded-full bg-white shadow-md flex items-center border border-purple-100/30">
+            <div
+              className={`h-3 w-3 rounded-full bg-gradient-to-r ${statusColor} mr-2 animate-pulse`}
+            ></div>
+            <span className="text-sm font-medium text-gray-800">
+              {statusText}
+            </span>
           </div>
         </motion.div>
       )}

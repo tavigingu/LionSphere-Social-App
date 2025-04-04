@@ -94,24 +94,24 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <motion.div
         ref={modalRef}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.2 }}
-        className="bg-white rounded-lg shadow-xl w-full max-w-md p-4 max-h-[80vh] flex flex-col"
+        className="bg-white rounded-xl shadow-xl w-full max-w-md p-4 max-h-[80vh] flex flex-col border border-purple-100/30"
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 pb-2 border-b border-purple-100/30">
           <h2 className="text-xl font-bold text-gray-800">New Conversation</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+            className="p-1 rounded-full hover:bg-purple-50 transition-colors text-gray-600"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-600"
+              className="h-6 w-6"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -134,11 +134,11 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search for users..."
-            className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 pr-10 border border-purple-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm"
           />
           <button
             onClick={handleSearch}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-500 hover:text-blue-500"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-500 hover:text-purple-600 transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -158,7 +158,7 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
         </div>
 
         {error && (
-          <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+          <div className="mb-4 p-2 bg-red-50 text-red-700 rounded-md border border-red-200 text-sm">
             {error}
           </div>
         )}
@@ -169,15 +169,15 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
               <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
             </div>
           ) : searchResults.length > 0 ? (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-purple-100/30">
               {searchResults.map((user) => (
                 <li
                   key={user._id}
-                  className="py-3 hover:bg-gray-50 cursor-pointer transition-colors rounded-md"
+                  className="py-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 cursor-pointer transition-colors rounded-md"
                   onClick={() => handleStartChat(user)}
                 >
                   <div className="flex items-center px-2">
-                    <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden mr-3 border border-purple-100 shadow-sm">
                       {user.profilePicture ? (
                         <img
                           src={user.profilePicture}
@@ -206,11 +206,21 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
             </ul>
           ) : searchTerm ? (
             <div className="text-center py-8 text-gray-500">
-              No users found matching '{searchTerm}'
+              <div className="p-6 rounded-lg bg-gray-50 inline-block">
+                <p>No users found matching '{searchTerm}'</p>
+                <p className="text-sm mt-2 text-gray-400">
+                  Try a different search term
+                </p>
+              </div>
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
-              Search for users to start a conversation
+              <div className="p-6 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 inline-block">
+                <p>Search for users to start a conversation</p>
+                <p className="text-sm mt-2 text-gray-400">
+                  You can search by username
+                </p>
+              </div>
             </div>
           )}
         </div>

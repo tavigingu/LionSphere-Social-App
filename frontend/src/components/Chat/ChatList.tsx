@@ -25,12 +25,12 @@ const ChatList: React.FC<ChatListProps> = ({
           {[...Array(5)].map((_, index) => (
             <div
               key={index}
-              className="flex items-center py-3 border-b border-gray-100"
+              className="flex items-center py-3 border-b border-purple-100/30"
             >
-              <div className="w-12 h-12 bg-gray-200 rounded-full mr-3"></div>
+              <div className="w-12 h-12 bg-purple-200/30 rounded-full mr-3"></div>
               <div className="flex-grow">
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-purple-200/30 rounded w-1/2 mb-2"></div>
+                <div className="h-3 bg-purple-200/30 rounded w-3/4"></div>
               </div>
             </div>
           ))}
@@ -42,10 +42,12 @@ const ChatList: React.FC<ChatListProps> = ({
   if (chats.length === 0) {
     return (
       <div className="p-6 text-center">
-        <p className="text-gray-500">No conversations yet</p>
-        <p className="text-sm text-gray-400 mt-1">
-          Start a new chat to begin messaging
-        </p>
+        <div className="p-6 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm border border-purple-100/30">
+          <p className="text-gray-700 font-medium">No conversations yet</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Start a new chat to begin messaging
+          </p>
+        </div>
       </div>
     );
   }
@@ -80,7 +82,7 @@ const ChatList: React.FC<ChatListProps> = ({
   };
 
   return (
-    <div className="divide-y divide-gray-100">
+    <div className="divide-y divide-purple-100/30">
       {chats.map((chat) => {
         // Get the other participant in the chat (assuming 1-on-1 chats)
         const otherParticipant = chat.participants[0];
@@ -99,15 +101,17 @@ const ChatList: React.FC<ChatListProps> = ({
             key={chat._id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ backgroundColor: "rgba(0,0,0,0.03)" }}
+            whileHover={{ backgroundColor: "rgba(139, 92, 246, 0.05)" }}
             onClick={() => onChatSelect(chat)}
-            className={`flex items-center p-3 cursor-pointer transition-colors ${
-              isActive ? "bg-blue-50" : ""
+            className={`flex items-center p-3 cursor-pointer transition-all ${
+              isActive
+                ? "bg-gradient-to-r from-blue-100/50 to-purple-100/50 border-l-4 border-purple-500"
+                : "hover:border-l-4 hover:border-purple-300 border-l-4 border-transparent"
             }`}
           >
             {/* Avatar with online indicator */}
             <div className="relative">
-              <div className="w-12 h-12 rounded-full overflow-hidden">
+              <div className="w-12 h-12 rounded-full overflow-hidden border border-purple-100 shadow-md">
                 {otherParticipant.profilePicture ? (
                   <img
                     src={otherParticipant.profilePicture}
@@ -121,14 +125,18 @@ const ChatList: React.FC<ChatListProps> = ({
                 )}
               </div>
               {isOnline && (
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
               )}
             </div>
 
             {/* Chat info */}
             <div className="ml-3 flex-grow overflow-hidden">
               <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-gray-800 truncate">
+                <h3
+                  className={`font-semibold ${
+                    isActive ? "text-purple-800" : "text-gray-800"
+                  } truncate`}
+                >
                   {otherParticipant.username}
                 </h3>
                 <span className="text-xs text-gray-500">
@@ -147,7 +155,9 @@ const ChatList: React.FC<ChatListProps> = ({
                   }`}
                 >
                   {chat.typing ? (
-                    <span className="text-blue-500 italic">Typing...</span>
+                    <span className="text-blue-600 italic animate-pulse">
+                      Typing...
+                    </span>
                   ) : (
                     latestMessage
                   )}
@@ -155,7 +165,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
                 {/* Unread count badge */}
                 {chat.unreadCount > 0 && (
-                  <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                     {chat.unreadCount > 9 ? "9+" : chat.unreadCount}
                   </span>
                 )}

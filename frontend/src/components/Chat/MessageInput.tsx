@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import useChatStore from "../../store/ChatStore";
 import useSocketStore from "../../store/SocketStore";
 import uploadFile from "../../helpers/uploadFile";
@@ -156,19 +156,19 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="px-4 py-3 bg-white border-t border-gray-200">
+    <div className="p-4 bg-white/80 backdrop-blur-sm border-t border-purple-100/30">
       {/* Image preview */}
       {imagePreview && (
         <div className="relative mb-2 inline-block">
           <img
             src={imagePreview}
             alt="Upload preview"
-            className="h-20 w-auto rounded-md object-cover"
+            className="h-20 w-auto rounded-md object-cover border border-purple-100 shadow-sm"
           />
           <button
             type="button"
             onClick={handleRemoveImage}
-            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+            className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full p-1 shadow-md hover:shadow-lg transition-shadow"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -192,7 +192,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         <button
           type="button"
           onClick={() => setEmojiPickerVisible(!emojiPickerVisible)}
-          className="p-2 text-gray-500 hover:text-yellow-500 transition-colors"
+          className="p-2 text-gray-500 hover:text-yellow-500 transition-colors rounded-full hover:bg-purple-50"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -214,7 +214,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
+          className="p-2 text-gray-500 hover:text-blue-500 transition-colors rounded-full hover:bg-purple-50"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -248,7 +248,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             ref={inputRef}
-            className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-purple-200/50 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent shadow-sm"
             disabled={isUploading}
           />
         </div>
@@ -260,8 +260,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
           className={`p-2 rounded-full ${
             (!text.trim() && !image) || isUploading
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-blue-500 text-white hover:bg-blue-600"
-          } transition-colors`}
+              : "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-md"
+          } transition-all shadow-sm`}
           whileTap={{ scale: 0.95 }}
         >
           {isUploading ? (
@@ -286,44 +286,46 @@ const MessageInput: React.FC<MessageInputProps> = ({
       </form>
 
       {/* Emoji picker popover */}
-      {emojiPickerVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
-          className="absolute bottom-16 left-4 bg-white rounded-lg shadow-lg p-2 border border-gray-200 z-10"
-        >
-          <div className="grid grid-cols-8 gap-1">
-            {[
-              "😀",
-              "😂",
-              "😍",
-              "🥰",
-              "😎",
-              "🙄",
-              "😢",
-              "😡",
-              "👍",
-              "👎",
-              "🙏",
-              "🎉",
-              "❤️",
-              "🔥",
-              "👋",
-              "🤔",
-            ].map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => handleEmojiClick(emoji)}
-                className="w-8 h-8 text-xl hover:bg-gray-100 rounded"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {emojiPickerVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-16 left-4 bg-white rounded-lg shadow-lg p-2 border border-purple-100/50 z-10"
+          >
+            <div className="grid grid-cols-8 gap-1">
+              {[
+                "😀",
+                "😂",
+                "😍",
+                "🥰",
+                "😎",
+                "🙄",
+                "😢",
+                "😡",
+                "👍",
+                "👎",
+                "🙏",
+                "🎉",
+                "❤️",
+                "🔥",
+                "👋",
+                "🤔",
+              ].map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => handleEmojiClick(emoji)}
+                  className="w-8 h-8 text-xl hover:bg-purple-50 rounded transition-colors"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

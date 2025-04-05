@@ -2,17 +2,68 @@ import PostModel from "../models/PostModel.js";
 import UserModel from "../models/UserModel.js";
 import NotificationModel from "../models/NotificationModel.js";
 
-export const createPost = async (req, res) => {
-    const newPost = new PostModel(req.body);
+// export const createPost = async (req, res) => {
+//     const newPost = new PostModel(req.body);
 
+//     try {
+//         const savedPost = await newPost.save();
+//         res.status(201).json({
+//             message: "Post created successfully",
+//             success: true,
+//             post: savedPost
+//         });
+//     } catch (error) {
+//         res.status(500).json({
+//             message: error.message || error,
+//             success: false
+//         });
+//     }
+// }
+
+export const createPost = async (req, res) => {
     try {
+        const { userId, desc, image, location, taggedUsers } = req.body;
+        
+        // Validate required fields
+        if (!userId || !image) {
+            return res.status(400).json({
+                message: "User ID and image are required for creating a post",
+                success: false
+            });
+        }
+        
+        // Extract hashtags from description
+        const tags = [];
+        if (desc) {
+            const hashtagRegex = /#(\w+)/g;
+            let match;
+            while ((match = hashtagRegex.exec(desc)) !== null) {
+                tags.push(match[1].toLowerCase());
+            }
+        }
+        
+        // Create new post object with all fields
+        const newPost = new PostModel({
+            userId,
+            desc,
+            image,
+            location,
+            taggedUsers,
+            tags,
+            likes: [],
+            savedBy: [],
+            comments: []
+        });
+
         const savedPost = await newPost.save();
+        
         res.status(201).json({
             message: "Post created successfully",
             success: true,
             post: savedPost
         });
     } catch (error) {
+        console.error("Error creating post:", error);
         res.status(500).json({
             message: error.message || error,
             success: false

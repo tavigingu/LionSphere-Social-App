@@ -4,8 +4,24 @@ export interface IPost {
   username: string;
   desc: string;
   likes: string[];
-  savedBy?: string[]; // Added savedBy array
+  savedBy?: string[];
   image?: string;
+  location?: {
+    name: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    }
+  };
+  tags?: string[]; // Hashtags extracted from description
+  taggedUsers?: {
+    userId: string;
+    username: string;
+    position: {
+      x: number; // Percentage position (0-100) on the image
+      y: number; // Percentage position (0-100) on the image
+    }
+  }[];
   createdAt?: string;
   updatedAt?: string;
   comments?: IComment[];

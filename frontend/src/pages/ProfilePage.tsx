@@ -362,11 +362,11 @@ const ProfilePage: React.FC = () => {
                 )}
 
                 <div className="mt-2">
-                  <div className="flex justify-between items-center mb-2">
+                  {/* <div className="flex justify-between items-center mb-2">
                     <h2 className="text-xl font-bold text-white">
                       {activeTab === "posts" ? "Posts" : "Saved Posts"}
                     </h2>
-                  </div>
+                  </div> */}
 
                   {displayPosts.length === 0 ? (
                     <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-center">

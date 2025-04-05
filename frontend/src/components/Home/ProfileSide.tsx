@@ -124,9 +124,9 @@ const ProfileSide: React.FC = () => {
           onMouseLeave={() => setIsHoveringCover(false)}
         ></div>
 
-        <div className="px-6 py-5 relative">
+        <div className="px-6 py-4 relative">
           <div
-            className="absolute -top-20 mt-5 left-1/2 transform -translate-x-1/2"
+            className="absolute -top-20 mt-3 left-1/2 transform -translate-x-1/2"
             onMouseEnter={() => setIsHoveringProfile(true)}
             onMouseLeave={() => setIsHoveringProfile(false)}
           >
@@ -149,7 +149,7 @@ const ProfileSide: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-16 text-center">
+          <div className="mt-14 text-center">
             <h2 className="text-3xl font-bold text-gray-800">
               {user.username}
             </h2>
@@ -158,7 +158,7 @@ const ProfileSide: React.FC = () => {
             </p>
           </div>
 
-          <div className="mt-6 grid grid-cols-3 gap-4 border-t border-gray-200 pt-4">
+          <div className="mt-3 grid grid-cols-3 gap-4 border-t border-gray-200 pt-4">
             <div className="text-center">
               <p className="text-gray-500 text-sm">Posts</p>
               <p className="font-bold text-gray-800">{postCount}</p>

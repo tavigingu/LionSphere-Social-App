@@ -32,24 +32,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
 
   // Fetch messages when chat changes
   useEffect(() => {
-    if (chat && currentUser) {
+    if (chat && chat._id && currentUser) {
       fetchMessages(chat._id, currentUser._id);
     }
   }, [chat?._id, currentUser?._id, fetchMessages]);
 
   // Mark chat as read when opened
   useEffect(() => {
-    if (chat && currentUser && chat.unreadCount > 0) {
+    if (chat && chat._id && currentUser && chat.unreadCount > 0) {
       markChatRead(chat._id, currentUser._id);
     }
   }, [chat?._id, currentUser?._id, chat?.unreadCount, markChatRead]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (messagesEndRef.current && chat && messages[chat._id]) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages[chat._id]?.length]);
+  }, [messages, chat]);
 
   // Detect scroll position to show/hide scroll to bottom button
   useEffect(() => {
@@ -78,6 +78,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
 
   // Function to load more messages when scrolling to top
   const handleScrollTop = () => {
+    if (!chat || !chat._id) return;
+
     const container = messageContainerRef.current;
     if (!container) return;
 
@@ -108,11 +110,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
 
   // Handler for sending messages
   const handleSendMessage = async (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || !chat || !chat._id) return;
 
     try {
-      // Get the first participant (the other user in the conversation)
-      const otherUser = chat.participants[0];
+      // Get the recipient (the other user in the conversation)
+      const otherUser = chat.participants.find(
+        (p) => p._id !== currentUser._id
+      );
+
+      if (!otherUser) {
+        console.error("Recipient not found in chat participants");
+        return;
+      }
 
       // Send message via socket for real-time delivery
       sendSocketMessage({
@@ -130,11 +139,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
   };
 
   // Get the message list for the current chat
-  const chatMessages = messages[chat._id] || [];
+  const chatMessages = chat && chat._id ? messages[chat._id] || [] : [];
+
+  // Make sure we're not showing an empty window
+  if (!chat || !chat.participants || chat.participants.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center p-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading conversation...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Chat Header */}
+      {/* Chat Header - pass the other user, not the current user */}
       <ChatHeader chat={chat} currentUser={currentUser} />
 
       {/* Messages Container */}
@@ -170,13 +191,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
                     new Date(previousMessage.createdAt).getTime() >
                     5 * 60 * 1000;
 
+                // Get other user info for the message
+                const otherUser = chat.participants.find(
+                  (p) => p._id !== currentUser._id
+                );
+
                 return (
                   <MessageItem
                     key={message._id}
                     message={message}
                     isCurrentUser={isCurrentUser}
                     showSenderInfo={showSenderInfo}
-                    otherUser={chat.participants[0]}
+                    otherUser={otherUser || chat.participants[0]}
                   />
                 );
               })}

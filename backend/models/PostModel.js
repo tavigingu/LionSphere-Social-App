@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+const TaggedUserSchema = new mongoose.Schema({
+  userId: String,
+  username: String,
+  position: {
+      x: Number, // Percentage position (0-100) on the image
+      y: Number  // Percentage position (0-100) on the image
+  }
+}, { _id: false });
+
 const PostSchema = mongoose.Schema(
     {
     userId : {
@@ -13,6 +22,22 @@ const PostSchema = mongoose.Schema(
     likes: [String],
     image: String,
     savedBy: [{ type: String }],
+    location: {
+      name: String,
+      coordinates: {
+          lat: Number,
+          lng: Number
+      }
+    },
+    tags: [String], // Hashtags extracted from description
+    taggedUsers: [{
+      userId: String,
+      username: String,
+      position: {
+          x: Number, // Percentage position (0-100) on the image
+          y: Number  // Percentage position (0-100) on the image
+      }
+    }],
     createdAt: {
             type: Date,
             default: Date.now 

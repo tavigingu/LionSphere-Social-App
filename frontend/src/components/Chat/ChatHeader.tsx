@@ -15,8 +15,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
   const { removeChat } = useChatStore();
   const [showOptions, setShowOptions] = useState(false);
 
-  // Get the other user in the conversation
-  const otherUser = chat.participants[0];
+  // Get the other user in the conversation (not the current user)
+  const otherUser =
+    chat.participants.find((p) => p._id !== currentUser._id) ||
+    chat.participants[0];
 
   // Determine online status
   const isOnline = chat.online || false;
@@ -27,11 +29,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
   };
 
   const handleDeleteChat = async () => {
-    if (window.confirm("Are you sure you want to delete this conversation?")) {
+    if (window.confirm("Ești sigur că vrei să ștergi această conversație?")) {
       try {
         await removeChat(chat._id, currentUser._id);
       } catch (error) {
-        console.error("Failed to delete chat:", error);
+        console.error("Eroare la ștergerea conversației:", error);
       }
     }
     setShowOptions(false);
@@ -39,11 +41,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
 
   return (
     <div className="p-4 border-b border-purple-100/30 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm flex items-center justify-between shadow-sm">
-      {/* User info */}
-      <div className="flex items-center">
+      {/* User info - Now clickable for profile */}
+      <div
+        className="flex items-center cursor-pointer group"
+        onClick={handleViewProfile}
+      >
         {/* Avatar with online indicator */}
         <div className="relative">
-          <div className="w-12 h-12 rounded-full overflow-hidden border border-purple-100 shadow-md">
+          <div className="w-12 h-12 rounded-full overflow-hidden border border-purple-100 shadow-md transition-all group-hover:shadow-lg group-hover:border-purple-300">
             {otherUser.profilePicture ? (
               <img
                 src={otherUser.profilePicture}
@@ -62,8 +67,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
         </div>
 
         {/* User details */}
-        <div className="ml-3">
-          <h3 className="font-medium text-gray-800">{otherUser.username}</h3>
+        <div className="ml-3 transition-all group-hover:translate-x-1">
+          <h3 className="font-medium text-gray-800 group-hover:text-purple-700 transition-colors">
+            {otherUser.username}
+          </h3>
           <p className="text-xs">
             {isOnline ? (
               <span className="text-green-600 font-medium">Online</span>
@@ -72,7 +79,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
             )}
             {chat.typing && (
               <span className="ml-2 text-blue-600 font-medium animate-pulse">
-                Typing...
+                Tastează...
               </span>
             )}
           </p>
@@ -95,7 +102,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
           </svg>
         </button>
 
-        {/* Dropdown menu */}
+        {/* Dropdown menu - Removed the View Profile option since it's on the user info now */}
         <AnimatePresence>
           {showOptions && (
             <motion.div
@@ -105,24 +112,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
               transition={{ duration: 0.2 }}
               className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 py-1 border border-purple-100/50 overflow-hidden"
             >
-              <button
-                onClick={handleViewProfile}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 flex items-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-2 text-purple-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                View Profile
-              </button>
               <button
                 onClick={handleDeleteChat}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
@@ -139,7 +128,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
                     clipRule="evenodd"
                   />
                 </svg>
-                Delete Conversation
+                Șterge conversația
               </button>
             </motion.div>
           )}

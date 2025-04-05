@@ -18,17 +18,26 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import useAuthStore from "../../store/AuthStore";
 import useNotificationStore from "../../store/NotificationStore";
+import useChatStore from "../../store/ChatStore"; // Import ChatStore to get unread messages
 import SearchSidebar from "../Home/SearchSidebar";
 import PostCreationForm from "../PostCreationForm";
-import StoryCreationForm from "../Home/StoryCreationForm";
+//import StoryCreationForm from "../Home/StoryCreationForm";
 import StoryEditor from "../Home/StoryEditor";
 import NotificationPanel from "../Home/NotificationPanel";
+import FullLogo from "../../assets/LionSphere_longlogo.png"; // Adjust the path as necessary
+import Logo from "../../assets/LionSphereLogo.png"; // Adjust the path as necessary
+import CreatePostModal from "../Home/CreatePostModal"; // Import the new CreatePostModal
 
 const Dashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
   const { unreadCount, fetchUnreadCount } = useNotificationStore();
+  const { chats } = useChatStore(); // Get chats to count unread messages
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Count unread messages
+  const unreadMessages =
+    chats?.reduce((total, chat) => total + (chat.unreadCount || 0), 0) || 0;
 
   const [activeButton, setActiveButton] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -39,6 +48,9 @@ const Dashboard: React.FC = () => {
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const createMenuRef = useRef<HTMLDivElement>(null);
 
+  // State for the new Instagram-style post creation modal
+  const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
+
   // Set active button based on current route
   useEffect(() => {
     const path = location.pathname;
@@ -46,6 +58,8 @@ const Dashboard: React.FC = () => {
       setActiveButton("profile");
     } else if (path.includes("/home")) {
       setActiveButton("home");
+    } else if (path.includes("/chat")) {
+      setActiveButton("messages");
     }
   }, [location.pathname]);
 
@@ -123,7 +137,8 @@ const Dashboard: React.FC = () => {
   // Functions for handling forms
   const handleCreatePost = () => {
     setIsCreateMenuOpen(false);
-    setIsPostFormOpen(true);
+    // Open the new Instagram-style post modal instead of the old form
+    setIsNewPostModalOpen(true);
   };
 
   const handleCreateStory = () => {
@@ -151,6 +166,11 @@ const Dashboard: React.FC = () => {
 
   const handleCloseStoryForm = () => {
     setIsStoryFormOpen(false);
+  };
+
+  // Handler for closing the new post modal
+  const handleCloseNewPostModal = () => {
+    setIsNewPostModalOpen(false);
   };
 
   // Dashboard is minimalist if any panel is open
@@ -206,7 +226,7 @@ const Dashboard: React.FC = () => {
           <div className="relative">
             {icon}
             {badge !== null && badge > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 {badge > 9 ? "9+" : badge}
               </span>
             )}
@@ -330,9 +350,14 @@ const Dashboard: React.FC = () => {
       >
         {/* Mobile header */}
         <div className="flex justify-between items-center mb-6 lg:hidden">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
+          {/* <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
             LionSphere
-          </h1>
+          </h1> */}
+          <img
+            src={FullLogo}
+            alt="LionSphere Logo"
+            className="h-10 w-auto object-contain"
+          />
           <button
             onClick={() => setMobileMenuOpen(false)}
             className="text-gray-500 hover:text-gray-700"
@@ -344,13 +369,23 @@ const Dashboard: React.FC = () => {
         {/* Desktop Logo - "LS" in minimalist mode */}
         <div className="hidden lg:flex justify-center mb-8 p-2">
           {isMinimalist ? (
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
-              LS
-            </h1>
+            // <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
+            //   LS
+            // </h1>
+            <img
+              src={Logo}
+              alt="LionSphere Logo"
+              className="h-16 w-auto object-contain"
+            />
           ) : (
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
-              LionSphere
-            </h1>
+            // <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
+            //   LionSphere
+            // </h1>
+            <img
+              src={FullLogo}
+              alt="LionSphere Long Logo"
+              className="h-16 w-auto object-contain"
+            />
           )}
         </div>
 
@@ -385,7 +420,8 @@ const Dashboard: React.FC = () => {
               />
             }
             label="Messages"
-            onClick={() => navigate("/chat")} // Add this onClick handler
+            badge={unreadMessages} // Add the unread messages count badge
+            onClick={() => navigate("/chat")}
           />
           <NavButton
             name="notifications"
@@ -508,7 +544,7 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* Post Creation Form Modal */}
+      {/* Old Post Creation Form Modal - No longer used but keeping for reference */}
       {isPostFormOpen && (
         <>
           <div
@@ -536,6 +572,12 @@ const Dashboard: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* New Instagram-style Post Creation Modal */}
+      <CreatePostModal
+        isOpen={isNewPostModalOpen}
+        onClose={handleCloseNewPostModal}
+      />
     </>
   );
 };

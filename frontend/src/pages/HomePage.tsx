@@ -1,15 +1,15 @@
-// frontend/src/pages/HomePage.tsx
 import { useEffect } from "react";
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
-import useStoryStore from "../store/StoryStore"; // Import StoryStore
+import useStoryStore from "../store/StoryStore";
 import Background from "../components/Home/Background";
 import ProfileSide from "../components/Home/ProfileSide";
 import PostCard from "../components/Home/PostCard";
 import Dashboard from "../components/Home/Dashboard";
 import PeopleYouMayKnow from "../components/Home/PeopleYouMayKnow";
-import StoryCircles from "../components/Home/StoryCircles"; // Import StoryCircles
-import StoryViewer from "../components/Home/StoryViewer"; // Import StoryViewer
+import StoryCircles from "../components/Home/StoryCircles";
+import StoryViewer from "../components/Home/StoryViewer";
+import CreatePostButton from "../components/Home/CreatePostButton";
 
 const HomePage: React.FC = () => {
   const { user } = useAuthStore();
@@ -22,7 +22,6 @@ const HomePage: React.FC = () => {
     savePost: savePostFunction,
   } = usePostStore();
 
-  // Add story store state with explicit destructuring
   const {
     activeStoryGroup,
     fetchStories,
@@ -35,7 +34,7 @@ const HomePage: React.FC = () => {
     if (user && user._id) {
       console.log("Fetching timeline posts and stories for user:", user._id);
       fetchTimelinePosts(user._id);
-      fetchStories(user._id); // Ensure stories are fetched
+      fetchStories(user._id);
     }
   }, [user, fetchTimelinePosts, fetchStories]);
 
@@ -128,6 +127,8 @@ const HomePage: React.FC = () => {
                       likes={post.likes || []}
                       savedBy={post.savedBy || []}
                       image={post.image}
+                      location={post.location}
+                      taggedUsers={post.taggedUsers}
                       comments={post.comments || []}
                       onLike={() => post._id && handleLikePost(post._id)}
                       onSave={() => post._id && handleSavePost(post._id)}
@@ -145,6 +146,9 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Create Post Button */}
+      <CreatePostButton />
 
       {/* Right-side fixed dashboard */}
       <Dashboard />

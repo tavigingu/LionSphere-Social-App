@@ -554,11 +554,12 @@ const PostCard: React.FC<PostCardProps> = ({
             <h3 className="font-semibold text-gray-800">
               {postUser?.username || "Unknown User"}
             </h3>
-            {postUser?.firstname && postUser?.lastname && (
+            {/* {postUser?.firstname && postUser?.lastname && (
               <p className="text-xs text-gray-500">
                 {postUser.firstname} {postUser.lastname}
               </p>
-            )}
+            )} */}
+            
           </div>
         </div>
 

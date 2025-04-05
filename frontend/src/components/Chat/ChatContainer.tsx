@@ -23,6 +23,7 @@ const ChatContainer: React.FC = () => {
   } = useSocketStore();
 
   const [showUserSearch, setShowUserSearch] = useState(false);
+  const [chatInitialized, setChatInitialized] = useState(false);
 
   // Initialize socket on component mount if user is logged in
   useEffect(() => {
@@ -32,7 +33,9 @@ const ChatContainer: React.FC = () => {
     }
 
     // Fetch chats for the logged in user
-    fetchChats(user._id);
+    fetchChats(user._id).then(() => {
+      setChatInitialized(true);
+    });
 
     // Initialize socket connection
     initializeSocket(user._id);
@@ -43,12 +46,20 @@ const ChatContainer: React.FC = () => {
     };
   }, [user, fetchChats, initializeSocket, disconnectSocket, navigate]);
 
-  // Auto-select first chat if none is selected
+  // Auto-select the first chat when chats are loaded and no chat is selected
   useEffect(() => {
-    if (chats.length > 0 && !activeChat) {
-      setActiveChat(chats[0]);
+    if (chatInitialized && chats.length > 0 && !activeChat) {
+      // Sort chats by latest activity
+      const sortedChats = [...chats].sort((a, b) => {
+        const aTime = a.latestMessage?.createdAt || a.updatedAt;
+        const bTime = b.latestMessage?.createdAt || b.updatedAt;
+        return new Date(bTime).getTime() - new Date(aTime).getTime();
+      });
+
+      // Set the most recent chat as active
+      setActiveChat(sortedChats[0]);
     }
-  }, [chats, activeChat, setActiveChat]);
+  }, [chats, activeChat, setActiveChat, chatInitialized]);
 
   const handleChatSelect = (chat: any) => {
     setActiveChat(chat);
@@ -65,7 +76,7 @@ const ChatContainer: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="relative max-w-6xl mx-auto h-[calc(100vh-120px)] mt-4 mb-4 rounded-xl overflow-hidden shadow-2xl border border-purple-200/20">
+    <div className="h-full overflow-hidden">
       {/* Connection Status Indicator */}
       <OnlineIndicator connected={socketConnected} />
 
@@ -95,21 +106,33 @@ const ChatContainer: React.FC = () => {
             <ChatWindow chat={activeChat} currentUser={user} />
           ) : (
             <div className="h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-              <div className="text-center p-8 max-w-lg rounded-2xl bg-white/60 backdrop-blur-sm shadow-lg border border-purple-100">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                  No chat selected
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Select a conversation from the list or start a new one to
-                  begin chatting.
-                </p>
-                <button
-                  onClick={handleNewChat}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md"
-                >
-                  Start a New Conversation
-                </button>
-              </div>
+              {loading ? (
+                <div className="text-center p-6">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading conversations...</p>
+                </div>
+              ) : chats.length === 0 ? (
+                <div className="text-center p-8 max-w-lg rounded-2xl bg-white/60 backdrop-blur-sm shadow-lg border border-purple-100">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                    No conversations yet
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Start a new conversation to begin messaging with your
+                    friends.
+                  </p>
+                  <button
+                    onClick={handleNewChat}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md"
+                  >
+                    Start a New Conversation
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center p-6">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading your conversation...</p>
+                </div>
+              )}
             </div>
           )}
         </div>

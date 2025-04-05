@@ -194,24 +194,25 @@ const usePostStore = create<PostStore>((set, get) => ({
         }
     },
 
+    // 
     createNewPost: async (postData) => {
         set({ loading: true, error: null });
         try {
-            const newPost = await createPostApi(postData);
+          const newPost = await createPostApi(postData);
           
-            // Add the new post to the beginning of the posts arrays
-            set((state) => ({
-                timelinePosts: [newPost, ...state.timelinePosts],
-                userPosts: [newPost, ...state.userPosts],
-                posts: [newPost, ...state.posts],
-                loading: false,
-            }));
+          // Add the new post to the beginning of the posts arrays
+          set((state) => ({
+            timelinePosts: [newPost, ...state.timelinePosts],
+            userPosts: [newPost, ...state.userPosts],
+            posts: [newPost, ...state.posts],
+            loading: false,
+          }));
           
-            return newPost;
+          return newPost;
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to create post';
-            set({ error: errorMessage, loading: false });
-            throw error;
+          const errorMessage = error instanceof Error ? error.message : 'Failed to create post';
+          set({ error: errorMessage, loading: false });
+          throw error;
         }
     },
 

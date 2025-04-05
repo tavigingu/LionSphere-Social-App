@@ -441,6 +441,28 @@ export const getSavedPosts = async (req, res) => {
     }
 }
 
+export const getTaggedPosts = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        
+        // Găsește toate postările unde utilizatorul este în array-ul taggedUsers
+        const taggedPosts = await PostModel.find({
+            "taggedUsers.userId": userId
+        }).sort({ createdAt: -1 }); // Cele mai recente primele
+        
+        res.status(200).json({
+            message: "Tagged posts fetched successfully",
+            success: true,
+            posts: taggedPosts
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message || error,
+            success: false
+        });
+    }
+};
+
 export const replyToComment = async (req, res) => {
     try {
         const postId = req.params.postId;

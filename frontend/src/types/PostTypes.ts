@@ -47,6 +47,7 @@ export interface IReply {
 export interface PostState {
   posts: IPost[];
   timelinePosts: IPost[];
+  taggedPosts: IPost[];
   userPosts: IPost[];
   savedPosts: IPost[]; // Added savedPosts array
   currentPost: IPost | null;

@@ -135,6 +135,28 @@ export const getSavedPosts = async (userId: string): Promise<IPost[]> => {
   }
 };
 
+export const getTaggedPosts = async (userId: string): Promise<IPost[]> => {
+  try {
+    const response = await axios.get<{
+      message: string,
+      success: boolean,
+      posts: IPost[]
+    }>(`${BASE_URL}/post/${userId}/tagged`);
+    
+    if (response.data.success) {
+      return response.data.posts;
+    } else {
+      throw new Error(response.data.message || 'Failed to fetch tagged posts');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to fetch tagged posts:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch tagged posts');
+    }
+    throw error;
+  }
+};
+
 // export const createPost = async (postData: {
 //     userId: string;
 //     desc: string;

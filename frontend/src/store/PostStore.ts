@@ -1,10 +1,11 @@
-import { getTimelinePosts, likePost as likePostApi, createPost as createPostApi, commentOnPost, deletePost as deletePostApi, savePost as savePostApi, getSavedPosts as getSavedPostsApi, replyToComment, likeComment, likeReply } from "../api/Post";
+import { getTimelinePosts, likePost as likePostApi, createPost as createPostApi, commentOnPost, deletePost as deletePostApi, savePost as savePostApi, getSavedPosts as getSavedPostsApi, getTaggedPosts, replyToComment, likeComment, likeReply } from "../api/Post";
 import { PostState, IPost } from "../types/PostTypes";
 import { create } from 'zustand';
 
 interface PostStore extends PostState {
     fetchTimelinePosts: (userId: string) => Promise<void>;
     fetchUserPosts: (userId: string) => Promise<void>;
+    fetchTaggedPosts: (userId: string) => Promise<void>; // Adăugat
     likePost: (postId: string, userId: string) => Promise<void>;
     savePost: (postId: string, userId: string) => Promise<void>;
     createNewPost: (postData: Omit<IPost, '_id' | 'username' | 'likes' | 'savedBy' | 'createdAt' | 'updatedAt'>) => Promise<IPost>;
@@ -23,6 +24,7 @@ const initialState: PostState = {
     timelinePosts: [],
     userPosts: [],
     savedPosts: [],
+    taggedPosts: [], // Adăugat
     currentPost: null,
     loading: false,
     error: null
@@ -32,7 +34,7 @@ const usePostStore = create<PostStore>((set, get) => ({
     ...initialState,
 
     fetchTimelinePosts: async (userId: string) => {
-        set({loading: true, error: null});
+        set({ loading: true, error: null });
         try {
             const posts = await getTimelinePosts(userId);
             set({
@@ -47,7 +49,7 @@ const usePostStore = create<PostStore>((set, get) => ({
     },
 
     fetchUserPosts: async (userId: string) => {
-        set({loading: true, error: null});
+        set({ loading: true, error: null });
         try {
             const posts = await getTimelinePosts(userId);
             const userPosts = posts.filter(post => post.userId === userId);
@@ -61,11 +63,24 @@ const usePostStore = create<PostStore>((set, get) => ({
         }
     },
 
+    fetchTaggedPosts: async (userId: string) => { // Adăugat
+        set({ loading: true, error: null });
+        try {
+            const taggedPosts = await getTaggedPosts(userId);
+            set({
+                taggedPosts: taggedPosts,
+                loading: false  
+            });
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch tagged posts';
+            set({ error: errorMessage, loading: false });
+        }
+    },
+
     likePost: async (postId: string, userId: string) => {
         try {
             await likePostApi(postId, userId);
           
-            // Update ALL post collections in the state to maintain consistency
             const updatePostsWithLike = (posts: IPost[]) =>
                 posts.map((post) => {
                     if (post._id === postId) {
@@ -73,8 +88,8 @@ const usePostStore = create<PostStore>((set, get) => ({
                         return {
                             ...post,
                             likes: isLiked
-                                ? post.likes.filter((id) => id !== userId) // unlike
-                                : [...post.likes, userId], // like
+                                ? post.likes.filter((id) => id !== userId)
+                                : [...post.likes, userId],
                         };
                     }
                     return post;
@@ -84,6 +99,7 @@ const usePostStore = create<PostStore>((set, get) => ({
                 timelinePosts: updatePostsWithLike(state.timelinePosts),
                 userPosts: updatePostsWithLike(state.userPosts),
                 savedPosts: updatePostsWithLike(state.savedPosts),
+                taggedPosts: updatePostsWithLike(state.taggedPosts), // Adăugat
                 posts: updatePostsWithLike(state.posts),
                 currentPost: state.currentPost?._id === postId
                     ? {
@@ -104,7 +120,6 @@ const usePostStore = create<PostStore>((set, get) => ({
         try {
             await savePostApi(postId, userId);
             
-            // Update ALL post collections in the state to maintain consistency
             const updatePostsWithSave = (posts: IPost[]) => {
                 return posts.map((post) => {
                     if (post._id === postId) {
@@ -113,8 +128,8 @@ const usePostStore = create<PostStore>((set, get) => ({
                         return {
                             ...post,
                             savedBy: isSaved
-                                ? savedBy.filter((id) => id !== userId) // unsave
-                                : [...savedBy, userId], // save
+                                ? savedBy.filter((id) => id !== userId)
+                                : [...savedBy, userId],
                         };
                     }
                     return post;
@@ -122,38 +137,33 @@ const usePostStore = create<PostStore>((set, get) => ({
             };
     
             set((state) => {
-                // Update all post collections
                 const updatedTimelinePosts = updatePostsWithSave(state.timelinePosts);
                 const updatedUserPosts = updatePostsWithSave(state.userPosts);
                 const updatedPosts = updatePostsWithSave(state.posts);
+                const updatedTaggedPosts = updatePostsWithSave(state.taggedPosts); // Adăugat
                 
-                // For saved posts, handle differently if unsaving
+                let updatedSavedPosts = [...state.savedPosts];
                 const post = state.timelinePosts.find(p => p._id === postId) ||
                             state.userPosts.find(p => p._id === postId) ||
                             state.posts.find(p => p._id === postId) ||
-                            state.savedPosts.find(p => p._id === postId);
-                
-                let updatedSavedPosts = [...state.savedPosts];
+                            state.savedPosts.find(p => p._id === postId) ||
+                            state.taggedPosts.find(p => p._id === postId); // Adăugat
                 
                 if (post) {
                     const savedBy = post.savedBy || [];
                     const isSaved = savedBy.includes(userId);
                     
                     if (isSaved) {
-                        // If already saved, unsaving - remove from saved posts
                         updatedSavedPosts = state.savedPosts.filter(p => p._id !== postId);
                     } else {
-                        // If not saved, saving - add to saved posts if not already there
                         const postExists = state.savedPosts.some(p => p._id === postId);
                         if (!postExists) {
-                            // Create a new object with updated savedBy array
                             const updatedPost = {
                                 ...post,
                                 savedBy: [...savedBy, userId]
                             };
                             updatedSavedPosts = [...state.savedPosts, updatedPost];
                         } else {
-                            // Update existing post in savedPosts
                             updatedSavedPosts = updatePostsWithSave(state.savedPosts);
                         }
                     }
@@ -164,6 +174,7 @@ const usePostStore = create<PostStore>((set, get) => ({
                     userPosts: updatedUserPosts,
                     posts: updatedPosts,
                     savedPosts: updatedSavedPosts,
+                    taggedPosts: updatedTaggedPosts, // Adăugat
                     currentPost: state.currentPost?._id === postId
                         ? {
                             ...state.currentPost,
@@ -181,7 +192,7 @@ const usePostStore = create<PostStore>((set, get) => ({
     },
 
     fetchSavedPosts: async (userId: string) => {
-        set({loading: true, error: null});
+        set({ loading: true, error: null });
         try {
             const savedPosts = await getSavedPostsApi(userId);
             set({
@@ -194,17 +205,18 @@ const usePostStore = create<PostStore>((set, get) => ({
         }
     },
 
-    // 
     createNewPost: async (postData) => {
         set({ loading: true, error: null });
         try {
           const newPost = await createPostApi(postData);
           
-          // Add the new post to the beginning of the posts arrays
           set((state) => ({
             timelinePosts: [newPost, ...state.timelinePosts],
             userPosts: [newPost, ...state.userPosts],
             posts: [newPost, ...state.posts],
+            taggedPosts: newPost.taggedUsers?.some(tagged => tagged.userId === postData.userId) 
+                ? [newPost, ...state.taggedPosts] 
+                : state.taggedPosts, // Adăugat
             loading: false,
           }));
           
@@ -220,10 +232,8 @@ const usePostStore = create<PostStore>((set, get) => ({
         try {
             await commentOnPost(postId, userId, text);
             
-            // After successful comment, refresh timeline to get updated posts
             const currentUser = get().timelinePosts.find(post => post._id === postId)?.userId;
             if (currentUser) {
-                // No need to set loading here as we want to keep the existing posts while fetching
                 const posts = await getTimelinePosts(currentUser);
                 set({
                     timelinePosts: posts,
@@ -240,7 +250,6 @@ const usePostStore = create<PostStore>((set, get) => ({
         try {
             await replyToComment(postId, commentId, userId, text);
             
-            // After successfully adding a reply, refresh timeline to get updated posts
             const currentUser = get().timelinePosts.find(post => post._id === postId)?.userId;
             if (currentUser) {
                 const posts = await getTimelinePosts(userId);
@@ -259,7 +268,6 @@ const usePostStore = create<PostStore>((set, get) => ({
         try {
             const result = await likeComment(postId, commentId, userId);
             
-            // Update the comment likes in all post collections
             const updatePostsWithCommentLike = (posts: IPost[]) =>
                 posts.map((post) => {
                     if (post._id === postId) {
@@ -285,6 +293,7 @@ const usePostStore = create<PostStore>((set, get) => ({
                 timelinePosts: updatePostsWithCommentLike(state.timelinePosts),
                 userPosts: updatePostsWithCommentLike(state.userPosts),
                 savedPosts: updatePostsWithCommentLike(state.savedPosts),
+                taggedPosts: updatePostsWithCommentLike(state.taggedPosts), // Adăugat
                 posts: updatePostsWithCommentLike(state.posts)
             }));
         } catch (error: unknown) {
@@ -297,7 +306,6 @@ const usePostStore = create<PostStore>((set, get) => ({
         try {
             const result = await likeReply(postId, commentId, replyId, userId);
             
-            // Update the reply likes in all post collections
             const updatePostsWithReplyLike = (posts: IPost[]) =>
                 posts.map((post) => {
                     if (post._id === postId) {
@@ -331,6 +339,7 @@ const usePostStore = create<PostStore>((set, get) => ({
                 timelinePosts: updatePostsWithReplyLike(state.timelinePosts),
                 userPosts: updatePostsWithReplyLike(state.userPosts),
                 savedPosts: updatePostsWithReplyLike(state.savedPosts),
+                taggedPosts: updatePostsWithReplyLike(state.taggedPosts), // Adăugat
                 posts: updatePostsWithReplyLike(state.posts)
             }));
         } catch (error: unknown) {
@@ -344,11 +353,11 @@ const usePostStore = create<PostStore>((set, get) => ({
             set({ loading: true, error: null });
             await deletePostApi(postId, userId);
           
-            // Remove the deleted post from all relevant state arrays
             set((state) => ({
                 timelinePosts: state.timelinePosts.filter(post => post._id !== postId),
                 userPosts: state.userPosts.filter(post => post._id !== postId),
                 savedPosts: state.savedPosts.filter(post => post._id !== postId),
+                taggedPosts: state.taggedPosts.filter(post => post._id !== postId), // Adăugat
                 posts: state.posts.filter(post => post._id !== postId),
                 loading: false
             }));

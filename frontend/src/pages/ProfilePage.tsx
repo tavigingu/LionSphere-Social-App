@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
-import useStoryStore from "../store/StoryStore"; // Adăugăm StoryStore
+import useStoryStore from "../store/StoryStore";
 import Background from "../components/Home/Background";
 import PostCard from "../components/Home/PostCard";
 import Dashboard from "../components/Home/Dashboard";
@@ -11,7 +11,7 @@ import ProfileHeader from "../components/Profile/ProfileHeader";
 import UserInfoSidebar from "../components/Profile/UserInfoSide";
 import PostGrid from "../components/Profile/PostGrid";
 import PostModal from "../components/Profile/PostModal";
-import StoryViewer from "../components/Home/StoryViewer"; // Adăugăm StoryViewer
+import StoryViewer from "../components/Home/StoryViewer";
 import { IUser } from "../types/AuthTypes";
 import { IPost } from "../types/PostTypes";
 import { followUser, unfollowUser, checkFollowStatus } from "../api/User";
@@ -24,21 +24,25 @@ const ProfilePage: React.FC = () => {
     savePost: savePostFunction,
     fetchSavedPosts,
     fetchUserPosts,
+    fetchTaggedPosts,
+    taggedPosts, // Adăugat pentru a folosi direct din store
   } = usePostStore();
-  const { storyGroups, fetchStories, setActiveStoryGroup } = useStoryStore(); // Adăugăm StoryStore
+  const { storyGroups, fetchStories, setActiveStoryGroup } = useStoryStore();
   const navigate = useNavigate();
 
   const [profileUser, setProfileUser] = useState<IUser | null>(null);
   const [userPosts, setUserPosts] = useState<IPost[]>([]);
   const [savedPosts, setSavedPosts] = useState<IPost[]>([]);
-  const [activeTab, setActiveTab] = useState<"posts" | "saved">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "saved" | "tagged">(
+    "posts"
+  );
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [selectedPost, setSelectedPost] = useState<IPost | null>(null);
-  const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null); // Starea pentru StoryViewer
+  const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
 
   const isOwnProfile = currentUser?._id === (userId || currentUser?._id);
   const targetUserId = userId || currentUser?._id;
@@ -76,14 +80,12 @@ const ProfilePage: React.FC = () => {
           }
 
           if (isOwnProfile && currentUser) {
-            const savedPostsResponse = await axios.get(
-              `http://localhost:5001/post/${currentUser._id}/saved`
-            );
-
-            if (savedPostsResponse.data.success) {
-              setSavedPosts(savedPostsResponse.data.posts);
-            }
+            await fetchSavedPosts(currentUser._id);
+            setSavedPosts(usePostStore.getState().savedPosts);
           }
+
+          // Fetch tagged posts
+          await fetchTaggedPosts(targetUserId);
 
           // Încărcăm story-urile pentru utilizator
           await fetchStories(targetUserId);
@@ -99,18 +101,21 @@ const ProfilePage: React.FC = () => {
     };
 
     fetchProfileData();
-  }, [targetUserId, navigate, currentUser, isOwnProfile, fetchStories]);
+  }, [
+    targetUserId,
+    navigate,
+    currentUser,
+    isOwnProfile,
+    fetchSavedPosts,
+    fetchTaggedPosts,
+    fetchStories,
+  ]);
 
   const refreshSavedPosts = async () => {
     if (currentUser && isOwnProfile) {
       try {
-        const savedPostsResponse = await axios.get(
-          `http://localhost:5001/post/${currentUser._id}/saved`
-        );
-
-        if (savedPostsResponse.data.success) {
-          setSavedPosts(savedPostsResponse.data.posts);
-        }
+        await fetchSavedPosts(currentUser._id);
+        setSavedPosts(usePostStore.getState().savedPosts);
       } catch (err) {
         console.error("Error refreshing saved posts:", err);
       }
@@ -137,8 +142,10 @@ const ProfilePage: React.FC = () => {
 
       if (activeTab === "posts") {
         setUserPosts(updatePostsWithLike(userPosts));
-      } else {
+      } else if (activeTab === "saved") {
         setSavedPosts(updatePostsWithLike(savedPosts));
+      } else {
+        // Nu mai actualizăm local taggedPosts, folosim starea din store
       }
 
       if (selectedPost && selectedPost._id === postId) {
@@ -171,7 +178,7 @@ const ProfilePage: React.FC = () => {
           return post;
         });
         setUserPosts(updatedPosts);
-      } else {
+      } else if (activeTab === "saved") {
         const post = savedPosts.find((p) => p._id === postId);
         if (post) {
           const isSaved = post.savedBy?.includes(currentUser._id);
@@ -251,10 +258,13 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleTabChange = (tab: "posts" | "saved") => {
+  const handleTabChange = (tab: "posts" | "saved" | "tagged") => {
     setActiveTab(tab);
     if (tab === "saved" && isOwnProfile && currentUser) {
       refreshSavedPosts();
+    }
+    if (tab === "tagged" && targetUserId) {
+      fetchTaggedPosts(targetUserId);
     }
   };
 
@@ -267,7 +277,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleStoryClick = (storyIndex: number) => {
-    setActiveStoryIndex(storyIndex); // Setăm indexul story-ului activ
+    setActiveStoryIndex(storyIndex);
   };
 
   if (loading) {
@@ -303,7 +313,12 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  const displayPosts = activeTab === "posts" ? userPosts : savedPosts;
+  const displayPosts =
+    activeTab === "posts"
+      ? userPosts
+      : activeTab === "saved"
+      ? savedPosts
+      : taggedPosts;
 
   return (
     <div className="relative min-h-screen text-white">
@@ -331,23 +346,23 @@ const ProfilePage: React.FC = () => {
                   isFollowing={isFollowing}
                   onProfileUpdate={handleProfileUpdate}
                   onFollowToggle={handleFollowToggle}
-                  onStoryClick={handleStoryClick} // Transmitem funcția pentru a gestiona click-ul pe story
+                  onStoryClick={handleStoryClick}
                 />
               </div>
 
               <div className="mt-6">
-                {isOwnProfile && (
-                  <div className="flex mb-2">
-                    <button
-                      onClick={() => handleTabChange("posts")}
-                      className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                        activeTab === "posts"
-                          ? "border-blue-500 text-blue-500"
-                          : "border-transparent text-gray-400 hover:text-gray-200"
-                      }`}
-                    >
-                      Posts
-                    </button>
+                <div className="flex mb-2">
+                  <button
+                    onClick={() => handleTabChange("posts")}
+                    className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
+                      activeTab === "posts"
+                        ? "border-blue-500 text-blue-500"
+                        : "border-transparent text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    Posts
+                  </button>
+                  {isOwnProfile && (
                     <button
                       onClick={() => handleTabChange("saved")}
                       className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
@@ -358,16 +373,20 @@ const ProfilePage: React.FC = () => {
                     >
                       Saved
                     </button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    onClick={() => handleTabChange("tagged")}
+                    className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
+                      activeTab === "tagged"
+                        ? "border-blue-500 text-blue-500"
+                        : "border-transparent text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    Tagged
+                  </button>
+                </div>
 
                 <div className="mt-2">
-                  {/* <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-xl font-bold text-white">
-                      {activeTab === "posts" ? "Posts" : "Saved Posts"}
-                    </h2>
-                  </div> */}
-
                   {displayPosts.length === 0 ? (
                     <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-center">
                       <p className="text-white">
@@ -375,7 +394,9 @@ const ProfilePage: React.FC = () => {
                           ? isOwnProfile
                             ? "You haven't created any posts yet."
                             : "This user hasn't created any posts yet."
-                          : "You haven't saved any posts yet."}
+                          : activeTab === "saved"
+                          ? "You haven't saved any posts yet."
+                          : "This user hasn't been tagged in any posts yet."}
                       </p>
                     </div>
                   ) : (
@@ -437,13 +458,12 @@ const ProfilePage: React.FC = () => {
         />
       )}
 
-      {/* Afișăm StoryViewer dacă există un story activ */}
       {activeStoryIndex !== null && storyGroups[activeStoryIndex] && (
         <StoryViewer
           storyGroup={storyGroups[activeStoryIndex]}
           onClose={() => {
-            setActiveStoryIndex(null); // Închidem StoryViewer
-            setActiveStoryGroup(null); // Resetăm starea globală
+            setActiveStoryIndex(null);
+            setActiveStoryGroup(null);
           }}
         />
       )}

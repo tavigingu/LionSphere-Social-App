@@ -8,6 +8,7 @@ import {
   FaRegBookmark,
   FaReply,
   FaRegPaperPlane,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,21 @@ interface PostCardProps {
   image?: string;
   likes: string[];
   savedBy?: string[];
+  location?: {
+    name: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  };
+  taggedUsers?: {
+    userId: string;
+    username: string;
+    position: {
+      x: number;
+      y: number;
+    };
+  }[];
   comments?: {
     _id?: string;
     userId: string;
@@ -50,6 +66,8 @@ const PostCard: React.FC<PostCardProps> = ({
   likes,
   savedBy = [],
   image,
+  location,
+  taggedUsers = [],
   comments = [],
   onLike,
   onSave,
@@ -85,6 +103,9 @@ const PostCard: React.FC<PostCardProps> = ({
   const [commentText, setCommentText] = useState("");
   const [localSaved, setLocalSaved] = useState(isSaved);
 
+  // State for showing tagged users
+  const [showTaggedUsers, setShowTaggedUsers] = useState(false);
+
   // New state for comment replies
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -113,6 +134,13 @@ const PostCard: React.FC<PostCardProps> = ({
       } catch (error) {
         console.error("Error deleting post:", error);
       }
+    }
+  };
+
+  // Handler for clicking on the image to show tagged users
+  const handleImageClick = () => {
+    if (taggedUsers && taggedUsers.length > 0) {
+      setShowTaggedUsers(!showTaggedUsers);
     }
   };
 
@@ -554,12 +582,13 @@ const PostCard: React.FC<PostCardProps> = ({
             <h3 className="font-semibold text-gray-800">
               {postUser?.username || "Unknown User"}
             </h3>
-            {/* {postUser?.firstname && postUser?.lastname && (
-              <p className="text-xs text-gray-500">
-                {postUser.firstname} {postUser.lastname}
-              </p>
-            )} */}
-            
+            {/* Display location instead of full name */}
+            {location && location.name && (
+              <div className="text-xs text-gray-500 flex items-center">
+                <FaMapMarkerAlt className="mr-1" size={10} />
+                {location.name}
+              </div>
+            )}
           </div>
         </div>
 
@@ -589,12 +618,72 @@ const PostCard: React.FC<PostCardProps> = ({
             </div>
           )}
       </div>
-      <div className="w-full h-[500px] sm:h-[500px] bg-gray-100">
+      <div
+        className="w-full h-[500px] sm:h-[500px] bg-gray-100 relative"
+        onClick={handleImageClick}
+      >
         {image ? (
           <img src={image} alt="Post" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-100 to-purple-100">
             <p className="text-gray-400">No image</p>
+          </div>
+        )}
+
+        {/* Tagged users indicator badge */}
+        {taggedUsers && taggedUsers.length > 0 && !showTaggedUsers && (
+          <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+            </svg>
+            {taggedUsers.length}
+          </div>
+        )}
+
+        {/* Tagged users indicators */}
+        {showTaggedUsers &&
+          taggedUsers.map((taggedUser, index) => (
+            <div
+              key={index}
+              className="absolute w-3 h-3 rounded-full bg-blue-500/70 border-2 border-white transform -translate-x-1/2 -translate-y-1/2 cursor-pointer hover:scale-110 transition-transform z-20"
+              style={{
+                left: `${taggedUser.position.x}%`,
+                top: `${taggedUser.position.y}%`,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("Navigating to (dot):", taggedUser.userId); // Debugging
+                navigateToProfile(taggedUser.userId);
+              }}
+            >
+              <div className="absolute whitespace-nowrap bg-black/80 rounded-lg px-2 py-1 text-xs left-full ml-1 z-30">
+                <span
+                  className="text-white hover:underline cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log("Navigating to (username):", taggedUser.userId); // Debugging
+                    navigateToProfile(taggedUser.userId);
+                  }}
+                >
+                  {taggedUser.username}
+                </span>
+              </div>
+            </div>
+          ))}
+
+        {taggedUsers && taggedUsers.length > 0 && (
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end justify-center pb-4 z-10"
+            onClick={handleImageClick} // Re-adăugăm funcționalitatea de toggle pentru tags
+          >
+            <p className="text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+              {showTaggedUsers ? "Click to hide tags" : "Click to view tags"}
+            </p>
           </div>
         )}
       </div>
@@ -1001,17 +1090,17 @@ const PostCard: React.FC<PostCardProps> = ({
                 </div>
               )
             )}
+            {localComments.length > 1 && (
+              <button
+                onClick={() => setShowAllComments(!showAllComments)}
+                className="text-blue-500 hover:text-blue-700 text-sm mt-2 transition-colors"
+              >
+                {showAllComments
+                  ? "Show less"
+                  : `View all ${localComments.length} comments`}
+              </button>
+            )}
           </div>
-          {localComments.length > 1 && (
-            <button
-              onClick={() => setShowAllComments(!showAllComments)}
-              className="text-blue-500 hover:text-blue-700 text-sm mt-2 transition-colors"
-            >
-              {showAllComments
-                ? "Show less"
-                : `View all ${localComments.length} comments`}
-            </button>
-          )}
         </div>
       )}
       <div className="px-4 pb-4 pt-2 border-t border-gray-100">

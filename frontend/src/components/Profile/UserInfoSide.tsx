@@ -45,14 +45,11 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
     github: user?.github || "",
   });
 
-  // Trigger entrance animations after component mounts
   useEffect(() => {
-    // Small delay for container animation
     const containerTimer = setTimeout(() => {
       setIsVisible(true);
     }, 200);
 
-    // Additional delay for items animation
     const itemsTimer = setTimeout(() => {
       setAnimateItems(true);
     }, 600);
@@ -124,7 +121,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
   };
 
   // Dynamic classes for container entrance animation
-  const containerClasses = `w-full bg-white rounded-xl shadow-xl overflow-hidden p-6 transition-all duration-400 ease-out 
+  const containerClasses = `w-full bg-white rounded-xl shadow-xl overflow-hidden p-4 transition-all duration-400 ease-out 
     ${
       isVisible
         ? "opacity-100 transform translate-x-0"
@@ -132,11 +129,10 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
     } 
     hover:shadow-2xl`;
 
-  // Render edit form when editing is active
   if (isEditing) {
     return (
       <div className={containerClasses}>
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-800">Edit Profile</h3>
           <div className="flex space-x-2">
             <button
@@ -160,12 +156,12 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 animate-pulse">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-3 animate-pulse">
             {error}
           </div>
         )}
 
-        <form className="space-y-4">
+        <form className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               City
@@ -223,10 +219,10 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-200">
-            <h4 className="font-medium text-gray-800 mb-3">Social Links</h4>
+          <div className="pt-3 border-t border-gray-200">
+            <h4 className="font-medium text-gray-800 mb-2">Social Links</h4>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FaInstagram className="text-gray-400" />
@@ -289,10 +285,9 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
     );
   }
 
-  // Main display content
   return (
     <div className={containerClasses}>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-3">
         <h3 className="text-xl font-bold text-gray-800">Profile Info</h3>
         {isOwnProfile && (
           <button
@@ -305,13 +300,11 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         )}
       </div>
 
-      {/* Progress Path for Work & Education */}
-      <div className="relative mb-8">
+      <div className="relative mb-6">
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
-        {/* Email Info Point - Always show email */}
         <div
-          className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+          className={`relative z-10 flex mb-4 transition-all duration-500 transform 
             ${
               animateItems
                 ? "opacity-100 translate-x-0"
@@ -338,9 +331,8 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
         </div>
 
-        {/* Location Info Point */}
         <div
-          className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+          className={`relative z-10 flex mb-4 transition-all duration-500 transform 
             ${
               animateItems
                 ? "opacity-100 translate-x-0"
@@ -373,9 +365,8 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
         </div>
 
-        {/* Work Info Point */}
         <div
-          className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+          className={`relative z-10 flex mb-4 transition-all duration-500 transform 
             ${
               animateItems
                 ? "opacity-100 translate-x-0"
@@ -410,7 +401,6 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
         </div>
 
-        {/* Occupation Info Point */}
         <div
           className={`relative z-10 flex transition-all duration-500 transform 
             ${
@@ -448,9 +438,8 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
       </div>
 
-      {/* Social Media Section */}
       <div
-        className={`mt-8 pt-4 border-t border-gray-200 transition-all duration-500 
+        className={`mt-6 pt-3 border-t border-gray-200 transition-all duration-500 
         ${
           animateItems
             ? "opacity-100 transform translate-y-0"
@@ -458,16 +447,15 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         } 
         delay-500`}
       >
-        <h4 className="text-md font-semibold text-gray-700 mb-4">
+        <h4 className="text-md font-semibold text-gray-700 mb-3">
           Social Media
         </h4>
 
         <div className="relative">
           <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
-          {/* Instagram */}
           <div
-            className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+            className={`relative z-10 flex mb-4 transition-all duration-500 transform 
               ${
                 animateItems
                   ? "opacity-100 translate-x-0"
@@ -512,9 +500,8 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             </div>
           </div>
 
-          {/* Facebook */}
           <div
-            className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+            className={`relative z-10 flex mb-4 transition-all duration-500 transform 
               ${
                 animateItems
                   ? "opacity-100 translate-x-0"
@@ -561,9 +548,8 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             </div>
           </div>
 
-          {/* LinkedIn */}
           <div
-            className={`relative z-10 flex mb-6 transition-all duration-500 transform 
+            className={`relative z-10 flex mb-4 transition-all duration-500 transform 
               ${
                 animateItems
                   ? "opacity-100 translate-x-0"
@@ -610,7 +596,6 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             </div>
           </div>
 
-          {/* GitHub */}
           <div
             className={`relative z-10 flex transition-all duration-500 transform 
               ${
@@ -655,10 +640,9 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
       </div>
 
-      {/* Profile Completeness section */}
       {isOwnProfile && (
         <div
-          className={`mt-8 pt-4 border-t border-gray-200 transition-all duration-500 
+          className={`mt-6 pt-3 border-t border-gray-200 transition-all duration-500 
           ${
             animateItems
               ? "opacity-100 transform translate-y-0"
@@ -666,7 +650,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           } 
           delay-1000`}
         >
-          <div className="flex justify-between mb-2">
+          <div className="flex justify-between mb-1">
             <h4 className="text-md font-semibold text-gray-700">
               Profile Completeness
             </h4>
@@ -674,14 +658,14 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
               {calculateProfileCompleteness(user)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-1500 ease-out"
+              className="bg-blue-600 h-2 rounded-full transition-all duration-1500 ease-out"
               style={{ width: `${calculateProfileCompleteness(user)}%` }}
             ></div>
           </div>
           {calculateProfileCompleteness(user) < 100 && (
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-gray-500 mt-1">
               Complete your profile to help others connect with you better.
             </p>
           )}
@@ -691,7 +675,6 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
   );
 };
 
-// Calculate profile completeness (email, city, worksAt, occupation, desc, social media, etc.)
 const calculateProfileCompleteness = (user: IUser): number => {
   const fields = [
     !!user.email,

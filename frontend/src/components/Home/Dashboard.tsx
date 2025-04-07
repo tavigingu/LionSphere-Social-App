@@ -1,4 +1,3 @@
-// frontend/src/components/Home/Dashboard.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -8,35 +7,38 @@ import {
   FaBell,
   FaPlusCircle,
   FaUser,
-  FaSignOutAlt,
   FaBars,
   FaTimes,
   FaCamera,
   FaEdit,
   FaChevronDown,
+  FaEllipsisH,
+  FaCog,
+  FaHistory,
+  FaBookmark,
+  FaExclamationTriangle,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import useAuthStore from "../../store/AuthStore";
 import useNotificationStore from "../../store/NotificationStore";
-import useChatStore from "../../store/ChatStore"; // Import ChatStore to get unread messages
+import useChatStore from "../../store/ChatStore";
 import SearchSidebar from "../Home/SearchSidebar";
 import PostCreationForm from "../PostCreationForm";
-//import StoryCreationForm from "../Home/StoryCreationForm";
 import StoryEditor from "../Home/StoryEditor";
 import NotificationPanel from "../Home/NotificationPanel";
-import FullLogo from "../../assets/LionSphere_longlogo.png"; // Adjust the path as necessary
-import Logo from "../../assets/LionSphereLogo.png"; // Adjust the path as necessary
-import CreatePostModal from "../Home/CreatePostModal"; // Import the new CreatePostModal
+import FullLogo from "../../assets/LionSphere_longlogo.png";
+import Logo from "../../assets/LionSphereLogo.png";
+import CreatePostModal from "../Home/CreatePostModal";
 import SearchBar from "./SearchBar";
 
 const Dashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
   const { unreadCount, fetchUnreadCount } = useNotificationStore();
-  const { chats } = useChatStore(); // Get chats to count unread messages
+  const { chats } = useChatStore();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Count unread messages
   const unreadMessages =
     chats?.reduce((total, chat) => total + (chat.unreadCount || 0), 0) || 0;
 
@@ -47,12 +49,12 @@ const Dashboard: React.FC = () => {
   const [isPostFormOpen, setIsPostFormOpen] = useState(false);
   const [isStoryFormOpen, setIsStoryFormOpen] = useState(false);
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const createMenuRef = useRef<HTMLDivElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
 
-  // State for the new Instagram-style post creation modal
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
 
-  // Set active button based on current route
   useEffect(() => {
     const path = location.pathname;
     if (path.includes("/profile")) {
@@ -64,7 +66,6 @@ const Dashboard: React.FC = () => {
     }
   }, [location.pathname]);
 
-  // Fetch unread notification count
   useEffect(() => {
     if (user?._id) {
       fetchUnreadCount(user._id);
@@ -75,17 +76,24 @@ const Dashboard: React.FC = () => {
     }
   }, [user, fetchUnreadCount]);
 
-  // Handle clicks outside create menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         createMenuRef.current &&
         !createMenuRef.current.contains(event.target as Node)
       ) {
-        // Close menu if clicked outside and not on the create button
         const createButton = document.querySelector(`[data-button="create"]`);
         if (createButton && !createButton.contains(event.target as Node)) {
           setIsCreateMenuOpen(false);
+        }
+      }
+      if (
+        moreMenuRef.current &&
+        !moreMenuRef.current.contains(event.target as Node)
+      ) {
+        const moreButton = document.querySelector(`[data-button="more"]`);
+        if (moreButton && !moreButton.contains(event.target as Node)) {
+          setIsMoreMenuOpen(false);
         }
       }
     };
@@ -107,23 +115,24 @@ const Dashboard: React.FC = () => {
 
   const handleClick = (buttonName: string) => {
     if (buttonName === "create") {
-      // Toggle create menu without changing active button
       setIsCreateMenuOpen(!isCreateMenuOpen);
       return;
     }
+    if (buttonName === "more") {
+      setIsMoreMenuOpen(!isMoreMenuOpen);
+      return;
+    }
 
-    // For other buttons
     setActiveButton(buttonName);
-    setIsCreateMenuOpen(false); // Close create menu
+    setIsCreateMenuOpen(false);
+    setIsMoreMenuOpen(false);
     setMobileMenuOpen(false);
 
-    // Close all panels and menus
     setIsSearchOpen(false);
     setIsNotificationPanelOpen(false);
     setIsPostFormOpen(false);
     setIsStoryFormOpen(false);
 
-    // Navigation for other buttons
     if (buttonName === "search") {
       setIsSearchOpen(true);
     } else if (buttonName === "notifications") {
@@ -135,10 +144,8 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Functions for handling forms
   const handleCreatePost = () => {
     setIsCreateMenuOpen(false);
-    // Open the new Instagram-style post modal instead of the old form
     setIsNewPostModalOpen(true);
   };
 
@@ -169,12 +176,10 @@ const Dashboard: React.FC = () => {
     setIsStoryFormOpen(false);
   };
 
-  // Handler for closing the new post modal
   const handleCloseNewPostModal = () => {
     setIsNewPostModalOpen(false);
   };
 
-  // Dashboard is minimalist if any panel is open
   const isMinimalist =
     isSearchOpen ||
     isNotificationPanelOpen ||
@@ -207,12 +212,17 @@ const Dashboard: React.FC = () => {
     onClick,
   }) => {
     const isCreateButton = name === "create";
-    const isActive = isCreateButton ? isCreateMenuOpen : activeButton === name;
+    const isMoreButton = name === "more";
+    const isActive =
+      isCreateButton || isMoreButton
+        ? isCreateButton
+          ? isCreateMenuOpen
+          : isMoreMenuOpen
+        : activeButton === name;
 
     return (
       <div
-        className="relative"
-        ref={isCreateButton ? createMenuRef : undefined}
+        className={`relative ${isMoreButton ? "mt-auto" : ""}`} // Asigurăm că "More" este lipit de jos
       >
         <button
           data-button={name}
@@ -235,10 +245,13 @@ const Dashboard: React.FC = () => {
           {!isMinimalist && (
             <div className="flex justify-between items-center w-full">
               <span className="flex-1">{label}</span>
-              {isCreateButton && (
+              {(isCreateButton || isMoreButton) && (
                 <span
                   className={`transition-transform duration-300 ${
-                    isCreateMenuOpen ? "rotate-180" : ""
+                    (isCreateButton && isCreateMenuOpen) ||
+                    (isMoreButton && isMoreMenuOpen)
+                      ? "rotate-180"
+                      : ""
                   }`}
                 >
                   <FaChevronDown size={12} />
@@ -248,7 +261,7 @@ const Dashboard: React.FC = () => {
           )}
         </button>
 
-        {/* Create menu with smooth animation */}
+        {/* Create menu */}
         <AnimatePresence>
           {isCreateButton && isCreateMenuOpen && (
             <motion.div
@@ -322,13 +335,132 @@ const Dashboard: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* More menu */}
+        <AnimatePresence>
+          {isMoreButton && isMoreMenuOpen && (
+            <motion.div
+              initial={{
+                opacity: 0,
+                height: 0,
+                y: isMinimalist ? 0 : 10,
+                x: isMinimalist ? 20 : 0,
+              }}
+              animate={{
+                opacity: 1,
+                height: "auto",
+                y: 0,
+                x: 0,
+              }}
+              exit={{
+                opacity: 0,
+                height: 0,
+                y: isMinimalist ? 0 : 10,
+                x: isMinimalist ? 20 : 0,
+              }}
+              transition={{
+                duration: 0.2,
+                ease: "easeInOut",
+              }}
+              className={`absolute ${
+                isMinimalist ? "left-full ml-2" : "bottom-full left-0"
+              } mb-1 bg-white rounded-lg shadow-lg w-full z-10 border border-gray-200 overflow-hidden`}
+              style={{
+                transformOrigin: isMinimalist ? "left center" : "bottom center",
+                minWidth: "180px",
+              }}
+            >
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.05 }}
+                className="py-2"
+              >
+                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                  <FaCog className="mr-3 text-blue-500" />
+                  <span>Settings</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.1 }}
+                className="py-2"
+              >
+                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                  <FaHistory className="mr-3 text-blue-500" />
+                  <span>Your activity</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.15 }}
+                className="py-2"
+              >
+                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                  <FaBookmark className="mr-3 text-blue-500" />
+                  <span>Saved</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.2 }}
+                className="py-2"
+              >
+                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                  <FaExclamationTriangle className="mr-3 text-blue-500" />
+                  <span>Report a problem</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.25 }}
+                className="py-2"
+              >
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <FaSignOutAlt className="mr-3 text-red-600" />
+                  <span>Log out</span>
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   };
 
   return (
     <>
-      {/* Mobile menu toggle */}
       <div className="fixed top-4 right-4 z-50 lg:hidden">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -338,7 +470,6 @@ const Dashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Dashboard Sidebar */}
       <div
         className={`bg-white shadow-xl overflow-y-auto overflow-x-hidden transition-all duration-300 hover:shadow-2xl z-40
           ${
@@ -347,13 +478,9 @@ const Dashboard: React.FC = () => {
               : "fixed -right-80 top-0 bottom-0 p-4 lg:right-0"
           }
           ${isMinimalist ? "lg:w-20" : "lg:w-80"}
-          lg:p-4 lg:fixed lg:right-0 lg:top-0 lg:bottom-0 flex flex-col`}
+          lg:p-4 lg:pb-6 lg:fixed lg:right-0 lg:top-0 lg:bottom-0 flex flex-col`} // Am adăugat lg:pb-0 pentru a elimina padding-ul de jos
       >
-        {/* Mobile header */}
         <div className="flex justify-between items-center mb-6 lg:hidden">
-          {/* <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
-            LionSphere
-          </h1> */}
           <img
             src={FullLogo}
             alt="LionSphere Logo"
@@ -367,21 +494,14 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Desktop Logo - "LS" in minimalist mode */}
         <div className="hidden lg:flex justify-center mb-8 p-2">
           {isMinimalist ? (
-            // <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
-            //   LS
-            // </h1>
             <img
               src={Logo}
               alt="LionSphere Logo"
               className="h-16 w-auto object-contain"
             />
           ) : (
-            // <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent font-dancing">
-            //   LionSphere
-            // </h1>
             <img
               src={FullLogo}
               alt="LionSphere Long Logo"
@@ -390,7 +510,6 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Navigation Menu */}
         <div className="space-y-2">
           <NavButton
             name="home"
@@ -421,7 +540,7 @@ const Dashboard: React.FC = () => {
               />
             }
             label="Messages"
-            badge={unreadMessages} // Add the unread messages count badge
+            badge={unreadMessages}
             onClick={() => navigate("/chat")}
           />
           <NavButton
@@ -435,8 +554,6 @@ const Dashboard: React.FC = () => {
             label="Notifications"
             badge={unreadCount}
           />
-
-          {/* Create button with expandable menu */}
           <NavButton
             name="create"
             icon={
@@ -449,7 +566,6 @@ const Dashboard: React.FC = () => {
             }
             label="Create"
           />
-
           <NavButton
             name="profile"
             icon={
@@ -462,7 +578,6 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* User info - just profile pic in minimalist mode */}
         {user && (
           <div
             className={`mt-4 ${
@@ -489,7 +604,6 @@ const Dashboard: React.FC = () => {
               )}
             </div>
 
-            {/* Full user info in normal mode */}
             {!isMinimalist && (
               <div className="flex-1 overflow-hidden">
                 <p className="font-medium text-gray-800 truncate">
@@ -501,7 +615,6 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Divider and footer - hidden in minimalist mode */}
         {!isMinimalist && <div className="border-t border-gray-200 my-4"></div>}
 
         {!isMinimalist && (
@@ -512,20 +625,20 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className={`flex items-center w-full p-3 text-left rounded-lg transition-all duration-200 mt-auto font-normal text-red-600 hover:bg-red-50 ${
-            isMinimalist ? "justify-center" : ""
-          }`}
-          style={{ cursor: "pointer" }}
-        >
-          <FaSignOutAlt className="transition-all duration-200" size={20} />
-          {!isMinimalist && <span className="ml-4">Log out</span>}
-        </button>
+        <NavButton
+          name="more"
+          icon={
+            <FaEllipsisH
+              className={`${!isMinimalist ? "mr-4" : ""} ${
+                isMoreMenuOpen ? "text-blue-600" : "text-blue-500"
+              } transition-all duration-200`}
+              size={isMoreMenuOpen ? 24 : 20}
+            />
+          }
+          label="More"
+        />
       </div>
 
-      {/* Mobile menu overlay */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
@@ -533,7 +646,6 @@ const Dashboard: React.FC = () => {
         />
       )}
 
-      {/* Side panels */}
       <div style={{ zIndex: 50 }}>
         <SearchSidebar isOpen={isSearchOpen} onClose={handleCloseSearch} />
       </div>
@@ -545,20 +657,6 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* Old Post Creation Form Modal - No longer used but keeping for reference */}
-      {/* {isPostFormOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
-            onClick={handleClosePostForm}
-          />
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
-            <PostCreationForm onPostCreated={handleClosePostForm} />
-          </div>
-        </>
-      )} */}
-
-      {/* Story Creation Form Modal - using StoryEditor component instead */}
       {isStoryFormOpen && (
         <>
           <div
@@ -574,7 +672,6 @@ const Dashboard: React.FC = () => {
         </>
       )}
 
-      {/* New Instagram-style Post Creation Modal */}
       <CreatePostModal
         isOpen={isNewPostModalOpen}
         onClose={handleCloseNewPostModal}

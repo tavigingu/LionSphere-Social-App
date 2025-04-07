@@ -1,7 +1,7 @@
 import express from 'express';
 import { createPost, getPost, updatePost, deletePost, likePost, getTimelinePosts, commentPost, getUserPosts, 
     savePost, getSavedPosts, replyToComment, likeComment, likeReply, 
-    getTaggedPosts, getPostsByLocation} from '../controller/PostController.js';
+    getTaggedPosts, getPostsByLocation, searchTags, getPostsByTag} from '../controller/PostController.js';
 
 const router = express.Router();
 
@@ -20,9 +20,9 @@ router.post('/:postId/comment/:commentId/reply', replyToComment);
 router.put('/:postId/comment/:commentId/like', likeComment);
 router.put('/:postId/comment/:commentId/reply/:replyId/like', likeReply);
 
-//router.get('/tags/search', searchTags);
 //router.get('/locations/search', searchLocations);
-//router.get('/tag/:tagName', getPostsByTag);
+router.get('/tags/search', searchTags);
+router.get('/tag/:tagName', getPostsByTag);
 router.get('/location/:locationName', getPostsByLocation);
 
 

@@ -3,7 +3,7 @@ import { FaPlus } from "react-icons/fa";
 import useAuthStore from "../../store/AuthStore";
 import useStoryStore from "../../store/StoryStore";
 import uploadFile from "../../helpers/uploadFile";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface StoryCirclesProps {
   onCreateStory?: () => void;

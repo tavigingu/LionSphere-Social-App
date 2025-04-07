@@ -2,24 +2,6 @@ import PostModel from "../models/PostModel.js";
 import UserModel from "../models/UserModel.js";
 import NotificationModel from "../models/NotificationModel.js";
 
-// export const createPost = async (req, res) => {
-//     const newPost = new PostModel(req.body);
-
-//     try {
-//         const savedPost = await newPost.save();
-//         res.status(201).json({
-//             message: "Post created successfully",
-//             success: true,
-//             post: savedPost
-//         });
-//     } catch (error) {
-//         res.status(500).json({
-//             message: error.message || error,
-//             success: false
-//         });
-//     }
-// }
-
 export const createPost = async (req, res) => {
     try {
         const { userId, desc, image, location, taggedUsers } = req.body;
@@ -768,6 +750,105 @@ export const getPostsByLocation = async (req, res) => {
       res.status(500).json({
         message: error.message || "An error occurred while fetching posts",
         success: false,
+      });
+    }
+  };
+
+
+export const searchTags = async (req, res) => {
+    try {
+      console.log("Request received for searchTags");
+      console.log("Query parameters:", req.query);
+      console.log("Full URL:", req.originalUrl);
+  
+      // Acceptă ambele tipuri de parametri pentru flexibilitate
+      const searchTerm = req.query.query || req.query.tag;
+  
+      console.log("Extracted search term:", searchTerm);
+  
+      if (!searchTerm) {
+        console.error("Search term is missing in request");
+        return res.status(400).json({
+          message: "Search term is required (use 'query' or 'tag' parameter)",
+          success: false,
+        });
+      }
+  
+      console.log(`Searching for tags matching: "${searchTerm}"`);
+  
+      // Căutăm postările care conțin tag-uri ce se potrivesc cu searchTerm
+      const posts = await PostModel.find({
+        tags: { $regex: searchTerm, $options: "i" }, // Căutare case-insensitive
+      });
+  
+      // Construim un obiect pentru a număra postările pentru fiecare tag
+      const tagCounts = {};
+      posts.forEach((post) => {
+        post.tags.forEach((tag) => {
+          // Verificăm dacă tag-ul conține searchTerm (case-insensitive)
+          if (tag.toLowerCase().includes(searchTerm.toLowerCase())) {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          }
+        });
+      });
+  
+      // Transformăm tagCounts într-o listă de obiecte cu name și postCount
+      const tagsWithCount = Object.keys(tagCounts).map((tag) => ({
+        name: tag,
+        postCount: tagCounts[tag],
+      }));
+  
+      console.log(`Returning tags with counts:`, tagsWithCount);
+  
+      res.status(200).json({
+        message: "Tags fetched successfully",
+        success: true,
+        tags: tagsWithCount,
+      });
+    } catch (error) {
+      console.error("Error in searchTags:", error);
+      res.status(500).json({
+        message: error.message || String(error),
+        success: false,
+      });
+    }
+  };
+  
+  // Get posts by tag name
+  export const getPostsByTag = async (req, res) => {
+    try {
+      const { tagName } = req.params;
+      
+      if (!tagName) {
+        return res.status(400).json({
+          message: "Tag name is required",
+          success: false
+        });
+      }
+      
+      console.log(`Fetching posts for tag: "${tagName}"`);
+      
+      // Normalize the tag name (remove # if present and convert to lowercase)
+      const normalizedTag = tagName.startsWith('#') ? tagName.substring(1).toLowerCase() : tagName.toLowerCase();
+      
+      // Find posts with the specified tag
+      const posts = await PostModel.find({
+        tags: { $in: [normalizedTag] }
+      }).sort({ createdAt: -1 });
+      
+      console.log(`Found ${posts.length} posts with tag "${normalizedTag}"`);
+      
+      res.status(200).json({
+        message: "Posts fetched successfully",
+        success: true,
+        posts
+      });
+      
+    } catch (error) {
+      console.error("Error fetching posts by tag:", error);
+      res.status(500).json({
+        message: error.message || error,
+        success: false
       });
     }
   };

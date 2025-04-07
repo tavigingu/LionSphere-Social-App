@@ -1,6 +1,7 @@
 import { getTimelinePosts, likePost as likePostApi, createPost as createPostApi, commentOnPost, deletePost as deletePostApi, savePost as savePostApi, getSavedPosts as getSavedPostsApi, getTaggedPosts, replyToComment, likeComment, likeReply } from "../api/Post";
 import { PostState, IPost } from "../types/PostTypes";
 import { create } from 'zustand';
+import { searchTags, getPostsByTag } from "../api/Post";
 
 interface PostStore extends PostState {
     fetchTimelinePosts: (userId: string) => Promise<void>;
@@ -15,6 +16,8 @@ interface PostStore extends PostState {
     replyToComment: (postId: string, commentId: string, userId: string, text: string) => Promise<void>;
     likeComment: (postId: string, commentId: string, userId: string) => Promise<void>;
     likeReply: (postId: string, commentId: string, replyId: string, userId: string) => Promise<void>;
+    searchTags: (query: string) => Promise<string[]>;
+    fetchPostsByTag: (tagName: string) => Promise<void>;
     clearError: () => void;
     resetState: () => void;
 }
@@ -25,6 +28,7 @@ const initialState: PostState = {
     userPosts: [],
     savedPosts: [],
     taggedPosts: [], // Adăugat
+    tagPosts: [],
     currentPost: null,
     loading: false,
     error: null
@@ -365,6 +369,30 @@ const usePostStore = create<PostStore>((set, get) => ({
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to delete post';
             set({ error: errorMessage, loading: false });
+        }
+    },
+
+    searchTags: async (query: string) => {
+        try {
+          return await searchTags(query);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to search tags';
+          set({ error: errorMessage });
+          return [];
+        }
+      },
+      
+      fetchPostsByTag: async (tagName: string) => {
+        set({ loading: true, error: null });
+        try {
+          const posts = await getPostsByTag(tagName);
+          set({
+            tagPosts: posts,
+            loading: false
+          });
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to fetch posts by tag';
+          set({ error: errorMessage, loading: false });
         }
     },
 

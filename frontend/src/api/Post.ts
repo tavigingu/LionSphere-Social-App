@@ -464,5 +464,81 @@ export const deleteReply = async (
   }
 };
 
+export const searchTags = async (query: string): Promise<string[]> => {
+  try {
+    console.log(`Searching for tags with query: "${query}"`);
+    
+    const response = await axios.get<{
+      message: string,
+      success: boolean,
+      tags: string[]
+    }>(`${BASE_URL}/post/tags/search?query=${encodeURIComponent(query)}`);
+    
+    if (response.data.success) {
+      // Check if tags is an array of strings or objects with _id
+      const tags = response.data.tags;
+      console.log('Raw tags response:', tags);
+      
+      // Ensure we're working with an array of strings
+      let processedTags: string[] = [];
+      
+      if (tags && Array.isArray(tags)) {
+        processedTags = tags.map(tag => {
+          // If tag is an object with _id (from MongoDB aggregation)
+          if (typeof tag === 'object' && tag !== null && '_id' in tag) {
+            return tag._id;
+          }
+          // If tag is already a string
+          return String(tag);
+        });
+      }
+      
+      console.log(`Found ${processedTags.length} tags:`, processedTags);
+      return processedTags;
+    } else {
+      console.error('Tag search failed:', response.data.message);
+      throw new Error(response.data.message || 'Failed to search tags');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to search tags:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to search tags');
+    }
+    console.error('Unexpected error during tag search:', error);
+    throw error;
+  }
+};
+
+// Get posts by tag name
+export const getPostsByTag = async (tagName: string): Promise<IPost[]> => {
+  try {
+    // Normalize the tag (remove # if present)
+    const normalizedTag = tagName.startsWith('#') ? tagName.substring(1) : tagName;
+    
+    console.log(`Fetching posts for tag: "${normalizedTag}"`);
+    
+    const response = await axios.get<{
+      message: string,
+      success: boolean,
+      posts: IPost[]
+    }>(`${BASE_URL}/post/tag/${encodeURIComponent(normalizedTag)}`);
+    
+    if (response.data.success) {
+      console.log(`Found ${response.data.posts.length} posts with tag ${normalizedTag}`);
+      return response.data.posts;
+    } else {
+      console.error('Failed to fetch posts by tag:', response.data.message);
+      throw new Error(response.data.message || 'Failed to fetch posts by tag');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Failed to fetch posts by tag:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch posts by tag');
+    }
+    console.error('Unexpected error fetching posts by tag:', error);
+    throw error;
+  }
+};
+
 
 

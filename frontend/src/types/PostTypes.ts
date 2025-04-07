@@ -50,6 +50,7 @@ export interface PostState {
   taggedPosts: IPost[];
   userPosts: IPost[];
   savedPosts: IPost[]; // Added savedPosts array
+  tagPosts: IPost[];
   currentPost: IPost | null;
   loading: boolean;
   error: string | null;

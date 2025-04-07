@@ -9,7 +9,6 @@ import Dashboard from "../components/Home/Dashboard";
 import PeopleYouMayKnow from "../components/Home/PeopleYouMayKnow";
 import StoryCircles from "../components/Home/StoryCircles";
 import StoryViewer from "../components/Home/StoryViewer";
-import CreatePostButton from "../components/Home/CreatePostButton";
 
 const HomePage: React.FC = () => {
   const { user } = useAuthStore();
@@ -146,9 +145,6 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Create Post Button */}
-      <CreatePostButton />
 
       {/* Right-side fixed dashboard */}
       <Dashboard />

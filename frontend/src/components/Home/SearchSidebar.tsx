@@ -76,13 +76,18 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
 
   // Perform search for users and tags
   useEffect(() => {
+    console.log("Search useEffect triggered with:", {
+      searchTerm,
+      activeFilter,
+    });
+
     if (activeFilter === "locations") {
-      // Logica pentru locații este gestionată separat
       setResults([]);
       return;
     }
 
     if (!searchTerm || searchTerm.trim().length < 2) {
+      console.log("Search term too short or empty, resetting results");
       setResults([]);
       return;
     }
@@ -96,18 +101,44 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
 
         switch (activeFilter) {
           case "users":
-            endpoint = `/user/search?username=${searchTerm}`;
+            endpoint = `/user/search?username=${encodeURIComponent(
+              searchTerm
+            )}`;
             break;
           case "tags":
-            endpoint = `/post/tags/search?tag=${searchTerm}`;
+            endpoint = `/post/tags/search?query=${encodeURIComponent(
+              searchTerm
+            )}`;
             break;
         }
 
+        console.log(
+          "Sending request to:",
+          `${BASE_URL}${endpoint}`,
+          "with searchTerm:",
+          searchTerm
+        );
         const response = await axios.get(`${BASE_URL}${endpoint}`);
+        console.log("Response received from backend:", response.data);
+
         if (response.data.success) {
-          if (activeFilter === "users") setResults(response.data.users);
-          else if (activeFilter === "tags") setResults(response.data.tags);
+          if (activeFilter === "users") {
+            console.log("Setting user results:", response.data.users);
+            setResults(response.data.users);
+          } else if (activeFilter === "tags") {
+            // Backend-ul returnează [{ name: "tag1", postCount: 3 }, ...]
+            const formattedTags = response.data.tags.map(
+              (tag: { name: string; postCount: number }) => ({
+                _id: tag.name, // Folosim name ca ID
+                name: tag.name,
+                postCount: tag.postCount, // Folosim postCount din răspuns
+              })
+            );
+            console.log("Setting formatted tag results:", formattedTags);
+            setResults(formattedTags);
+          }
         } else {
+          console.log("Search failed with message:", response.data.message);
           setError(`Failed to search ${activeFilter}`);
         }
       } catch (error) {
@@ -123,6 +154,11 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
 
   // Perform search for locations using Google Maps API
   useEffect(() => {
+    console.log("Location useEffect triggered with:", {
+      searchTerm,
+      activeFilter,
+    });
+
     if (activeFilter !== "locations") {
       setLocationSuggestions([]);
       return;
@@ -213,9 +249,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
             },
           };
           navigate(`/explore/location/${encodeURIComponent(location.name)}`, {
-            state: {
-              coordinates: location.coordinates,
-            },
+            state: { coordinates: location.coordinates },
           });
           setError(null);
           setLocationSuggestions([]);
@@ -255,7 +289,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
               type="text"
               placeholder={`Search ${activeFilter}...`}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                console.log("Input changed, new searchTerm:", e.target.value);
+                setSearchTerm(e.target.value);
+              }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-800"
             />
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -265,7 +302,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
         {/* Filter tabs */}
         <div className="flex border-b mb-4">
           <button
-            onClick={() => setActiveFilter("users")}
+            onClick={() => {
+              console.log("Switching filter to users");
+              setActiveFilter("users");
+            }}
             className={`flex-1 py-3 font-medium ${
               activeFilter === "users"
                 ? "text-blue-500 border-b-2 border-blue-500"
@@ -275,7 +315,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
             Users
           </button>
           <button
-            onClick={() => setActiveFilter("tags")}
+            onClick={() => {
+              console.log("Switching filter to tags");
+              setActiveFilter("tags");
+            }}
             className={`flex-1 py-3 font-medium ${
               activeFilter === "tags"
                 ? "text-blue-500 border-b-2 border-blue-500"
@@ -285,7 +328,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
             Tags
           </button>
           <button
-            onClick={() => setActiveFilter("locations")}
+            onClick={() => {
+              console.log("Switching filter to locations");
+              setActiveFilter("locations");
+            }}
             className={`flex-1 py-3 font-medium ${
               activeFilter === "locations"
                 ? "text-blue-500 border-b-2 border-blue-500"

@@ -584,11 +584,19 @@ const PostCard: React.FC<PostCardProps> = ({
             </h3>
             {/* Display location instead of full name */}
             {location && location.name && (
-              <div className="text-xs text-gray-500 flex items-center">
-                <FaMapMarkerAlt className="mr-1" size={10} />
-                {location.name}
-              </div>
-            )}
+  <div
+    className="text-xs text-gray-500 flex items-center cursor-pointer hover:text-blue-500 transition-colors"
+    onClick={(e) => {
+      e.stopPropagation(); // Prevenim declanșarea navigateToProfile
+      navigate(`/explore/location/${encodeURIComponent(location.name)}`, {
+        state: { coordinates: location.coordinates },
+      });
+    }}
+  >
+    <FaMapMarkerAlt className="mr-1" size={10} />
+    {location.name}
+  </div>
+)}
           </div>
         </div>
 

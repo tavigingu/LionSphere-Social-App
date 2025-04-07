@@ -741,3 +741,33 @@ export const likeReply = async (req, res) => {
         });
     }
 };
+
+export const getPostsByLocation = async (req, res) => {
+    try {
+      const locationName = req.params.locationName;
+  
+      // Caută postările care au location.name egal cu locationName
+      const posts = await PostModel.find({
+        "location.name": locationName,
+      }).sort({ createdAt: -1 }); // Sortează postările, cele mai recente primele
+  
+      if (!posts || posts.length === 0) {
+        return res.status(404).json({
+          message: "No posts found for this location",
+          success: false,
+        });
+      }
+  
+      res.status(200).json({
+        message: "Posts fetched successfully",
+        success: true,
+        posts,
+      });
+    } catch (error) {
+      console.error("Error fetching posts by location:", error);
+      res.status(500).json({
+        message: error.message || "An error occurred while fetching posts",
+        success: false,
+      });
+    }
+  };

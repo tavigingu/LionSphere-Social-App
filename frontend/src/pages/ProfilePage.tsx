@@ -33,9 +33,7 @@ const ProfilePage: React.FC = () => {
   const [profileUser, setProfileUser] = useState<IUser | null>(null);
   const [userPosts, setUserPosts] = useState<IPost[]>([]);
   const [savedPosts, setSavedPosts] = useState<IPost[]>([]);
-  const [activeTab, setActiveTab] = useState<"posts" | "saved" | "tagged">(
-    "posts"
-  );
+  const [activeTab, setActiveTab] = useState<"posts" | "saved" | "tagged">("posts");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,15 +99,7 @@ const ProfilePage: React.FC = () => {
     };
 
     fetchProfileData();
-  }, [
-    targetUserId,
-    navigate,
-    currentUser,
-    isOwnProfile,
-    fetchSavedPosts,
-    fetchTaggedPosts,
-    fetchStories,
-  ]);
+  }, [targetUserId, navigate, currentUser, isOwnProfile, fetchSavedPosts, fetchTaggedPosts, fetchStories]);
 
   const refreshSavedPosts = async () => {
     if (currentUser && isOwnProfile) {
@@ -204,9 +194,7 @@ const ProfilePage: React.FC = () => {
         setSelectedPost({
           ...selectedPost,
           savedBy: isSaved
-            ? (selectedPost.savedBy || []).filter(
-                (id) => id !== currentUser._id
-              )
+            ? (selectedPost.savedBy || []).filter((id) => id !== currentUser._id)
             : [...(selectedPost.savedBy || []), currentUser._id],
         });
       }
@@ -313,12 +301,7 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  const displayPosts =
-    activeTab === "posts"
-      ? userPosts
-      : activeTab === "saved"
-      ? savedPosts
-      : taggedPosts;
+  const displayPosts = activeTab === "posts" ? userPosts : activeTab === "saved" ? savedPosts : taggedPosts;
 
   return (
     <div className="relative min-h-screen text-white">

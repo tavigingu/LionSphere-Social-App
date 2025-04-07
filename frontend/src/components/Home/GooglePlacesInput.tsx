@@ -10,9 +10,6 @@ interface GooglePlacesProps {
   className?: string;
 }
 
-// You'd need to include the Google Maps script in index.html:
-// <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
-
 const GooglePlacesInput: React.FC<GooglePlacesProps> = ({
   onSelect,
   placeholder = "Search for a location...",
@@ -69,7 +66,7 @@ const GooglePlacesInput: React.FC<GooglePlacesProps> = ({
         ref={inputRef}
         type="text"
         placeholder={placeholder}
-        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
+        className={`w-full px-3 py-2  text-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
       />
       <p className="mt-2 text-xs text-gray-500">
         To use this component, add the Google Maps Places API script to your

@@ -7,6 +7,7 @@ interface PostGridProps {
   viewMode: "grid" | "list";
   onViewModeChange: (mode: "grid" | "list") => void;
   onPostClick: (post: IPost) => void;
+  showViewModeToggle?: boolean; // Proprietate opțională pentru a controla afișarea butoanelor
 }
 
 const PostGrid: React.FC<PostGridProps> = ({
@@ -14,36 +15,39 @@ const PostGrid: React.FC<PostGridProps> = ({
   viewMode,
   onViewModeChange,
   onPostClick,
+  showViewModeToggle = true, // Implicit true, pentru a păstra comportamentul existent
 }) => {
   return (
     <div className="w-full">
-      {/* View mode toggle - reduced margin */}
-      <div className="flex justify-center mb-2 border-t border-gray-200 pt-2">
-        <div className="flex space-x-4 bg-white rounded-lg shadow-md px-4 py-2">
-          <button
-            onClick={() => onViewModeChange("grid")}
-            className={`flex items-center justify-center p-2 rounded-md transition-colors ${
-              viewMode === "grid"
-                ? "bg-blue-100 text-blue-600"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-            aria-label="Grid view"
-          >
-            <FaThLarge size={20} />
-          </button>
-          <button
-            onClick={() => onViewModeChange("list")}
-            className={`flex items-center justify-center p-2 rounded-md transition-colors ${
-              viewMode === "list"
-                ? "bg-blue-100 text-blue-600"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-            aria-label="List view"
-          >
-            <FaList size={20} />
-          </button>
+      {/* View mode toggle - afișat doar dacă showViewModeToggle este true */}
+      {showViewModeToggle && (
+        <div className="flex justify-center mb-2 border-t border-gray-200 pt-2">
+          <div className="flex space-x-4 bg-white rounded-lg shadow-md px-4 py-2">
+            <button
+              onClick={() => onViewModeChange("grid")}
+              className={`flex items-center justify-center p-2 rounded-md transition-colors ${
+                viewMode === "grid"
+                  ? "bg-blue-100 text-blue-600"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+              aria-label="Grid view"
+            >
+              <FaThLarge size={20} />
+            </button>
+            <button
+              onClick={() => onViewModeChange("list")}
+              className={`flex items-center justify-center p-2 rounded-md transition-colors ${
+                viewMode === "list"
+                  ? "bg-blue-100 text-blue-600"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+              aria-label="List view"
+            >
+              <FaList size={20} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Posts in grid mode */}
       {viewMode === "grid" && (

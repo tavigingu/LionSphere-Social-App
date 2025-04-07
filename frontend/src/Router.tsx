@@ -4,6 +4,8 @@ import AuthPage from "./pages/AuthPage.tsx";
 import HomePage from "./pages/HomePage.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
 import ChatPage from "./pages/ChatPage.tsx";
+import LocationExplore from "./components/Explore/LoctationExplore.tsx";
+import TagExplore from "./components/Explore/TagExplore.tsx";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +27,14 @@ const router = createBrowserRouter([
   {
     path: "/chat",
     element: <ChatPage />, // New chat route
+  },
+  {
+    path: "/explore/location/:locationName",
+    element: <LocationExplore />,
+  },
+  {
+    path: "/explore/tag/:tagName",
+    element: <TagExplore />,
   },
 ]);
 

@@ -27,6 +27,7 @@ import NotificationPanel from "../Home/NotificationPanel";
 import FullLogo from "../../assets/LionSphere_longlogo.png"; // Adjust the path as necessary
 import Logo from "../../assets/LionSphereLogo.png"; // Adjust the path as necessary
 import CreatePostModal from "../Home/CreatePostModal"; // Import the new CreatePostModal
+import SearchBar from "./SearchBar";
 
 const Dashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
@@ -545,7 +546,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Old Post Creation Form Modal - No longer used but keeping for reference */}
-      {isPostFormOpen && (
+      {/* {isPostFormOpen && (
         <>
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-50"
@@ -555,7 +556,7 @@ const Dashboard: React.FC = () => {
             <PostCreationForm onPostCreated={handleClosePostForm} />
           </div>
         </>
-      )}
+      )} */}
 
       {/* Story Creation Form Modal - using StoryEditor component instead */}
       {isStoryFormOpen && (

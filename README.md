@@ -127,9 +127,9 @@ The project is organized into two main directories:
 ### Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/lionsphere.git
-   cd lionsphere
+```bash
+  git clone https://github.com/yourusername/lionsphere.git
+  cd lionsphere
    ```
 2. Install backend dependencies:
   ```bash
@@ -137,17 +137,17 @@ The project is organized into two main directories:
   npm install
   ```
 3. Set up environment variables in .env:
-  `MONGO_URL=your_mongodb_connection_string
-  JWT_SECRET_KEY=your_jwt_secret
-  PORT=5001
-  CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-  CLOUDINARY_API_KEY=your_cloudinary_api_key
-  CLOUDINARY_API_SECRET=your_cloudinary_api_secret`
+  `MONGO_URL=your_mongodb_connection_string`
+  `JWT_SECRET_KEY=your_jwt_secret`
+  `PORT=5001`
+  `CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name`
+  `CLOUDINARY_API_KEY=your_cloudinary_api_key`
+  `CLOUDINARY_API_SECRET=your_cloudinary_api_secret`
 4. Install frontend dependencies:
-   ```bash
-   cd ../frontend
-   npm install
-    ```
+```bash
+  cd ../frontend
+  npm install
+```
 5. Start the backend server:
   ```bash
   cd ../backend

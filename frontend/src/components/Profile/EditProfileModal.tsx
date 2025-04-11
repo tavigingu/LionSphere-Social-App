@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { IUser } from "../../types/AuthTypes";
 import { updateUser } from "../../api/User";
 import uploadFile from "../../helpers/uploadFile";
+import useAuthStore from "../../store/AuthStore";
 
 interface EditProfileModalProps {
   user: IUser;
@@ -137,6 +138,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
       // Call API to update user profile
       const updatedUser = await updateUser(user._id, user._id, updatedData);
+
+      // Actualizează starea globală în store
+      useAuthStore.getState().updateUserProfile(updatedUser);
+
+      // Propagă actualizarea către componenta părinte
       onProfileUpdate(updatedUser);
       onClose();
     } catch (error) {

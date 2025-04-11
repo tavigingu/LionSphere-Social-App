@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import useAuthStore from "../store/AuthStore";
@@ -25,7 +25,7 @@ const ProfilePage: React.FC = () => {
     fetchSavedPosts,
     fetchUserPosts,
     fetchTaggedPosts,
-    taggedPosts, // Adăugat pentru a folosi direct din store
+    taggedPosts,
   } = usePostStore();
   const { storyGroups, fetchStories, setActiveStoryGroup } = useStoryStore();
   const navigate = useNavigate();
@@ -33,7 +33,9 @@ const ProfilePage: React.FC = () => {
   const [profileUser, setProfileUser] = useState<IUser | null>(null);
   const [userPosts, setUserPosts] = useState<IPost[]>([]);
   const [savedPosts, setSavedPosts] = useState<IPost[]>([]);
-  const [activeTab, setActiveTab] = useState<"posts" | "saved" | "tagged">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "saved" | "tagged">(
+    "posts"
+  );
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +46,64 @@ const ProfilePage: React.FC = () => {
 
   const isOwnProfile = currentUser?._id === (userId || currentUser?._id);
   const targetUserId = userId || currentUser?._id;
+  const postCount = userPosts.length;
+
+  // Funcția pentru a încărca datele profilului
+  const fetchProfileData = useCallback(async () => {
+    if (!targetUserId) return;
+
+    setLoading(true);
+    try {
+      const userResponse = await axios.get(
+        `http://localhost:5001/user/${targetUserId}`
+      );
+
+      if (userResponse.data.success) {
+        const userData = userResponse.data.user;
+        setProfileUser(userData);
+
+        if (currentUser && !isOwnProfile) {
+          setIsFollowing(checkFollowStatus(userData, currentUser._id));
+        }
+
+        const postsResponse = await axios.get(
+          `http://localhost:5001/post/${targetUserId}/posts`
+        );
+
+        if (postsResponse.data.success) {
+          const userPosts = postsResponse.data.posts.filter(
+            (post: IPost) => post.userId === targetUserId
+          );
+          setUserPosts(userPosts);
+        }
+
+        if (isOwnProfile && currentUser) {
+          await fetchSavedPosts(currentUser._id);
+          setSavedPosts(usePostStore.getState().savedPosts);
+        }
+
+        // Fetch tagged posts
+        await fetchTaggedPosts(targetUserId);
+
+        // Încărcăm story-urile pentru utilizator
+        await fetchStories(targetUserId);
+      } else {
+        setError("Failed to fetch user data");
+      }
+    } catch (err) {
+      console.error("Error fetching profile data:", err);
+      setError("An error occurred while fetching profile data");
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    targetUserId,
+    currentUser,
+    isOwnProfile,
+    fetchSavedPosts,
+    fetchTaggedPosts,
+    fetchStories,
+  ]);
 
   useEffect(() => {
     if (!targetUserId) {
@@ -51,57 +111,10 @@ const ProfilePage: React.FC = () => {
       return;
     }
 
-    const fetchProfileData = async () => {
-      setLoading(true);
-      try {
-        const userResponse = await axios.get(
-          `http://localhost:5001/user/${targetUserId}`
-        );
-
-        if (userResponse.data.success) {
-          const userData = userResponse.data.user;
-          setProfileUser(userData);
-
-          if (currentUser && !isOwnProfile) {
-            setIsFollowing(checkFollowStatus(userData, currentUser._id));
-          }
-
-          const postsResponse = await axios.get(
-            `http://localhost:5001/post/${targetUserId}/posts`
-          );
-
-          if (postsResponse.data.success) {
-            const userPosts = postsResponse.data.posts.filter(
-              (post: IPost) => post.userId === targetUserId
-            );
-            setUserPosts(userPosts);
-          }
-
-          if (isOwnProfile && currentUser) {
-            await fetchSavedPosts(currentUser._id);
-            setSavedPosts(usePostStore.getState().savedPosts);
-          }
-
-          // Fetch tagged posts
-          await fetchTaggedPosts(targetUserId);
-
-          // Încărcăm story-urile pentru utilizator
-          await fetchStories(targetUserId);
-        } else {
-          setError("Failed to fetch user data");
-        }
-      } catch (err) {
-        console.error("Error fetching profile data:", err);
-        setError("An error occurred while fetching profile data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfileData();
-  }, [targetUserId, navigate, currentUser, isOwnProfile, fetchSavedPosts, fetchTaggedPosts, fetchStories]);
+  }, [targetUserId, navigate, fetchProfileData]);
 
-  const refreshSavedPosts = async () => {
+  const refreshSavedPosts = useCallback(async () => {
     if (currentUser && isOwnProfile) {
       try {
         await fetchSavedPosts(currentUser._id);
@@ -110,114 +123,137 @@ const ProfilePage: React.FC = () => {
         console.error("Error refreshing saved posts:", err);
       }
     }
-  };
+  }, [currentUser, isOwnProfile, fetchSavedPosts]);
 
-  const handleLikePost = async (postId: string) => {
-    if (currentUser && currentUser._id) {
-      await likeSinglePost(postId, currentUser._id);
+  const handleLikePost = useCallback(
+    async (postId: string) => {
+      if (currentUser && currentUser._id) {
+        await likeSinglePost(postId, currentUser._id);
 
-      const updatePostsWithLike = (posts: IPost[]) =>
-        posts.map((post) => {
-          if (post._id === postId) {
-            const isLiked = post.likes.includes(currentUser._id);
-            return {
-              ...post,
-              likes: isLiked
-                ? post.likes.filter((id) => id !== currentUser._id)
-                : [...post.likes, currentUser._id],
-            };
-          }
-          return post;
-        });
+        const updatePostsWithLike = (posts: IPost[]) =>
+          posts.map((post) => {
+            if (post._id === postId) {
+              const isLiked = post.likes.includes(currentUser._id);
+              return {
+                ...post,
+                likes: isLiked
+                  ? post.likes.filter((id) => id !== currentUser._id)
+                  : [...post.likes, currentUser._id],
+              };
+            }
+            return post;
+          });
 
-      if (activeTab === "posts") {
-        setUserPosts(updatePostsWithLike(userPosts));
-      } else if (activeTab === "saved") {
-        setSavedPosts(updatePostsWithLike(savedPosts));
-      } else {
-        // Nu mai actualizăm local taggedPosts, folosim starea din store
-      }
+        if (activeTab === "posts") {
+          setUserPosts(updatePostsWithLike(userPosts));
+        } else if (activeTab === "saved") {
+          setSavedPosts(updatePostsWithLike(savedPosts));
+        }
+        // Pentru taggedPosts folosim starea direct din store
 
-      if (selectedPost && selectedPost._id === postId) {
-        const isLiked = selectedPost.likes.includes(currentUser._id);
-        setSelectedPost({
-          ...selectedPost,
-          likes: isLiked
-            ? selectedPost.likes.filter((id) => id !== currentUser._id)
-            : [...selectedPost.likes, currentUser._id],
-        });
-      }
-    }
-  };
-
-  const handleSavePost = async (postId: string) => {
-    if (currentUser && currentUser._id) {
-      await savePostFunction(postId, currentUser._id);
-
-      if (activeTab === "posts") {
-        const updatedPosts = userPosts.map((post) => {
-          if (post._id === postId) {
-            const isSaved = post.savedBy?.includes(currentUser._id);
-            return {
-              ...post,
-              savedBy: isSaved
-                ? (post.savedBy || []).filter((id) => id !== currentUser._id)
-                : [...(post.savedBy || []), currentUser._id],
-            };
-          }
-          return post;
-        });
-        setUserPosts(updatedPosts);
-      } else if (activeTab === "saved") {
-        const post = savedPosts.find((p) => p._id === postId);
-        if (post) {
-          const isSaved = post.savedBy?.includes(currentUser._id);
-          if (isSaved) {
-            setSavedPosts(savedPosts.filter((p) => p._id !== postId));
-          } else {
-            const updatedPosts = savedPosts.map((p) => {
-              if (p._id === postId) {
-                return {
-                  ...p,
-                  savedBy: [...(p.savedBy || []), currentUser._id],
-                };
-              }
-              return p;
-            });
-            setSavedPosts(updatedPosts);
-          }
+        if (selectedPost && selectedPost._id === postId) {
+          const isLiked = selectedPost.likes.includes(currentUser._id);
+          setSelectedPost({
+            ...selectedPost,
+            likes: isLiked
+              ? selectedPost.likes.filter((id) => id !== currentUser._id)
+              : [...selectedPost.likes, currentUser._id],
+          });
         }
       }
+    },
+    [
+      currentUser,
+      likeSinglePost,
+      activeTab,
+      userPosts,
+      savedPosts,
+      selectedPost,
+    ]
+  );
 
-      if (selectedPost && selectedPost._id === postId) {
-        const isSaved = selectedPost.savedBy?.includes(currentUser._id);
-        setSelectedPost({
-          ...selectedPost,
-          savedBy: isSaved
-            ? (selectedPost.savedBy || []).filter((id) => id !== currentUser._id)
-            : [...(selectedPost.savedBy || []), currentUser._id],
-        });
+  const handleSavePost = useCallback(
+    async (postId: string) => {
+      if (currentUser && currentUser._id) {
+        await savePostFunction(postId, currentUser._id);
+
+        if (activeTab === "posts") {
+          const updatedPosts = userPosts.map((post) => {
+            if (post._id === postId) {
+              const isSaved = post.savedBy?.includes(currentUser._id);
+              return {
+                ...post,
+                savedBy: isSaved
+                  ? (post.savedBy || []).filter((id) => id !== currentUser._id)
+                  : [...(post.savedBy || []), currentUser._id],
+              };
+            }
+            return post;
+          });
+          setUserPosts(updatedPosts);
+        } else if (activeTab === "saved") {
+          const post = savedPosts.find((p) => p._id === postId);
+          if (post) {
+            const isSaved = post.savedBy?.includes(currentUser._id);
+            if (isSaved) {
+              setSavedPosts(savedPosts.filter((p) => p._id !== postId));
+            } else {
+              const updatedPosts = savedPosts.map((p) => {
+                if (p._id === postId) {
+                  return {
+                    ...p,
+                    savedBy: [...(p.savedBy || []), currentUser._id],
+                  };
+                }
+                return p;
+              });
+              setSavedPosts(updatedPosts);
+            }
+          }
+        }
+
+        if (selectedPost && selectedPost._id === postId) {
+          const isSaved = selectedPost.savedBy?.includes(currentUser._id);
+          setSelectedPost({
+            ...selectedPost,
+            savedBy: isSaved
+              ? (selectedPost.savedBy || []).filter(
+                  (id) => id !== currentUser._id
+                )
+              : [...(selectedPost.savedBy || []), currentUser._id],
+          });
+        }
+
+        if (activeTab === "saved") {
+          setTimeout(() => {
+            refreshSavedPosts();
+          }, 300);
+        }
       }
+    },
+    [
+      currentUser,
+      savePostFunction,
+      activeTab,
+      userPosts,
+      savedPosts,
+      selectedPost,
+      refreshSavedPosts,
+    ]
+  );
 
-      if (activeTab === "saved") {
-        setTimeout(() => {
-          refreshSavedPosts();
-        }, 300);
-      }
-    }
-  };
-
-  const handleProfileUpdate = (updatedUser: IUser) => {
+  const handleProfileUpdate = useCallback((updatedUser: IUser) => {
     setProfileUser(updatedUser);
-  };
+  }, []);
 
-  const handleFollowToggle = async () => {
+  const handleFollowToggle = useCallback(async () => {
     if (!currentUser || !profileUser) return;
 
     setFollowLoading(true);
     try {
       if (isFollowing) {
         await unfollowUser(profileUser._id, currentUser._id);
+        // Actualizăm fără a declanșa un re-render complet
         setProfileUser((prev) => {
           if (!prev) return prev;
           const followers = Array.isArray(prev.followers)
@@ -244,29 +280,78 @@ const ProfilePage: React.FC = () => {
     } finally {
       setFollowLoading(false);
     }
-  };
+  }, [currentUser, profileUser, isFollowing]);
 
-  const handleTabChange = (tab: "posts" | "saved" | "tagged") => {
-    setActiveTab(tab);
-    if (tab === "saved" && isOwnProfile && currentUser) {
-      refreshSavedPosts();
-    }
-    if (tab === "tagged" && targetUserId) {
-      fetchTaggedPosts(targetUserId);
-    }
-  };
+  const handleTabChange = useCallback(
+    (tab: "posts" | "saved" | "tagged") => {
+      setActiveTab(tab);
+      if (tab === "saved" && isOwnProfile && currentUser) {
+        refreshSavedPosts();
+      }
+      if (tab === "tagged" && targetUserId) {
+        fetchTaggedPosts(targetUserId);
+      }
+    },
+    [
+      isOwnProfile,
+      currentUser,
+      targetUserId,
+      refreshSavedPosts,
+      fetchTaggedPosts,
+    ]
+  );
 
-  const handleViewModeChange = (mode: "grid" | "list") => {
+  const handleViewModeChange = useCallback((mode: "grid" | "list") => {
     setViewMode(mode);
-  };
+  }, []);
 
-  const handlePostClick = (post: IPost) => {
+  const handlePostClick = useCallback((post: IPost) => {
     setSelectedPost(post);
-  };
+  }, []);
 
-  const handleStoryClick = (storyIndex: number) => {
+  const handleStoryClick = useCallback((storyIndex: number) => {
     setActiveStoryIndex(storyIndex);
-  };
+  }, []);
+
+  // Memorăm props-urile pentru a preveni re-renderizări inutile
+  const profileHeaderProps = useMemo(
+    () => ({
+      user: profileUser,
+      isOwnProfile,
+      postCount,
+      isFollowing,
+      onProfileUpdate: handleProfileUpdate,
+      onFollowToggle: handleFollowToggle,
+    }),
+    [
+      profileUser, // Include obiectul întreg ca dependență
+      isOwnProfile,
+      postCount,
+      isFollowing,
+      handleProfileUpdate,
+      handleFollowToggle,
+    ]
+  );
+
+  const userInfoSidebarProps = useMemo(
+    () => ({
+      user: profileUser,
+      isOwnProfile,
+      onProfileUpdate: handleProfileUpdate,
+    }),
+    [
+      profileUser, // Include obiectul întreg ca dependență
+      isOwnProfile,
+      handleProfileUpdate,
+    ]
+  );
+
+  // Obține postările care trebuie afișate în funcție de tabul activ
+  const displayPosts = useMemo(() => {
+    if (activeTab === "posts") return userPosts;
+    if (activeTab === "saved") return savedPosts;
+    return taggedPosts;
+  }, [activeTab, userPosts, savedPosts, taggedPosts]);
 
   if (loading) {
     return (
@@ -301,8 +386,6 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  const displayPosts = activeTab === "posts" ? userPosts : activeTab === "saved" ? savedPosts : taggedPosts;
-
   return (
     <div className="relative min-h-screen text-white">
       <Background />
@@ -311,11 +394,7 @@ const ProfilePage: React.FC = () => {
         <div className="flex flex-col lg:flex-row">
           <div className="hidden lg:block lg:w-80 mb-6 lg:mb-0">
             <div className="lg:sticky lg:top-4">
-              <UserInfoSidebar
-                user={profileUser}
-                isOwnProfile={isOwnProfile}
-                onProfileUpdate={handleProfileUpdate}
-              />
+              <UserInfoSidebar {...userInfoSidebarProps} />
             </div>
           </div>
 
@@ -323,12 +402,7 @@ const ProfilePage: React.FC = () => {
             <div className="max-w-2xl mx-auto">
               <div className="px-0">
                 <ProfileHeader
-                  user={profileUser}
-                  isOwnProfile={isOwnProfile}
-                  postCount={userPosts.length}
-                  isFollowing={isFollowing}
-                  onProfileUpdate={handleProfileUpdate}
-                  onFollowToggle={handleFollowToggle}
+                  {...profileHeaderProps}
                   onStoryClick={handleStoryClick}
                 />
               </div>

@@ -1,19 +1,20 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { loginUser, registerUser, logoutUser } from '../api/Auth';
-import { AuthState, LoginCredentials, RegisterCredentials, AuthResponse } from '../types/AuthTypes';
-
+import { AuthState, LoginCredentials, RegisterCredentials, AuthResponse, IUser } from '../types/AuthTypes';
 
 interface AuthStore extends AuthState {
     login: (credentials: LoginCredentials) => Promise<AuthResponse>;
     register: (userData: RegisterCredentials) => Promise<AuthResponse>;
     logout: () => Promise<void>;
+    updateUserProfile: (updatedUser: Partial<IUser>) => void;
+    updateUserFollowing: (userId: string, isFollowing: boolean) => void;
     clearError: () => void;
 }
 
 const useAuthStore = create<AuthStore>()(
     persist(
-    (set) => ({
+    (set, get) => ({
         user: null,
         isAuthenticated: false,
         loading: false,
@@ -75,6 +76,45 @@ const useAuthStore = create<AuthStore>()(
         }
     },
 
+    // Optimized update user profile that only changes what's needed
+    updateUserProfile: (updatedUser) => {
+        const currentUser = get().user;
+        if (!currentUser) return;
+
+        // Only update changed fields
+        set({ 
+            user: { 
+                ...currentUser, 
+                ...updatedUser
+            } 
+        });
+    },
+
+    // Specialized method for following/unfollowing to minimize re-renders
+    updateUserFollowing: (userId: string, isFollowing: boolean) => {
+        const currentUser = get().user;
+        if (!currentUser) return;
+
+        // Get current following array
+        const following = Array.isArray(currentUser.following) 
+            ? [...currentUser.following]
+            : [];
+
+        // Update following array efficiently
+        const updatedFollowing = isFollowing
+            ? following.includes(userId) ? following : [...following, userId]
+            : following.filter(id => id !== userId);
+
+        // Create a new user object with only the following property updated
+        // This minimizes the diff and prevents unnecessary re-renders
+        set(state => ({
+            user: {
+                ...state.user,
+                following: updatedFollowing
+            } as IUser
+        }));
+    },
+
     clearError: () => set({error: null})
 
 }), {
@@ -85,4 +125,3 @@ const useAuthStore = create<AuthStore>()(
 )
 
 export default useAuthStore;
-

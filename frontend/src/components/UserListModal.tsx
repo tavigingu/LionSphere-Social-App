@@ -217,11 +217,9 @@ const UserListModal: React.FC<UserListModalProps> = ({
     targetUserId: string,
     e: React.MouseEvent
   ) => {
-    e.stopPropagation(); // Previne navigarea către profil când se face click pe buton
-
+    e.stopPropagation();
     if (!currentUser) return;
 
-    // Evită toggle multiplu pe același utilizator
     if (followLoading[targetUserId]) return;
 
     setFollowLoading((prev) => ({ ...prev, [targetUserId]: true }));
@@ -231,31 +229,25 @@ const UserListModal: React.FC<UserListModalProps> = ({
 
       if (isFollowing) {
         await unfollowUser(targetUserId, currentUser._id);
+        // Actualizează starea globală
+        useAuthStore.getState().updateUserProfile({
+          ...currentUser,
+          following: currentUser.following.filter((id) => id !== targetUserId),
+        });
       } else {
         await followUser(targetUserId, currentUser._id);
+        // Actualizează starea globală
+        useAuthStore.getState().updateUserProfile({
+          ...currentUser,
+          following: [...currentUser.following, targetUserId],
+        });
       }
 
-      // Actualizează starea de following
+      // Actualizează starea locală
       setFollowingStatus((prev) => ({
         ...prev,
         [targetUserId]: !isFollowing,
       }));
-
-      // Actualizează lista de following a utilizatorului curent
-      if (currentUser.following) {
-        const updatedFollowing = isFollowing
-          ? currentUser.following.filter((id) => id !== targetUserId)
-          : [...currentUser.following, targetUserId];
-
-        // Folosim o copie a utilizatorului pentru actualizare
-        const updatedUser = {
-          ...currentUser,
-          following: updatedFollowing,
-        };
-
-        // Actualizăm store-ul de autentificare
-        useAuthStore.getState().user = updatedUser;
-      }
     } catch (error) {
       console.error("Error toggling follow status:", error);
     } finally {

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { IUser } from "../../types/AuthTypes";
-import { FaPen, FaCamera } from "react-icons/fa";
+import { FaPen } from "react-icons/fa";
 import { followUser, unfollowUser } from "../../api/User";
 import useAuthStore from "../../store/AuthStore";
 import useStoryStore from "../../store/StoryStore";
 import { motion } from "framer-motion";
 import EditProfileModal from "./EditProfileModal";
+import UserListModal from "../UserListModal";
+import axios from "axios";
+import ReactDOM from "react-dom";
 
 interface ProfileHeaderProps {
   user: IUser | null;
@@ -34,6 +37,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const [isHoveringProfile, setIsHoveringProfile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // New state for followers/following modals
+  const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
+  const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
 
   useEffect(() => {
     if (user?._id) {
@@ -82,6 +89,101 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     }
   };
 
+  // Handlers for opening the follower and following modals
+  const handleOpenFollowersModal = () => {
+    if (user?.followers && user.followers.length > 0) {
+      setIsFollowersModalOpen(true);
+    }
+  };
+
+  const handleOpenFollowingModal = () => {
+    if (user?.following && user.following.length > 0) {
+      setIsFollowingModalOpen(true);
+    }
+  };
+
+  // Functions to fetch followers data for UserListModal
+  const fetchFollowers = async (page: number, limit: number) => {
+    if (!user || !user.followers) {
+      return { users: [], hasMore: false };
+    }
+
+    try {
+      // Calculate pagination for the followers array
+      const startIndex = (page - 1) * limit;
+      const endIndex = Math.min(startIndex + limit, user.followers.length);
+      const paginatedIds = user.followers.slice(startIndex, endIndex);
+
+      // Fetch user data for each follower ID
+      const followers = [];
+
+      for (const followerId of paginatedIds) {
+        try {
+          const response = await axios.get(
+            `http://localhost:5001/user/${followerId}`
+          );
+          if (response.data.success) {
+            followers.push(response.data.user);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to fetch follower data for ID ${followerId}:`,
+            error
+          );
+        }
+      }
+
+      return {
+        users: followers,
+        hasMore: endIndex < user.followers.length,
+      };
+    } catch (error) {
+      console.error("Error fetching followers:", error);
+      return { users: [], hasMore: false };
+    }
+  };
+
+  // Function to fetch following data for UserListModal
+  const fetchFollowing = async (page: number, limit: number) => {
+    if (!user || !user.following) {
+      return { users: [], hasMore: false };
+    }
+
+    try {
+      // Calculate pagination for the following array
+      const startIndex = (page - 1) * limit;
+      const endIndex = Math.min(startIndex + limit, user.following.length);
+      const paginatedIds = user.following.slice(startIndex, endIndex);
+
+      // Fetch user data for each following ID
+      const following = [];
+
+      for (const followingId of paginatedIds) {
+        try {
+          const response = await axios.get(
+            `http://localhost:5001/user/${followingId}`
+          );
+          if (response.data.success) {
+            following.push(response.data.user);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to fetch following data for ID ${followingId}:`,
+            error
+          );
+        }
+      }
+
+      return {
+        users: following,
+        hasMore: endIndex < user.following.length,
+      };
+    } catch (error) {
+      console.error("Error fetching following users:", error);
+      return { users: [], hasMore: false };
+    }
+  };
+
   const containerClasses = `w-full max-w-xl lg:mx-0 bg-white rounded-xl shadow-xl overflow-hidden mb-6 duration-400 hover:shadow-2xl 
     ${
       isVisible
@@ -99,6 +201,34 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       </div>
     );
   }
+
+  // Render UserListModal directly to body
+  const renderUserListModal = () => {
+    if (isFollowersModalOpen || isFollowingModalOpen) {
+      return ReactDOM.createPortal(
+        <>
+          {isFollowersModalOpen && (
+            <UserListModal
+              isOpen={isFollowersModalOpen}
+              onClose={() => setIsFollowersModalOpen(false)}
+              title={`${user.username}'s Followers`}
+              fetchUsers={fetchFollowers}
+            />
+          )}
+          {isFollowingModalOpen && (
+            <UserListModal
+              isOpen={isFollowingModalOpen}
+              onClose={() => setIsFollowingModalOpen(false)}
+              title={`People ${user.username} Follows`}
+              fetchUsers={fetchFollowing}
+            />
+          )}
+        </>,
+        document.body
+      );
+    }
+    return null;
+  };
 
   return (
     <div className={containerClasses}>
@@ -245,7 +375,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             )}
           </div>
 
-          {/* Stats */}
+          {/* Stats - with clickable followers/following counts */}
           <div
             className={`mt-6 flex space-x-8 ml-30 px-6 transition-all duration-700 ${
               isVisible
@@ -257,20 +387,49 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               <p className="font-bold text-gray-800">{postCount}</p>
               <p className="text-gray-500 text-sm">Posts</p>
             </div>
-            <div className="text-center">
-              <p className="font-bold text-gray-800">
+            <div
+              className={`text-center ${
+                user.followers && user.followers.length > 0
+                  ? "cursor-pointer group"
+                  : ""
+              }`}
+              onClick={
+                user.followers && user.followers.length > 0
+                  ? handleOpenFollowersModal
+                  : undefined
+              }
+            >
+              <p className="font-bold text-gray-800 group-hover:text-blue-500">
                 {user.followers?.length || 0}
               </p>
-              <p className="text-gray-500 text-sm">Followers</p>
+              <p className="text-gray-500 text-sm group-hover:text-blue-500">
+                Followers
+              </p>
             </div>
-            <div className="text-center">
-              <p className="font-bold text-gray-800">
+            <div
+              className={`text-center ${
+                user.following && user.following.length > 0
+                  ? "cursor-pointer group"
+                  : ""
+              }`}
+              onClick={
+                user.following && user.following.length > 0
+                  ? handleOpenFollowingModal
+                  : undefined
+              }
+            >
+              <p className="font-bold text-gray-800 group-hover:text-blue-500">
                 {user.following?.length || 0}
               </p>
-              <p className="text-gray-500 text-sm">Following</p>
+              <p className="text-gray-500 text-sm group-hover:text-blue-500">
+                Following
+              </p>
             </div>
           </div>
         </div>
+
+        {/* Render user list modals with portal */}
+        {renderUserListModal()}
 
         {/* Stiluri inline */}
         <style>

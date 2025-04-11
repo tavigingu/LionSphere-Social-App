@@ -63,7 +63,7 @@ const HomePage: React.FC = () => {
         <div className="flex flex-col lg:flex-row">
           {/* Left sidebar with profile - hidden on mobile */}
           <div className="hidden lg:block lg:w-80 mb-6 lg:mb-0">
-            <div className="lg:sticky lg:top-4 space-y-6">
+            <div className="lg:sticky lg:top-4 space-y-6 ">
               <ProfileSide />
 
               {/* PeopleYouMayKnow under ProfileSide */}

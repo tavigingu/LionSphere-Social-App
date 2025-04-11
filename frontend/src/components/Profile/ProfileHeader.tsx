@@ -24,31 +24,31 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   user,
   isOwnProfile,
   postCount = 0,
-  isFollowing = false,
+  isFollowing: initialIsFollowing = false,
   onProfileUpdate,
   onFollowToggle,
   onStoryClick,
 }) => {
-  const { user: currentUser } = useAuthStore();
+  const { user: currentUser, updateUserProfile } = useAuthStore();
   const { storyGroups, fetchStories, setActiveStoryGroup } = useStoryStore();
   const [followLoading, setFollowLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [error, setError] = useState<string | null>(null);
   const [isHoveringCover, setIsHoveringCover] = useState(false);
   const [isHoveringProfile, setIsHoveringProfile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // New state for followers/following modals
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
   const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
 
   useEffect(() => {
     if (user?._id) {
       fetchStories(user._id);
+      setIsFollowing(initialIsFollowing);
     }
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
-  }, [user, fetchStories]);
+  }, [user, fetchStories, initialIsFollowing]);
 
   const userStoryGroup = storyGroups.find(
     (group) => group.userId === user?._id
@@ -73,13 +73,31 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     setIsEditModalOpen(true);
   };
 
-  const handleFollowToggle = async () => {
-    if (!currentUser || !user || !onFollowToggle) return;
+  const handleFollow = async () => {
+    if (!currentUser || !user || followLoading) return;
+
     setFollowLoading(true);
+    setError(null);
+
     try {
-      if (isFollowing) await unfollowUser(user._id, currentUser._id);
-      else await followUser(user._id, currentUser._id);
-      onFollowToggle();
+      if (isFollowing) {
+        // Unfollow
+        await unfollowUser(user._id, currentUser._id);
+        updateUserProfile({
+          following: currentUser.following.filter((id) => id !== user._id),
+        });
+        setIsFollowing(false);
+      } else {
+        // Follow
+        await followUser(user._id, currentUser._id);
+        updateUserProfile({
+          following: [...currentUser.following, user._id],
+        });
+        setIsFollowing(true);
+      }
+      if (onFollowToggle) {
+        onFollowToggle();
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to update follow status"
@@ -89,7 +107,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     }
   };
 
-  // Handlers for opening the follower and following modals
   const handleOpenFollowersModal = () => {
     if (user?.followers && user.followers.length > 0) {
       setIsFollowersModalOpen(true);
@@ -102,21 +119,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     }
   };
 
-  // Functions to fetch followers data for UserListModal
   const fetchFollowers = async (page: number, limit: number) => {
     if (!user || !user.followers) {
       return { users: [], hasMore: false };
     }
 
     try {
-      // Calculate pagination for the followers array
       const startIndex = (page - 1) * limit;
       const endIndex = Math.min(startIndex + limit, user.followers.length);
       const paginatedIds = user.followers.slice(startIndex, endIndex);
 
-      // Fetch user data for each follower ID
       const followers = [];
-
       for (const followerId of paginatedIds) {
         try {
           const response = await axios.get(
@@ -143,21 +156,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     }
   };
 
-  // Function to fetch following data for UserListModal
   const fetchFollowing = async (page: number, limit: number) => {
     if (!user || !user.following) {
       return { users: [], hasMore: false };
     }
 
     try {
-      // Calculate pagination for the following array
       const startIndex = (page - 1) * limit;
       const endIndex = Math.min(startIndex + limit, user.following.length);
       const paginatedIds = user.following.slice(startIndex, endIndex);
 
-      // Fetch user data for each following ID
       const following = [];
-
       for (const followingId of paginatedIds) {
         try {
           const response = await axios.get(
@@ -202,7 +211,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     );
   }
 
-  // Render UserListModal directly to body
   const renderUserListModal = () => {
     if (isFollowersModalOpen || isFollowingModalOpen) {
       return ReactDOM.createPortal(
@@ -266,19 +274,16 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             disabled={!hasStory}
             className="relative w-40 h-40"
           >
-            {/* Gradient Ring for Unseen Stories */}
             {hasStory && hasUnseenStories && (
               <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[3px] animate-story-ring">
                 <div className="w-full h-full rounded-full bg-white"></div>
               </div>
             )}
-            {/* Gray Ring for Seen Stories */}
             {hasStory && !hasUnseenStories && (
               <div className="absolute inset-0 rounded-full border-[3px] border-gray-300 p-[2px]">
                 <div className="w-full h-full rounded-full bg-white"></div>
               </div>
             )}
-            {/* Profile Picture */}
             <div
               className={`absolute inset-[4px] rounded-full overflow-hidden transition-all duration-300 ease-in-out ${
                 isHoveringCover ? "opacity-70" : "opacity-100"
@@ -327,7 +332,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               </button>
             ) : (
               <button
-                onClick={handleFollowToggle}
+                onClick={handleFollow}
                 disabled={followLoading}
                 className={`mt-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                   isFollowing
@@ -375,7 +380,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             )}
           </div>
 
-          {/* Stats - with clickable followers/following counts */}
+          {/* Stats */}
           <div
             className={`mt-6 flex space-x-8 ml-30 px-6 transition-all duration-700 ${
               isVisible
@@ -428,10 +433,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </div>
         </div>
 
-        {/* Render user list modals with portal */}
         {renderUserListModal()}
 
-        {/* Stiluri inline */}
         <style>
           {`
           @keyframes gradient-shift {
@@ -453,8 +456,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         `}
         </style>
 
-        {/* EditProfileModal este renderizat în afara containerului principal,
-         direct în body pentru a permite afișarea la nivelul întregii pagini */}
         {isEditModalOpen && (
           <EditProfileModal
             user={user}

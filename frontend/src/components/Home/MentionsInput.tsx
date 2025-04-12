@@ -14,6 +14,7 @@ interface MentionsInputProps {
   placeholder: string;
   onSubmit: (e: React.FormEvent) => void;
   className?: string;
+  // We don't need extra props for notifications as they're handled by backend
 }
 
 const MentionsInput: React.FC<MentionsInputProps> = ({

@@ -7,7 +7,7 @@ const NotificationSchema = mongoose.Schema(
             type: String,
             required: true,
             ref: 'User'
-        },
+        },  
         senderId: {
             type: String,
             required: true,
@@ -40,6 +40,9 @@ const NotificationSchema = mongoose.Schema(
         timestamps: true
     }
 );
+
+NotificationSchema.index({ recipientId: 1, createdAt: -1 }); // For fetching user's notifications
+NotificationSchema.index({ recipientId: 1, read: 1 }); // For counting unread notifications
 
 const NotificationModel = mongoose.model('Notification', NotificationSchema);
 export default NotificationModel;

@@ -155,7 +155,6 @@ export const deleteUser = async (req, res) => {
     }
 }
 
-//follow user
 export const followUser = async (req, res) => {
     try {
         const userId = req.params.id;
@@ -187,6 +186,20 @@ export const followUser = async (req, res) => {
 
         await user.updateOne({ $push: { followers: _id } });
         await currentUser.updateOne({ $push: { following: userId } });
+
+        // Create follow notification
+        try {
+            await NotificationModel.create({
+                recipientId: userId,
+                senderId: _id,
+                type: 'follow',
+                message: `started following you`,
+                read: false
+            });
+        } catch (notificationError) {
+            console.error("Failed to create follow notification:", notificationError);
+            // Continue even if notification creation fails
+        }
 
         res.status(200).json({
             message: "User followed successfully",

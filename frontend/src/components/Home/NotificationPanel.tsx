@@ -15,6 +15,8 @@ import {
   FaTrash,
   FaBell,
   FaRegImage,
+  FaUserPlus,
+  FaTag,
 } from "react-icons/fa";
 
 interface NotificationPanelProps {
@@ -122,6 +124,18 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     }
   };
 
+  const navigateToPost = (
+    e: React.MouseEvent,
+    postId: string,
+    notificationId: string
+  ) => {
+    e.stopPropagation();
+    // In a real implementation, navigate to the post with the comment expanded
+    // For now we'll just go to home and mark the notification as read
+    navigate(`/home`);
+    markNotificationAsRead(notificationId);
+  };
+
   const handleNotificationClick = (
     notificationId: string,
     type: string,
@@ -132,6 +146,18 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
       expandedNotification === notificationId ? null : notificationId
     );
     markNotificationAsRead(notificationId);
+
+    // Depending on notification type, we could navigate to different places
+    if (type === "follow" && userId) {
+      navigate(`/profile/${userId}`);
+    } else if (
+      (type === "like" || type === "comment" || type === "mention") &&
+      postId
+    ) {
+      // In a real implementation, we could navigate to the post with comment expanded
+      // navigate(`/post/${postId}`);
+      navigate("/home");
+    }
   };
 
   const handlePostThumbnailClick = (
@@ -182,7 +208,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     switch (type) {
       case "like":
         return (
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-pink-600 text-white">
             <FaHeart className="text-white" />
           </div>
         );
@@ -194,13 +220,13 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
         );
       case "follow":
         return (
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-600 text-white">
-            <FaUser className="text-white" />
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-teal-500 text-white">
+            <FaUserPlus className="text-white" />
           </div>
         );
       case "mention":
         return (
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-teal-500 text-white">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-indigo-500 text-white">
             <FaAt className="text-white" />
           </div>
         );
@@ -210,6 +236,21 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
             <FaBell className="text-white" />
           </div>
         );
+    }
+  };
+
+  const getNotificationTitle = (type: string) => {
+    switch (type) {
+      case "like":
+        return "Liked your post";
+      case "comment":
+        return "Commented on your post";
+      case "follow":
+        return "Started following you";
+      case "mention":
+        return "Mentioned you";
+      default:
+        return "Notification";
     }
   };
 
@@ -362,10 +403,13 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                               src={postDetails[notification.postId].image}
                               alt="Post"
                               className="w-full h-32 object-cover rounded-lg shadow-sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/home`);
-                              }}
+                              onClick={(e) =>
+                                navigateToPost(
+                                  e,
+                                  notification.postId!,
+                                  notification._id
+                                )
+                              }
                             />
                           ) : (
                             <div className="w-full h-24 bg-gray-100 rounded-lg flex items-center justify-center">

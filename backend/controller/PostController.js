@@ -39,6 +39,28 @@ export const createPost = async (req, res) => {
 
         const savedPost = await newPost.save();
         
+        // Send notifications to tagged users
+        if (taggedUsers && taggedUsers.length > 0) {
+            for (const taggedUser of taggedUsers) {
+                // Skip if user is tagging themselves
+                if (taggedUser.userId === userId) continue;
+                
+                try {
+                    await NotificationModel.create({
+                        recipientId: taggedUser.userId,
+                        senderId: userId,
+                        type: 'mention',
+                        postId: savedPost._id,
+                        message: 'tagged you in a post',
+                        read: false
+                    });
+                } catch (err) {
+                    console.error('Failed to create tag notification:', err);
+                    // Continue even if notification creation fails
+                }
+            }
+        }
+        
         res.status(201).json({
             message: "Post created successfully",
             success: true,
@@ -190,7 +212,6 @@ export const likePost = async (req, res) => {
     }
 }
 
-
 export const commentPost = async (req, res) => {
     try {
         const postId = req.params.id;
@@ -218,6 +239,60 @@ export const commentPost = async (req, res) => {
         // Get the updated post to see the added comment
         const updatedPost = await PostModel.findById(postId);
         const addedComment = updatedPost.comments[updatedPost.comments.length - 1];
+        
+        // Create a notification for post owner (only if commenter isn't the post owner)
+        if (post.userId !== userId) {
+            try {
+                await NotificationModel.create({
+                    recipientId: post.userId,
+                    senderId: userId,
+                    type: 'comment',
+                    postId: post._id,
+                    commentId: addedComment._id,
+                    message: `commented on your post: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`,
+                    read: false
+                });
+            } catch (err) {
+                console.error('Failed to create comment notification:', err);
+                // Continue even if notification creation fails
+            }
+        }
+        
+        // Process mentions in comment text and create notifications
+        const mentionRegex = /@(\w+)/g;
+        let mentionMatch;
+        const processedMentions = new Set(); // To avoid duplicate notifications
+        
+        while ((mentionMatch = mentionRegex.exec(text)) !== null) {
+            const mentionedUsername = mentionMatch[1];
+            
+            // Skip if already processed this mention
+            if (processedMentions.has(mentionedUsername)) continue;
+            processedMentions.add(mentionedUsername);
+            
+            try {
+                // Find the mentioned user
+                const mentionedUser = await UserModel.findOne({
+                    username: new RegExp(`^${mentionedUsername}$`, 'i')
+                });
+                
+                if (mentionedUser && mentionedUser._id.toString() !== userId) {
+                    // Create mention notification
+                    await NotificationModel.create({
+                        recipientId: mentionedUser._id,
+                        senderId: userId,
+                        type: 'mention',
+                        postId: post._id,
+                        commentId: addedComment._id,
+                        message: `mentioned you in a comment: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`,
+                        read: false
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to process mention in comment:', err);
+                // Continue with the next mention
+            }
+        }
         
         res.status(200).json({
             message: "Comment added successfully",
@@ -515,6 +590,42 @@ export const replyToComment = async (req, res) => {
             }
         }
         
+        // Process mentions in reply text and create notifications
+        const mentionRegex = /@(\w+)/g;
+        let mentionMatch;
+        const processedMentions = new Set(); // To avoid duplicate notifications
+        
+        while ((mentionMatch = mentionRegex.exec(text)) !== null) {
+            const mentionedUsername = mentionMatch[1];
+            
+            // Skip if already processed this mention
+            if (processedMentions.has(mentionedUsername)) continue;
+            processedMentions.add(mentionedUsername);
+            
+            try {
+                // Find the mentioned user
+                const mentionedUser = await UserModel.findOne({
+                    username: new RegExp(`^${mentionedUsername}$`, 'i')
+                });
+                
+                if (mentionedUser && mentionedUser._id.toString() !== userId) {
+                    // Create mention notification
+                    await NotificationModel.create({
+                        recipientId: mentionedUser._id,
+                        senderId: userId,
+                        type: 'mention',
+                        postId,
+                        commentId,
+                        message: `mentioned you in a reply: "${text.substring(0, 40)}${text.length > 40 ? '...' : ''}"`,
+                        read: false
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to process mention in reply:', err);
+                // Continue with the next mention
+            }
+        }
+        
         res.status(200).json({
             message: "Reply added successfully",
             success: true,
@@ -527,7 +638,7 @@ export const replyToComment = async (req, res) => {
             success: false
         });
     }
-};
+}
 
 // Like/unlike a comment
 export const likeComment = async (req, res) => {

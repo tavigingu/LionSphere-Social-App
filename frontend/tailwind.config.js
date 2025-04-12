@@ -33,6 +33,10 @@ export default {
       fontFamily: {
         'dancing': ['"Dancing Script"', 'cursive'],
       },
+      // Add custom gap for tighter spacing
+      gap: {
+        '2': '0.5rem', // 8px, pentru a testa o distanță mai mică
+      },
     },
   },
   plugins: [require("daisyui")],

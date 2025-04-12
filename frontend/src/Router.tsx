@@ -6,6 +6,7 @@ import ProfilePage from "./pages/ProfilePage.tsx";
 import ChatPage from "./pages/ChatPage.tsx";
 import LocationExplore from "./components/Explore/LoctationExplore.tsx";
 import TagExplore from "./components/Explore/TagExplore.tsx";
+import StatisticsPage from "./pages/StatisticsPage.tsx"; // Importați pagina de statistici
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: "/explore/tag/:tagName",
     element: <TagExplore />,
+  },
+  {
+    path: "/statistics",
+    element: <StatisticsPage />, // Noua rută pentru pagina de statistici
   },
 ]);
 

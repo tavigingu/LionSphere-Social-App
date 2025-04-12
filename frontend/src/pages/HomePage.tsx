@@ -58,34 +58,36 @@ const HomePage: React.FC = () => {
     <div className="relative min-h-screen text-white">
       <Background />
 
-      {/* Main content with padding adjusted for each screen size */}
-      <div className="container mx-auto px-4 py-4 relative z-10 lg:pr-96">
-        <div className="flex flex-col lg:flex-row">
+      {/* Main content with adjusted padding */}
+      <div className="container mx-auto px-4 py-4 relative z-10 lg:pr-80 lg:ml-40">
+        <div className="max-w-5xl mx-auto flex flex-col lg:flex-row lg:gap-2">
           {/* Left sidebar with profile - hidden on mobile */}
-          <div className="hidden lg:block lg:w-80 mb-6 lg:mb-0">
-            <div className="lg:sticky lg:top-4 space-y-6 ">
+          <div className="hidden lg:block lg:w-72 mb-6 lg:mb-0 mr-6">
+            <div className="space-y-6">
               <ProfileSide />
-
-              {/* PeopleYouMayKnow under ProfileSide */}
               <PeopleYouMayKnow />
             </div>
           </div>
 
           {/* Main content - middle column */}
-          <div className="w-full lg:flex-1 mx-0 lg:mx-6">
+          <div className="w-full lg:flex-1 mx-0 lg:mx-0 lg:-ml-4 lg:mr-32">
             {/* Main content wrapper with consistent width */}
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-xl mx-auto">
               {/* Display loading or error state for stories */}
               {storiesLoading && (
-                <div className="flex justify-center items-center p-4 mb-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-                  <span className="ml-2 text-gray-300">Loading stories...</span>
+                <div className="flex justify-center items-center p-3 mb-6">
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500"></div>
+                  <span className="ml-2 text-sm text-gray-300">
+                    Se încarcă poveștile...
+                  </span>
                 </div>
               )}
 
               {storiesError && (
-                <div className="bg-red-400 bg-opacity-20 text-white p-3 rounded-lg mb-4">
-                  <p>Error loading stories: {storiesError}</p>
+                <div className="bg-red-400 bg-opacity-20 text-white p-2 rounded-lg mb-6">
+                  <p className="text-sm">
+                    Eroare la încărcarea poveștilor: {storiesError}
+                  </p>
                 </div>
               )}
 
@@ -94,24 +96,26 @@ const HomePage: React.FC = () => {
 
               {/* Loading indicator for posts */}
               {postsLoading && (
-                <div className="flex justify-center items-center p-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                <div className="flex justify-center items-center p-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
               )}
 
               {/* Error message for posts */}
               {postsError && (
-                <div className="bg-red-400 bg-opacity-20 text-white p-4 rounded-lg mb-4">
-                  <p>Error loading posts: {postsError}</p>
+                <div className="bg-red-400 bg-opacity-20 text-white p-3 rounded-lg mb-6">
+                  <p>Eroare la încărcarea postărilor: {postsError}</p>
                 </div>
               )}
 
               {/* Message when no posts */}
               {!postsLoading && timelinePosts.length === 0 ? (
-                <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl">
-                  <p className="text-lg text-gray-300">No posts to display.</p>
-                  <p className="text-gray-400 mt-2">
-                    Follow other users or create your first post!
+                <div className="text-center p-5 mb-6 backdrop-blur-sm bg-white/5 rounded-xl">
+                  <p className="text-base text-gray-300">
+                    Nicio postare de afișat.
+                  </p>
+                  <p className="text-gray-400 mt-1">
+                    Urmărește alți utilizatori sau creează prima ta postare!
                   </p>
                 </div>
               ) : (

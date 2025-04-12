@@ -126,12 +126,12 @@ const PeopleYouMayKnow: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden p-4 mb-6 duration-300 hover:shadow-2xl">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="w-full bg-white rounded-lg shadow-md overflow-hidden p-3 mb-6 duration-300 hover:shadow-lg">
+        <h3 className="text-base font-semibold text-gray-800 mb-3">
           Suggested for you
         </h3>
-        <div className="flex justify-center py-4">
-          <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+        <div className="flex justify-center py-3">
+          <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
         </div>
       </div>
     );
@@ -139,16 +139,15 @@ const PeopleYouMayKnow: React.FC = () => {
 
   if (error) {
     return (
-      <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden p-4 mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="w-full bg-white rounded-lg shadow-md overflow-hidden p-3 mb-6">
+        <h3 className="text-base font-semibold text-gray-800 mb-3">
           Suggested for you
         </h3>
-        <p className="text-red-500 text-center">{error}</p>
+        <p className="text-red-500 text-center text-xs">{error}</p>
       </div>
     );
   }
 
-  // Nu returnăm null imediat, ci gestionăm cazul gol cu AnimatePresence
   return (
     <AnimatePresence mode="wait">
       {suggestedUsers.length > 0 || loading || error ? (
@@ -158,11 +157,11 @@ const PeopleYouMayKnow: React.FC = () => {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="w-full bg-white rounded-xl shadow-xl overflow-hidden mb-6 duration-300 hover:shadow-2xl"
+          className="w-full bg-white rounded-lg shadow-md overflow-hidden mb-6 duration-300 hover:shadow-lg"
         >
-          <div className="p-4 pb-2">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
+          <div className="p-3 pb-2">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-base font-semibold text-gray-800">
                 Suggested for you
               </h3>
               {totalPages > 1 && (
@@ -172,13 +171,13 @@ const PeopleYouMayKnow: React.FC = () => {
                     disabled={currentPage === 0}
                     whileHover={{ scale: currentPage === 0 ? 1 : 1.1 }}
                     whileTap={{ scale: currentPage === 0 ? 1 : 0.9 }}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${
+                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all duration-300 ${
                       currentPage === 0
                         ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                         : "bg-blue-500 text-white hover:bg-blue-600 hover:shadow-md"
                     }`}
                   >
-                    <FaChevronLeft size={14} />
+                    <FaChevronLeft size={12} />
                   </motion.button>
                   <motion.button
                     onClick={goToNextPage}
@@ -189,20 +188,20 @@ const PeopleYouMayKnow: React.FC = () => {
                     whileTap={{
                       scale: currentPage >= totalPages - 1 ? 1 : 0.9,
                     }}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${
+                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all duration-300 ${
                       currentPage >= totalPages - 1
                         ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                         : "bg-blue-500 text-white hover:bg-blue-600 hover:shadow-md"
                     }`}
                   >
-                    <FaChevronRight size={14} />
+                    <FaChevronRight size={12} />
                   </motion.button>
                 </div>
               )}
             </div>
 
             <div
-              className="relative h-[190px] overflow-hidden"
+              className="relative h-[170px] overflow-hidden"
               ref={containerRef}
             >
               <AnimatePresence initial={false} custom={direction}>
@@ -226,7 +225,7 @@ const PeopleYouMayKnow: React.FC = () => {
                       opacity: { duration: 0.2 },
                     },
                   }}
-                  className="absolute w-full space-y-2"
+                  className="absolute w-full space-y-1.5"
                 >
                   <AnimatePresence>
                     {currentUsers.map((suggestedUser) => (
@@ -236,10 +235,10 @@ const PeopleYouMayKnow: React.FC = () => {
                         initial="initial"
                         animate="initial"
                         exit="exit"
-                        className="flex items-center p-1.5 rounded-lg hover:bg-gray-50 transition-all duration-300 hover:shadow-md"
+                        className="flex items-center p-1 rounded-lg hover:bg-gray-50 transition-all duration-300 hover:shadow-md"
                       >
                         <div
-                          className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center cursor-pointer mr-3 transition-transform duration-300 hover:scale-105"
+                          className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center cursor-pointer mr-2 transition-transform duration-300 hover:scale-105"
                           onClick={() => navigateToProfile(suggestedUser._id)}
                         >
                           {suggestedUser.profilePicture ? (
@@ -249,7 +248,7 @@ const PeopleYouMayKnow: React.FC = () => {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <span className="text-white text-xl font-bold">
+                            <span className="text-white text-base font-bold">
                               {suggestedUser.username.charAt(0).toUpperCase()}
                             </span>
                           )}
@@ -259,10 +258,10 @@ const PeopleYouMayKnow: React.FC = () => {
                           className="flex-1 cursor-pointer"
                           onClick={() => navigateToProfile(suggestedUser._id)}
                         >
-                          <p className="font-medium text-gray-800">
+                          <p className="text-sm font-medium text-gray-800">
                             {suggestedUser.username}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-[11px] text-gray-500">
                             {suggestedUser.firstname} {suggestedUser.lastname}
                           </p>
                         </div>
@@ -280,11 +279,11 @@ const PeopleYouMayKnow: React.FC = () => {
                               ? "following"
                               : "initial"
                           }
-                          className="px-3 py-1 rounded-full text-sm font-medium text-white"
+                          className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
                         >
                           {followLoading[suggestedUser._id] ? (
                             <span className="flex items-center justify-center">
-                              <div className="w-3 h-3 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
+                              <div className="w-2.5 h-2.5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
                               ...
                             </span>
                           ) : followingStatus[suggestedUser._id] ? (
@@ -301,8 +300,8 @@ const PeopleYouMayKnow: React.FC = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="mt-2 flex justify-center">
-                <div className="flex space-x-2">
+              <div className="mt-1.5 flex justify-center">
+                <div className="flex space-x-1.5">
                   {Array.from({ length: totalPages }).map((_, index) => (
                     <motion.div
                       key={index}
@@ -318,7 +317,7 @@ const PeopleYouMayKnow: React.FC = () => {
                         damping: 30,
                         duration: 0.3,
                       }}
-                      className="w-2 h-2 rounded-full cursor-pointer"
+                      className="w-1.5 h-1.5 rounded-full cursor-pointer"
                       onClick={() => {
                         setDirection(index > currentPage ? 1 : -1);
                         setCurrentPage(index);
@@ -337,12 +336,14 @@ const PeopleYouMayKnow: React.FC = () => {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="w-full bg-white rounded-xl shadow-xl overflow-hidden mb-6 duration-300 hover:shadow-2xl p-4"
+          className="w-full bg-white rounded-lg shadow-md overflow-hidden mb-6 duration-300 hover:shadow-lg p-3"
         >
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <h3 className="text-base font-semibold text-gray-800 mb-3">
             Suggested for you
           </h3>
-          <p className="text-gray-500 text-center">No suggestions available</p>
+          <p className="text-gray-500 text-center text-xs">
+            No suggestions available
+          </p>
         </motion.div>
       )}
     </AnimatePresence>

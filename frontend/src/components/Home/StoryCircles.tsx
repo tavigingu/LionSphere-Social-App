@@ -94,42 +94,38 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white rounded-xl shadow-xl overflow-hidden mb-6 py-8 px-6" // Changed p-6 to py-8 px-6 to increase top padding
+      className="bg-white rounded-lg shadow-md overflow-hidden mb-6 py-6 px-4"
     >
-      {/* Removed the Stories header completely */}
-
       {error && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mb-6 p-3 bg-red-100 text-red-700 rounded-lg text-sm"
+          className="mb-6 p-2 bg-red-100 text-red-700 rounded-lg text-xs"
         >
           {error}
         </motion.div>
       )}
 
-      <div className="flex overflow-x-auto space-x-4 pt-2 pb-0 no-scrollbar">
-        {" "}
-        {/* Reduced bottom padding from pb-3 to pb-2 */}
+      <div className="flex overflow-x-auto space-x-3 pt-1 pb-0 no-scrollbar">
         {/* Add Story button - only for current user */}
         {user && (
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex flex-col items-center min-w-[84px]"
+            className="flex flex-col items-center min-w-[72px]"
           >
             <label className="cursor-pointer relative">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center relative">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center relative">
                 {/* Background gradient ring */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[2px]">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[1.5px]">
                   <div className="w-full h-full rounded-full bg-white"></div>
                 </div>
 
                 {/* Image container */}
-                <div className="absolute inset-[3px] rounded-full overflow-hidden z-10">
+                <div className="absolute inset-[2px] rounded-full overflow-hidden z-10">
                   {isUploading ? (
                     <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <div className="animate-spin h-5 w-5 border-t-2 border-b-2 border-blue-500 rounded-full"></div>
+                      <div className="animate-spin h-4 w-4 border-t-2 border-b-2 border-blue-500 rounded-full"></div>
                     </div>
                   ) : (
                     <>
@@ -141,12 +137,12 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
                             className="w-full h-full object-cover filter grayscale opacity-60"
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                            <FaPlus className="text-white text-lg" />
+                            <FaPlus className="text-white text-sm" />
                           </div>
                         </div>
                       ) : (
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <FaPlus className="text-gray-500 text-xl" />
+                          <FaPlus className="text-gray-500 text-lg" />
                         </div>
                       )}
                     </>
@@ -162,11 +158,11 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
                 disabled={isUploading}
               />
               {/* Indicator blue circle with plus */}
-              <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white z-20">
-                <FaPlus className="text-white text-xs" />
+              <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white z-20">
+                <FaPlus className="text-white text-[10px]" />
               </div>
             </label>
-            <span className="mt-3 text-sm text-gray-700 font-medium">
+            <span className="mt-2 text-xs text-gray-700 font-medium">
               Add Story
             </span>
           </motion.div>
@@ -177,7 +173,7 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
             key={group.userId}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex flex-col items-center min-w-[84px]"
+            className="flex flex-col items-center min-w-[72px]"
             onHoverStart={() => setHoveredStory(group.userId)}
             onHoverEnd={() => setHoveredStory(null)}
           >
@@ -187,24 +183,24 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
               className="relative"
             >
               {/* Story Circle with improved visual ring */}
-              <div className="relative w-20 h-20">
+              <div className="relative w-16 h-16">
                 {/* Gradient Ring for Unseen Stories */}
                 {group.hasUnseenStories && (
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[2.5px] animate-story-ring">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[2px] animate-story-ring">
                     <div className="w-full h-full rounded-full bg-white"></div>
                   </div>
                 )}
 
                 {/* Gray Ring for Seen Stories */}
                 {!group.hasUnseenStories && (
-                  <div className="absolute inset-0 rounded-full border-[2.5px] border-gray-300 p-[2px]">
+                  <div className="absolute inset-0 rounded-full border-[2px] border-gray-300 p-[1.5px]">
                     <div className="w-full h-full rounded-full bg-white"></div>
                   </div>
                 )}
 
                 {/* Profile Picture */}
                 <div
-                  className={`absolute inset-[3px] rounded-full overflow-hidden ${
+                  className={`absolute inset-[2px] rounded-full overflow-hidden ${
                     hoveredStory === group.userId
                       ? "transform scale-105 transition-transform duration-300"
                       : "transition-transform duration-300"
@@ -218,7 +214,7 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                      <span className="text-white text-lg font-bold">
+                      <span className="text-white text-base font-bold">
                         {group.username.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -226,15 +222,15 @@ const StoryCircles: React.FC<StoryCirclesProps> = ({ onCreateStory }) => {
                 </div>
               </div>
             </button>
-            <span className="mt-3 text-sm text-gray-700 font-medium truncate w-full text-center">
+            <span className="mt-2 text-xs text-gray-700 font-medium truncate w-full text-center">
               {group.userId === user?._id ? "Your Story" : group.username}
             </span>
           </motion.div>
         ))}
         {/* Empty placeholder when no stories */}
         {sortedGroups.length === 0 && !user && (
-          <div className="flex-1 py-6 flex items-center justify-center">
-            <p className="text-gray-400 text-sm">No stories to display</p>
+          <div className="flex-1 py-4 flex items-center justify-center">
+            <p className="text-gray-400 text-xs">No stories to display</p>
           </div>
         )}
       </div>

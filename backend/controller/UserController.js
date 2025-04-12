@@ -1,6 +1,7 @@
 import UserModel from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import NotificationModel from "../models/NotificationModel.js";
 
 //get an user
 export const getUser = async (req, res) => {
@@ -177,7 +178,7 @@ export const followUser = async (req, res) => {
             });
         }
 
-        if (currentUser.following.includes(_id)) {
+        if (currentUser.following.includes(userId)) {
             return res.status(400).json({
                 message: "You already follow this user",
                 success: false
@@ -193,9 +194,10 @@ export const followUser = async (req, res) => {
                 recipientId: userId,
                 senderId: _id,
                 type: 'follow',
-                message: `started following you`,
+                message: 'started following you',
                 read: false
             });
+            console.log('Follow notification created successfully');
         } catch (notificationError) {
             console.error("Failed to create follow notification:", notificationError);
             // Continue even if notification creation fails

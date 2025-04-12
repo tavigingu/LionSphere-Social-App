@@ -27,17 +27,58 @@ export const getUser = async (userId: string): Promise<IUser> => {
 /**
  * Follow a user
  */
+// export const followUser = async (userId: string, currentUserId: string): Promise<void> => {
+//   try {
+//     const response = await axios.post(
+//       `${BASE_URL}/user/${userId}/follow`,
+//       { _id: currentUserId },
+//       { withCredentials: true }
+//     );
+
+//     if (!response.data.success) {
+//       throw new Error(response.data.message || 'Failed to follow user');
+//     }
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       console.error('Follow user failed:', error.response?.data);
+//       throw new Error(error.response?.data?.message || 'Failed to follow user');
+//     }
+//     throw error;
+//   }
+// };
+
 export const followUser = async (userId: string, currentUserId: string): Promise<void> => {
   try {
+    console.log(`Attempting to follow user ${userId} by user ${currentUserId}`);
+    
     const response = await axios.post(
       `${BASE_URL}/user/${userId}/follow`,
       { _id: currentUserId },
       { withCredentials: true }
     );
 
+    console.log('Follow response:', response.data);
+
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to follow user');
     }
+    
+    console.log('Successfully followed user, notification should be created on backend');
+    
+    // Optional: Manually check if notification was created after a short delay
+    setTimeout(async () => {
+      try {
+        const notificationsResponse = await axios.get(`${BASE_URL}/notification/${userId}`);
+        console.log('Recent notifications for recipient:', 
+          notificationsResponse.data.notifications
+          .filter((n: { type: string }) => n.type === 'follow')
+            .slice(0, 3)
+        );
+      } catch (err) {
+        console.error('Error checking notifications after follow:', err);
+      }
+    }, 1000);
+    
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Follow user failed:', error.response?.data);

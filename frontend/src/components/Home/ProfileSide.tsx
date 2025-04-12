@@ -15,9 +15,9 @@ const ProfileSide: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
       {/* Cover Photo */}
-      <div className="h-28 bg-gradient-to-r from-blue-500 to-purple-600 relative">
+      <div className="h-24 bg-gradient-to-r from-blue-500 to-purple-600 relative">
         {user.coverPicture && (
           <img
             src={user.coverPicture}
@@ -28,11 +28,11 @@ const ProfileSide: React.FC = () => {
       </div>
 
       {/* Profile Content */}
-      <div className="p-6 pt-4 relative">
+      <div className="p-4 pt-5 relative">
         {/* Profile Picture and Name (horizontal layout) */}
-        <div className="flex items-center mb-6">
-          {/* Larger profile picture, suprapusă peste copertă */}
-          <div className="absolute -top-10 w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-md flex-shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+        <div className="flex items-center mb-4">
+          {/* Smaller profile picture, suprapusă peste copertă */}
+          <div className="absolute -top-6 w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-md flex-shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-lg">
             {user.profilePicture ? (
               <img
                 src={user.profilePicture}
@@ -40,18 +40,18 @@ const ProfileSide: React.FC = () => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">
                 {user.username.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
 
           {/* Username and name to the right of the profile picture, sub copertă */}
-          <div className="ml-28 -mt-4">
-            <h3 className="text-lg font-bold text-gray-800 truncate">
+          <div className="ml-24 -mt-4 mb-2">
+            <h3 className="text-base font-bold text-gray-800 truncate">
               {user.username}
             </h3>
-            <p className="text-gray-600 text-sm truncate">
+            <p className="text-xs text-gray-600 truncate">
               {user.firstname} {user.lastname}
             </p>
           </div>
@@ -59,11 +59,11 @@ const ProfileSide: React.FC = () => {
 
         {/* Only showing occupation */}
         {user.occupation && (
-          <div className="pb-4 border-b border-gray-200/50">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="pb-3 border-b border-gray-200/50">
+            <div className="flex items-center gap-1.5 text-xs text-gray-600">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 text-blue-500"
+                className="h-3.5 w-3.5 text-blue-500"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -80,9 +80,9 @@ const ProfileSide: React.FC = () => {
         )}
 
         {/* Connect section */}
-        <div className="pt-4">
-          <h4 className="text-gray-700 text-sm font-semibold mb-2">Connect</h4>
-          <div className="flex gap-3">
+        <div className="pt-3">
+          <h4 className="text-gray-700 text-xs font-semibold mb-1.5">Connect</h4>
+          <div className="flex gap-2">
             {user.instagram && (
               <a
                 href={`https://instagram.com/${user.instagram}`}
@@ -92,7 +92,7 @@ const ProfileSide: React.FC = () => {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -109,7 +109,7 @@ const ProfileSide: React.FC = () => {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -126,7 +126,7 @@ const ProfileSide: React.FC = () => {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -143,7 +143,7 @@ const ProfileSide: React.FC = () => {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -157,7 +157,7 @@ const ProfileSide: React.FC = () => {
         {/* "View Full Profile" button */}
         <button
           onClick={handleProfileClick}
-          className="w-full mt-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all"
+          className="w-full mt-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-1.5 px-3 rounded-lg shadow-md transition-all"
         >
           View Full Profile
         </button>

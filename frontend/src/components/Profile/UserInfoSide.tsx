@@ -62,8 +62,8 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
 
   if (!user) {
     return (
-      <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden p-6 opacity-0 animate-pulse">
-        <p className="text-gray-500 text-center">Loading user information...</p>
+      <div className="w-64 bg-white rounded-lg shadow-lg overflow-hidden p-3 opacity-0 animate-pulse">
+        <p className="text-gray-500 text-center text-sm">Loading...</p>
       </div>
     );
   }
@@ -100,7 +100,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         onProfileUpdate(updatedUser);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update profile");
+      setError(err instanceof Error ? err.message : "Update error");
     } finally {
       setLoading(false);
     }
@@ -120,162 +120,163 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
     setError(null);
   };
 
-  // Dynamic classes for container entrance animation
-  const containerClasses = `w-full bg-white rounded-xl shadow-xl overflow-hidden p-4 transition-all duration-400 ease-out 
+  const containerClasses = `w-64 bg-white rounded-lg shadow-lg overflow-hidden p-3 transition-all duration-400 ease-out 
     ${
       isVisible
         ? "opacity-100 transform translate-x-0"
         : "opacity-0 transform translate-x-8"
     } 
-    hover:shadow-2xl`;
+    hover:shadow-xl`;
 
   if (isEditing) {
     return (
       <div className={containerClasses}>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Edit Profile</h3>
-          <div className="flex space-x-2">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-bold text-gray-800">Edit Profile</h3>
+          <div className="flex space-x-1">
             <button
               onClick={cancelEdit}
-              className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:rotate-90"
+              className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:rotate-90"
               title="Cancel"
             >
-              <FaTimes />
+              <FaTimes className="text-sm" />
             </button>
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className={`p-2 text-white rounded-full transition-all duration-300 transform hover:scale-110 ${
+              className={`p-1 text-white rounded-full transition-all duration-300 transform hover:scale-110 ${
                 loading ? "bg-blue-400" : "bg-blue-500 hover:bg-blue-600"
               }`}
               title="Save"
             >
-              <FaCheck />
+              <FaCheck className="text-sm" />
             </button>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-3 animate-pulse">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-1 rounded mb-2 animate-pulse text-sm">
             {error}
           </div>
         )}
 
-        <form className="space-y-3">
+        <form className="space-y-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
               City
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaMapMarkerAlt className="text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                <FaMapMarkerAlt className="text-gray-400 text-sm" />
               </div>
               <input
                 type="text"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                className="w-full pl-8 pr-2 py-1 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
                 placeholder="Your city"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Works At
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Works at
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaBriefcase className="text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                <FaBriefcase className="text-gray-400 text-sm" />
               </div>
               <input
                 type="text"
                 name="worksAt"
                 value={formData.worksAt}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-                placeholder="Your workplace"
+                className="w-full pl-8 pr-2 py-1 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
+                placeholder="Workplace"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
               Occupation
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaGraduationCap className="text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                <FaGraduationCap className="text-gray-400 text-sm" />
               </div>
               <input
                 type="text"
                 name="occupation"
                 value={formData.occupation}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                className="w-full pl-8 pr-2 py-1 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
                 placeholder="Your occupation"
               />
             </div>
           </div>
 
-          <div className="pt-3 border-t border-gray-200">
-            <h4 className="font-medium text-gray-800 mb-2">Social Links</h4>
+          <div className="pt-2 border-t border-gray-200">
+            <h4 className="font-medium text-gray-800 mb-1 text-sm">
+              Social Links
+            </h4>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaInstagram className="text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                  <FaInstagram className="text-gray-400 text-sm" />
                 </div>
                 <input
                   type="text"
                   name="instagram"
                   value={formData.instagram}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-                  placeholder="Instagram username"
+                  className="w-full pl-8 pr-2 py-1 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
+                  placeholder="Instagram"
                 />
               </div>
 
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaFacebook className="text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                  <FaFacebook className="text-gray-400 text-sm" />
                 </div>
                 <input
                   type="text"
                   name="facebook"
                   value={formData.facebook}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-                  placeholder="Facebook username or URL"
+                  className="w-full pl-8 pr-2 py-1 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
+                  placeholder="Facebook"
                 />
               </div>
 
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaLinkedin className="text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                  <FaLinkedin className="text-gray-400 text-sm" />
                 </div>
                 <input
                   type="text"
                   name="linkedin"
                   value={formData.linkedin}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-                  placeholder="LinkedIn username or URL"
+                  className="w-full pl-8 pr-2 py-1 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
+                  placeholder="LinkedIn"
                 />
               </div>
 
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaGithub className="text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                  <FaGithub className="text-gray-400 text-sm" />
                 </div>
                 <input
                   type="text"
                   name="github"
                   value={formData.github}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-                  placeholder="GitHub username"
+                  className="w-full pl-8 pr-2 py-1 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
+                  placeholder="GitHub"
                 />
               </div>
             </div>
@@ -287,24 +288,24 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
 
   return (
     <div className={containerClasses}>
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-xl font-bold text-gray-800">Profile Info</h3>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-bold text-gray-800">Profile Information</h3>
         {isOwnProfile && (
           <button
             onClick={() => setIsEditing(true)}
-            className="p-2 text-blue-500 hover:text-blue-700 rounded-full hover:bg-blue-50 transition-all duration-300 transform hover:rotate-90"
+            className="p-1 text-blue-500 hover:text-blue-700 rounded-full hover:bg-blue-50 transition-all duration-300 transform hover:rotate-90"
             title="Edit profile"
           >
-            <FaPen />
+            <FaPen className="text-sm" />
           </button>
         )}
       </div>
 
-      <div className="relative mb-6">
-        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+      <div className="relative mb-4">
+        <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
         <div
-          className={`relative z-10 flex mb-4 transition-all duration-500 transform 
+          className={`relative z-10 flex mb-3 transition-all duration-500 transform 
             ${
               animateItems
                 ? "opacity-100 translate-x-0"
@@ -315,24 +316,24 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           onMouseLeave={() => setHoveredIcon(null)}
         >
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
               hoveredIcon === "email" ? "scale-110" : ""
-            } ${user.email ? "bg-blue-500" : "bg-gray-300"} mr-4`}
+            } ${user.email ? "bg-blue-500" : "bg-gray-300"} mr-3`}
           >
             <FaEnvelope
-              className={`text-white text-sm ${
+              className={`text-white text-xs ${
                 hoveredIcon === "email" ? "animate-bounce" : ""
               }`}
             />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-gray-500">Email</p>
-            <p className="text-gray-800 font-medium">{user.email}</p>
+            <p className="text-xs text-gray-500">Email</p>
+            <p className="text-gray-800 font-medium text-sm">{user.email}</p>
           </div>
         </div>
 
         <div
-          className={`relative z-10 flex mb-4 transition-all duration-500 transform 
+          className={`relative z-10 flex mb-3 transition-all duration-500 transform 
             ${
               animateItems
                 ? "opacity-100 translate-x-0"
@@ -343,30 +344,30 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           onMouseLeave={() => setHoveredIcon(null)}
         >
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
               hoveredIcon === "location" ? "scale-110" : ""
-            } ${user.city ? "bg-green-500" : "bg-gray-300"} mr-4`}
+            } ${user.city ? "bg-green-500" : "bg-gray-300"} mr-3`}
           >
             <FaMapMarkerAlt
-              className={`text-white text-sm ${
+              className={`text-white text-xs ${
                 hoveredIcon === "location" ? "animate-bounce" : ""
               }`}
             />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-gray-500">Location</p>
+            <p className="text-xs text-gray-500">Location</p>
             {user.city ? (
-              <p className="text-gray-800 font-medium">{user.city}</p>
+              <p className="text-gray-800 font-medium text-sm">{user.city}</p>
             ) : (
-              <p className="text-gray-400 italic">
-                {isOwnProfile ? "Add your location" : "No location information"}
+              <p className="text-gray-400 italic text-sm">
+                {isOwnProfile ? "Add location" : "No location"}
               </p>
             )}
           </div>
         </div>
 
         <div
-          className={`relative z-10 flex mb-4 transition-all duration-500 transform 
+          className={`relative z-10 flex mb-3 transition-all duration-500 transform 
             ${
               animateItems
                 ? "opacity-100 translate-x-0"
@@ -377,25 +378,25 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           onMouseLeave={() => setHoveredIcon(null)}
         >
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
               hoveredIcon === "work" ? "scale-110" : ""
-            } ${user.worksAt ? "bg-purple-500" : "bg-gray-300"} mr-4`}
+            } ${user.worksAt ? "bg-purple-500" : "bg-gray-300"} mr-3`}
           >
             <FaBriefcase
-              className={`text-white text-sm ${
+              className={`text-white text-xs ${
                 hoveredIcon === "work" ? "animate-bounce" : ""
               }`}
             />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-gray-500">Works at</p>
+            <p className="text-xs text-gray-500">Works at</p>
             {user.worksAt ? (
-              <p className="text-gray-800 font-medium">{user.worksAt}</p>
+              <p className="text-gray-800 font-medium text-sm">
+                {user.worksAt}
+              </p>
             ) : (
-              <p className="text-gray-400 italic">
-                {isOwnProfile
-                  ? "Add your workplace"
-                  : "No workplace information"}
+              <p className="text-gray-400 italic text-sm">
+                {isOwnProfile ? "Add workplace" : "No workplace"}
               </p>
             )}
           </div>
@@ -413,25 +414,25 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           onMouseLeave={() => setHoveredIcon(null)}
         >
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
               hoveredIcon === "occupation" ? "scale-110" : ""
-            } ${user.occupation ? "bg-yellow-500" : "bg-gray-300"} mr-4`}
+            } ${user.occupation ? "bg-yellow-500" : "bg-gray-300"} mr-3`}
           >
             <FaGraduationCap
-              className={`text-white text-sm ${
+              className={`text-white text-xs ${
                 hoveredIcon === "occupation" ? "animate-bounce" : ""
               }`}
             />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-gray-500">Occupation</p>
+            <p className="text-xs text-gray-500">Occupation</p>
             {user.occupation ? (
-              <p className="text-gray-800 font-medium">{user.occupation}</p>
+              <p className="text-gray-800 font-medium text-sm">
+                {user.occupation}
+              </p>
             ) : (
-              <p className="text-gray-400 italic">
-                {isOwnProfile
-                  ? "Add your occupation"
-                  : "No occupation information"}
+              <p className="text-gray-400 italic text-sm">
+                {isOwnProfile ? "Add occupation" : "No occupation"}
               </p>
             )}
           </div>
@@ -439,7 +440,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
       </div>
 
       <div
-        className={`mt-6 pt-3 border-t border-gray-200 transition-all duration-500 
+        className={`mt-4 pt-2 border-t border-gray-200 transition-all duration-500 
         ${
           animateItems
             ? "opacity-100 transform translate-y-0"
@@ -447,15 +448,15 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         } 
         delay-500`}
       >
-        <h4 className="text-md font-semibold text-gray-700 mb-3">
-          Social Media
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">
+          Social Networks
         </h4>
 
         <div className="relative">
-          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+          <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
           <div
-            className={`relative z-10 flex mb-4 transition-all duration-500 transform 
+            className={`relative z-10 flex mb-3 transition-all duration-500 transform 
               ${
                 animateItems
                   ? "opacity-100 translate-x-0"
@@ -466,16 +467,16 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             onMouseLeave={() => setHoveredIcon(null)}
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
                 hoveredIcon === "instagram" ? "scale-110" : ""
               } ${
                 user.instagram
                   ? "bg-gradient-to-tr from-purple-600 to-pink-500"
                   : "bg-gray-300"
-              } mr-4`}
+              } mr-3`}
             >
               <FaInstagram
-                className={`text-white text-sm ${
+                className={`text-white text-xs ${
                   hoveredIcon === "instagram" ? "animate-bounce" : ""
                 }`}
               />
@@ -486,22 +487,20 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   href={`https://instagram.com/${user.instagram}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+                  className="text-gray-800 font-medium hover:text-blue-600 transition-colors text-sm"
                 >
                   @{user.instagram}
                 </a>
               ) : (
-                <p className="text-gray-400 italic">
-                  {isOwnProfile
-                    ? "Add your Instagram profile"
-                    : "No Instagram profile"}
+                <p className="text-gray-400 italic text-sm">
+                  {isOwnProfile ? "Add Instagram" : "No Instagram"}
                 </p>
               )}
             </div>
           </div>
 
           <div
-            className={`relative z-10 flex mb-4 transition-all duration-500 transform 
+            className={`relative z-10 flex mb-3 transition-all duration-500 transform 
               ${
                 animateItems
                   ? "opacity-100 translate-x-0"
@@ -512,12 +511,12 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             onMouseLeave={() => setHoveredIcon(null)}
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
                 hoveredIcon === "facebook" ? "scale-110" : ""
-              } ${user.facebook ? "bg-blue-600" : "bg-gray-300"} mr-4`}
+              } ${user.facebook ? "bg-blue-600" : "bg-gray-300"} mr-3`}
             >
               <FaFacebook
-                className={`text-white text-sm ${
+                className={`text-white text-xs ${
                   hoveredIcon === "facebook" ? "animate-bounce" : ""
                 }`}
               />
@@ -532,24 +531,22 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+                  className="text-gray-800 font-medium hover:text-blue-600 transition-colors text-sm"
                 >
                   {user.facebook.includes("/")
                     ? user.facebook.split("/").pop()
                     : user.facebook}
                 </a>
               ) : (
-                <p className="text-gray-400 italic">
-                  {isOwnProfile
-                    ? "Add your Facebook profile"
-                    : "No Facebook profile"}
+                <p className="text-gray-400 italic text-sm">
+                  {isOwnProfile ? "Add Facebook" : "No Facebook"}
                 </p>
               )}
             </div>
           </div>
 
           <div
-            className={`relative z-10 flex mb-4 transition-all duration-500 transform 
+            className={`relative z-10 flex mb-3 transition-all duration-500 transform 
               ${
                 animateItems
                   ? "opacity-100 translate-x-0"
@@ -560,12 +557,12 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             onMouseLeave={() => setHoveredIcon(null)}
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
                 hoveredIcon === "linkedin" ? "scale-110" : ""
-              } ${user.linkedin ? "bg-blue-700" : "bg-gray-300"} mr-4`}
+              } ${user.linkedin ? "bg-blue-700" : "bg-gray-300"} mr-3`}
             >
               <FaLinkedin
-                className={`text-white text-sm ${
+                className={`text-white text-xs ${
                   hoveredIcon === "linkedin" ? "animate-bounce" : ""
                 }`}
               />
@@ -580,17 +577,15 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+                  className="text-gray-800 font-medium hover:text-blue-600 transition-colors text-sm"
                 >
                   {user.linkedin.includes("/")
                     ? user.linkedin.split("/").pop()
                     : user.linkedin}
                 </a>
               ) : (
-                <p className="text-gray-400 italic">
-                  {isOwnProfile
-                    ? "Add your LinkedIn profile"
-                    : "No LinkedIn profile"}
+                <p className="text-gray-400 italic text-sm">
+                  {isOwnProfile ? "Add LinkedIn" : "No LinkedIn"}
                 </p>
               )}
             </div>
@@ -608,12 +603,12 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
             onMouseLeave={() => setHoveredIcon(null)}
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
                 hoveredIcon === "github" ? "scale-110" : ""
-              } ${user.github ? "bg-gray-800" : "bg-gray-300"} mr-4`}
+              } ${user.github ? "bg-gray-800" : "bg-gray-300"} mr-3`}
             >
               <FaGithub
-                className={`text-white text-sm ${
+                className={`text-white text-xs ${
                   hoveredIcon === "github" ? "animate-bounce" : ""
                 }`}
               />
@@ -624,15 +619,13 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
                   href={`https://github.com/${user.github}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+                  className="text-gray-800 font-medium hover:text-blue-600 transition-colors text-sm"
                 >
                   {user.github}
                 </a>
               ) : (
-                <p className="text-gray-400 italic">
-                  {isOwnProfile
-                    ? "Add your GitHub profile"
-                    : "No GitHub profile"}
+                <p className="text-gray-400 italic text-sm">
+                  {isOwnProfile ? "Add GitHub" : "No GitHub"}
                 </p>
               )}
             </div>
@@ -642,7 +635,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
 
       {isOwnProfile && (
         <div
-          className={`mt-6 pt-3 border-t border-gray-200 transition-all duration-500 
+          className={`mt-4 pt-2 border-t border-gray-200 transition-all duration-500 
           ${
             animateItems
               ? "opacity-100 transform translate-y-0"
@@ -651,22 +644,22 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           delay-1000`}
         >
           <div className="flex justify-between mb-1">
-            <h4 className="text-md font-semibold text-gray-700">
-              Profile Completeness
+            <h4 className="text-sm font-semibold text-gray-700">
+              Profile Completion
             </h4>
-            <span className="text-sm font-medium text-blue-600">
+            <span className="text-xs font-medium text-blue-600">
               {calculateProfileCompleteness(user)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-1500 ease-out"
+              className="bg-blue-600 h-1.5 rounded-full transition-all duration-1500 ease-out"
               style={{ width: `${calculateProfileCompleteness(user)}%` }}
             ></div>
           </div>
           {calculateProfileCompleteness(user) < 100 && (
-            <p className="text-sm text-gray-500 mt-1">
-              Complete your profile to help others connect with you better.
+            <p className="text-xs text-gray-500 mt-1">
+              Complete your profile to connect with others more easily.
             </p>
           )}
         </div>

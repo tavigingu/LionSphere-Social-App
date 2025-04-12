@@ -390,10 +390,15 @@ const ProfilePage: React.FC = () => {
     <div className="relative min-h-screen text-white">
       <Background />
 
-      <div className="container mx-auto px-4 py-4 relative z-10 lg:pr-96">
+      <div className="container mx-auto px-4 py-4 relative z-10 lg:pr-96 lg:ml-48">
         <div className="flex flex-col lg:flex-row">
-          <div className="hidden lg:block lg:w-80 mb-6 lg:mb-0">
+          {/* <div className="hidden lg:block lg:w-80 mb-6 lg:mb-2">
             <div className="lg:sticky lg:top-4">
+              <UserInfoSidebar {...userInfoSidebarProps} />
+            </div>
+          </div> */}
+          <div className="hidden lg:block lg:w-72 mb-6 lg:mb-0 lg:-mr-44">
+            <div className="space-y-6">
               <UserInfoSidebar {...userInfoSidebarProps} />
             </div>
           </div>
@@ -515,7 +520,7 @@ const ProfilePage: React.FC = () => {
         />
       )}
 
-      {activeStoryIndex !== null && storyGroups[activeStoryIndex] && (
+      {/* {activeStoryIndex !== null && storyGroups[activeStoryIndex] && (
         <StoryViewer
           storyGroup={storyGroups[activeStoryIndex]}
           onClose={() => {
@@ -523,7 +528,7 @@ const ProfilePage: React.FC = () => {
             setActiveStoryGroup(null);
           }}
         />
-      )}
+      )} */}
 
       <Dashboard />
     </div>

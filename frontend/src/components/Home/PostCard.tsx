@@ -172,7 +172,29 @@ const PostCard: React.FC<PostCardProps> = ({
       return <span key={index}>{part}</span>;
     });
   };
-  // Funcții existente (nemodificate)
+
+  const parseDescription = (text: string) => {
+    // Split text by hashtags while keeping the hashtags
+    const parts = text.split(/(#[^\s#]+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith("#")) {
+        const tagName = part.substring(1); // Remove the # for navigation
+        return (
+          <span
+            key={index}
+            className="text-blue-800 hover:underline cursor-pointer"
+            onClick={() =>
+              navigate(`/explore/tag/${encodeURIComponent(tagName)}`)
+            }
+          >
+            {part}
+          </span>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   const handleDeletePost = async () => {
     if (_id && currentUser) {
       try {
@@ -190,12 +212,13 @@ const PostCard: React.FC<PostCardProps> = ({
     }
   };
 
-  const handleSavePost = async () => {
+  const handleSavePost = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (_id && currentUser) {
       try {
         setLocalSaved(!localSaved);
         await savePost(_id, currentUser._id);
-        if (onSave) onSave();
+        //if (onSave) onSave();
       } catch (error) {
         setLocalSaved(localSaved);
         console.error("Error saving post:", error);
@@ -750,7 +773,7 @@ const PostCard: React.FC<PostCardProps> = ({
           >
             {postUser?.username || "Unknown User"}
           </h4>
-          <p className="text-gray-800 ml-2">{desc}</p>
+          <p className="text-gray-800 ml-2">{parseDescription(desc)}</p>
         </div>
       </div>
 

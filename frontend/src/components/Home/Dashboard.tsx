@@ -396,7 +396,10 @@ const Dashboard: React.FC = () => {
                 transition={{ delay: 0.1 }}
                 className="py-2"
               >
-                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <button
+                  onClick={() => navigate("/statistics")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
                   <FaHistory className="mr-3 text-blue-500" />
                   <span>Your activity</span>
                 </button>

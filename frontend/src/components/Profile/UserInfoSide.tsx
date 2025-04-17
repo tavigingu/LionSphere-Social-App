@@ -1,3 +1,4 @@
+// UserInfoSide.tsx
 import React, { useState, useEffect } from "react";
 import { IUser } from "../../types/AuthTypes";
 import {
@@ -22,7 +23,7 @@ interface UserInfoSidebarProps {
   onProfileUpdate?: (updatedUser: IUser) => void;
 }
 
-const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
+const UserInfoSide: React.FC<UserInfoSidebarProps> = ({
   user,
   isOwnProfile,
   onProfileUpdate,
@@ -48,11 +49,11 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
   useEffect(() => {
     const containerTimer = setTimeout(() => {
       setIsVisible(true);
-    }, 200);
+    }, 100);
 
     const itemsTimer = setTimeout(() => {
       setAnimateItems(true);
-    }, 600);
+    }, 300);
 
     return () => {
       clearTimeout(containerTimer);
@@ -62,7 +63,7 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
 
   if (!user) {
     return (
-      <div className="w-64 bg-white rounded-lg shadow-lg overflow-hidden p-3 opacity-0 animate-pulse">
+      <div className="w-full bg-white rounded-lg shadow-lg overflow-hidden p-4 opacity-0 animate-pulse">
         <p className="text-gray-500 text-center text-sm">Loading...</p>
       </div>
     );
@@ -120,13 +121,11 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
     setError(null);
   };
 
-  const containerClasses = `w-64 bg-white rounded-lg shadow-lg overflow-hidden p-3 transition-all duration-400 ease-out 
-    ${
-      isVisible
-        ? "opacity-100 transform translate-x-0"
-        : "opacity-0 transform translate-x-8"
-    } 
-    hover:shadow-xl`;
+  const containerClasses = `w-full bg-white rounded-lg shadow-lg overflow-hidden p-4 transition-all duration-400 ease-out hover:shadow-xl ${
+    isVisible
+      ? "opacity-100 transform translate-x-0"
+      : "opacity-0 transform translate-x-8"
+  }`;
 
   if (isEditing) {
     return (
@@ -305,20 +304,18 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
         <div
-          className={`relative z-10 flex mb-3 transition-all duration-500 transform 
-            ${
-              animateItems
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-4"
-            } delay-100
-            hover:translate-x-2`}
+          className={`relative z-10 flex mb-3 transition-all duration-500 transform delay-100 hover:translate-x-2 ${
+            animateItems
+              ? "opacity-100 translate-x-0"
+              : "opacity-0 -translate-x-4"
+          }`}
           onMouseEnter={() => setHoveredIcon("email")}
           onMouseLeave={() => setHoveredIcon(null)}
         >
           <div
-            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 mr-3 ${
               hoveredIcon === "email" ? "scale-110" : ""
-            } ${user.email ? "bg-blue-500" : "bg-gray-300"} mr-3`}
+            } ${user.email ? "bg-blue-500" : "bg-gray-300"}`}
           >
             <FaEnvelope
               className={`text-white text-xs ${
@@ -333,20 +330,18 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
 
         <div
-          className={`relative z-10 flex mb-3 transition-all duration-500 transform 
-            ${
-              animateItems
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-4"
-            } delay-200
-            hover:translate-x-2`}
+          className={`relative z-10 flex mb-3 transition-all duration-500 transform delay-200 hover:translate-x-2 ${
+            animateItems
+              ? "opacity-100 translate-x-0"
+              : "opacity-0 -translate-x-4"
+          }`}
           onMouseEnter={() => setHoveredIcon("location")}
           onMouseLeave={() => setHoveredIcon(null)}
         >
           <div
-            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 mr-3 ${
               hoveredIcon === "location" ? "scale-110" : ""
-            } ${user.city ? "bg-green-500" : "bg-gray-300"} mr-3`}
+            } ${user.city ? "bg-green-500" : "bg-gray-300"}`}
           >
             <FaMapMarkerAlt
               className={`text-white text-xs ${
@@ -367,20 +362,18 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
 
         <div
-          className={`relative z-10 flex mb-3 transition-all duration-500 transform 
-            ${
-              animateItems
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-4"
-            } delay-300
-            hover:translate-x-2`}
+          className={`relative z-10 flex mb-3 transition-all duration-500 transform delay-300 hover:translate-x-2 ${
+            animateItems
+              ? "opacity-100 translate-x-0"
+              : "opacity-0 -translate-x-4"
+          }`}
           onMouseEnter={() => setHoveredIcon("work")}
           onMouseLeave={() => setHoveredIcon(null)}
         >
           <div
-            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 mr-3 ${
               hoveredIcon === "work" ? "scale-110" : ""
-            } ${user.worksAt ? "bg-purple-500" : "bg-gray-300"} mr-3`}
+            } ${user.worksAt ? "bg-purple-500" : "bg-gray-300"}`}
           >
             <FaBriefcase
               className={`text-white text-xs ${
@@ -403,20 +396,18 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
         </div>
 
         <div
-          className={`relative z-10 flex transition-all duration-500 transform 
-            ${
-              animateItems
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-4"
-            } delay-400
-            hover:translate-x-2`}
+          className={`relative z-10 flex transition-all duration-500 transform delay-400 hover:translate-x-2 ${
+            animateItems
+              ? "opacity-100 translate-x-0"
+              : "opacity-0 -translate-x-4"
+          }`}
           onMouseEnter={() => setHoveredIcon("occupation")}
           onMouseLeave={() => setHoveredIcon(null)}
         >
           <div
-            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 mr-3 ${
               hoveredIcon === "occupation" ? "scale-110" : ""
-            } ${user.occupation ? "bg-yellow-500" : "bg-gray-300"} mr-3`}
+            } ${user.occupation ? "bg-yellow-500" : "bg-gray-300"}`}
           >
             <FaGraduationCap
               className={`text-white text-xs ${
@@ -440,13 +431,11 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
       </div>
 
       <div
-        className={`mt-4 pt-2 border-t border-gray-200 transition-all duration-500 
-        ${
+        className={`mt-4 pt-2 border-t border-gray-200 transition-all duration-500 delay-500 ${
           animateItems
             ? "opacity-100 transform translate-y-0"
             : "opacity-0 transform translate-y-4"
-        } 
-        delay-500`}
+        }`}
       >
         <h4 className="text-sm font-semibold text-gray-700 mb-2">
           Social Networks
@@ -456,24 +445,22 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
           <div
-            className={`relative z-10 flex mb-3 transition-all duration-500 transform 
-              ${
-                animateItems
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-4"
-              } delay-600
-              hover:translate-x-2`}
+            className={`relative z-10 flex mb-3 transition-all duration-500 transform delay-600 hover:translate-x-2 ${
+              animateItems
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-4"
+            }`}
             onMouseEnter={() => setHoveredIcon("instagram")}
             onMouseLeave={() => setHoveredIcon(null)}
           >
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 mr-3 ${
                 hoveredIcon === "instagram" ? "scale-110" : ""
               } ${
                 user.instagram
                   ? "bg-gradient-to-tr from-purple-600 to-pink-500"
                   : "bg-gray-300"
-              } mr-3`}
+              }`}
             >
               <FaInstagram
                 className={`text-white text-xs ${
@@ -500,20 +487,18 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
 
           <div
-            className={`relative z-10 flex mb-3 transition-all duration-500 transform 
-              ${
-                animateItems
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-4"
-              } delay-700
-              hover:translate-x-2`}
+            className={`relative z-10 flex mb-3 transition-all duration-500 transform delay-700 hover:translate-x-2 ${
+              animateItems
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-4"
+            }`}
             onMouseEnter={() => setHoveredIcon("facebook")}
             onMouseLeave={() => setHoveredIcon(null)}
           >
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 mr-3 ${
                 hoveredIcon === "facebook" ? "scale-110" : ""
-              } ${user.facebook ? "bg-blue-600" : "bg-gray-300"} mr-3`}
+              } ${user.facebook ? "bg-blue-600" : "bg-gray-300"}`}
             >
               <FaFacebook
                 className={`text-white text-xs ${
@@ -546,20 +531,18 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
 
           <div
-            className={`relative z-10 flex mb-3 transition-all duration-500 transform 
-              ${
-                animateItems
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-4"
-              } delay-800
-              hover:translate-x-2`}
+            className={`relative z-10 flex mb-3 transition-all duration-500 transform delay-800 hover:translate-x-2 ${
+              animateItems
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-4"
+            }`}
             onMouseEnter={() => setHoveredIcon("linkedin")}
             onMouseLeave={() => setHoveredIcon(null)}
           >
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 mr-3 ${
                 hoveredIcon === "linkedin" ? "scale-110" : ""
-              } ${user.linkedin ? "bg-blue-700" : "bg-gray-300"} mr-3`}
+              } ${user.linkedin ? "bg-blue-700" : "bg-gray-300"}`}
             >
               <FaLinkedin
                 className={`text-white text-xs ${
@@ -592,20 +575,18 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
           </div>
 
           <div
-            className={`relative z-10 flex transition-all duration-500 transform 
-              ${
-                animateItems
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-4"
-              } delay-900
-              hover:translate-x-2`}
+            className={`relative z-10 flex transition-all duration-500 transform delay-900 hover:translate-x-2 ${
+              animateItems
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-4"
+            }`}
             onMouseEnter={() => setHoveredIcon("github")}
             onMouseLeave={() => setHoveredIcon(null)}
           >
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 mr-3 ${
                 hoveredIcon === "github" ? "scale-110" : ""
-              } ${user.github ? "bg-gray-800" : "bg-gray-300"} mr-3`}
+              } ${user.github ? "bg-gray-800" : "bg-gray-300"}`}
             >
               <FaGithub
                 className={`text-white text-xs ${
@@ -635,13 +616,11 @@ const UserInfoSidebar: React.FC<UserInfoSidebarProps> = ({
 
       {isOwnProfile && (
         <div
-          className={`mt-4 pt-2 border-t border-gray-200 transition-all duration-500 
-          ${
+          className={`mt-4 pt-2 border-t border-gray-200 transition-all duration-500 delay-1000 ${
             animateItems
               ? "opacity-100 transform translate-y-0"
               : "opacity-0 transform translate-y-4"
-          } 
-          delay-1000`}
+          }`}
         >
           <div className="flex justify-between mb-1">
             <h4 className="text-sm font-semibold text-gray-700">
@@ -687,4 +666,4 @@ const calculateProfileCompleteness = (user: IUser): number => {
   return Math.round((filledFields / fields.length) * 100);
 };
 
-export default UserInfoSidebar;
+export default UserInfoSide;

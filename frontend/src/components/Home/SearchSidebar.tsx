@@ -126,12 +126,11 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
             console.log("Setting user results:", response.data.users);
             setResults(response.data.users);
           } else if (activeFilter === "tags") {
-            // Backend-ul returnează [{ name: "tag1", postCount: 3 }, ...]
             const formattedTags = response.data.tags.map(
               (tag: { name: string; postCount: number }) => ({
-                _id: tag.name, // Folosim name ca ID
+                _id: tag.name,
                 name: tag.name,
-                postCount: tag.postCount, // Folosim postCount din răspuns
+                postCount: tag.postCount,
               })
             );
             console.log("Setting formatted tag results:", formattedTags);
@@ -264,8 +263,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className={`fixed inset-y-0 bg-white shadow-xl transition-all duration-300 hover:shadow-2xl ease-in-out z-50 ${
-        isOpen ? "right-20 w-80" : "w-0 opacity-0"
+      className={`fixed inset-y-0 bg-white shadow-xl transition-all duration-300 ease-in-out z-50 md:z-50 lg:z-40 ${
+        isOpen
+          ? "right-0 w-full lg:w-80 lg:right-20 opacity-100"
+          : "right-[-100%] w-0 lg:w-0 opacity-0"
       } overflow-hidden flex flex-col`}
       ref={searchRef}
     >

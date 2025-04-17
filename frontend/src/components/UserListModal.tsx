@@ -217,7 +217,7 @@ const UserListModal: React.FC<UserListModalProps> = ({
     targetUserId: string,
     e: React.MouseEvent
   ) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Previne propagarea click-ului către elementul părinte
     if (!currentUser) return;
 
     if (followLoading[targetUserId]) return;

@@ -52,7 +52,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const coverInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Reset form data when user changes
   useEffect(() => {
     setFormData({
       firstname: user.firstname || "",
@@ -86,8 +85,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setProfileImage(file);
-
-      // Create preview
       const reader = new FileReader();
       reader.onload = () => {
         setProfilePreview(reader.result as string);
@@ -100,8 +97,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setCoverImage(file);
-
-      // Create preview
       const reader = new FileReader();
       reader.onload = () => {
         setCoverPreview(reader.result as string);
@@ -123,26 +118,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
     try {
       const updatedData = { ...formData };
-
-      // Upload profile image if changed
       if (profileImage) {
         const uploadResult = await uploadFile(profileImage);
         updatedData.profilePicture = uploadResult.secure_url;
       }
-
-      // Upload cover image if changed
       if (coverImage) {
         const uploadResult = await uploadFile(coverImage);
         updatedData.coverPicture = uploadResult.secure_url;
       }
-
-      // Call API to update user profile
       const updatedUser = await updateUser(user._id, user._id, updatedData);
-
-      // Actualizează starea globală în store
       useAuthStore.getState().updateUserProfile(updatedUser);
-
-      // Propagă actualizarea către componenta părinte
       onProfileUpdate(updatedUser);
       onClose();
     } catch (error) {
@@ -158,7 +143,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   const renderGeneralSection = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             First Name
@@ -168,7 +153,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             name="firstname"
             value={formData.firstname}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
         <div>
@@ -180,7 +165,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             name="lastname"
             value={formData.lastname}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -194,7 +179,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           name="username"
           value={formData.username}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
@@ -207,7 +192,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           name="email"
           value={formData.email}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
@@ -220,7 +205,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           value={formData.about}
           onChange={handleInputChange}
           rows={3}
-          className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
         <p className="text-xs text-gray-500 mt-1">
           Tell people a little about yourself
@@ -237,7 +222,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           value={formData.city}
           onChange={handleInputChange}
           placeholder="City"
-          className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
     </div>
@@ -255,7 +240,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           value={formData.occupation}
           onChange={handleInputChange}
           placeholder="What do you do?"
-          className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
@@ -269,7 +254,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           value={formData.worksAt}
           onChange={handleInputChange}
           placeholder="Company or organization"
-          className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
     </div>
@@ -282,7 +267,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           Instagram
         </label>
         <div className="flex items-center">
-          <span className="bg-gray-100 text-gray-600 px-3 py-2 rounded-l-lg border border-gray-300">
+          <span className="bg-gray-100 text-gray-600 px-2 py-2 rounded-l-lg border border-gray-300 text-sm">
             instagram.com/
           </span>
           <input
@@ -291,7 +276,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             value={formData.instagram}
             onChange={handleInputChange}
             placeholder="username"
-            className="flex-1 px-4 py-2 rounded-r-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-3 py-2 rounded-r-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -301,7 +286,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           Facebook
         </label>
         <div className="flex items-center">
-          <span className="bg-gray-100 text-gray-600 px-3 py-2 rounded-l-lg border border-gray-300">
+          <span className="bg-gray-100 text-gray-600 px-2 py-2 rounded-l-lg border border-gray-300 text-sm">
             facebook.com/
           </span>
           <input
@@ -310,7 +295,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             value={formData.facebook}
             onChange={handleInputChange}
             placeholder="username"
-            className="flex-1 px-4 py-2 rounded-r-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-3 py-2 rounded-r-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -320,7 +305,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           LinkedIn
         </label>
         <div className="flex items-center">
-          <span className="bg-gray-100 text-gray-600 px-3 py-2 rounded-l-lg border border-gray-300">
+          <span className="bg-gray-100 text-gray-600 px-2 py-2 rounded-l-lg border border-gray-300 text-sm">
             linkedin.com/in/
           </span>
           <input
@@ -329,7 +314,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             value={formData.linkedin}
             onChange={handleInputChange}
             placeholder="username"
-            className="flex-1 px-4 py-2 rounded-r-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-3 py-2 rounded-r-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -339,7 +324,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           GitHub
         </label>
         <div className="flex items-center">
-          <span className="bg-gray-100 text-gray-600 px-3 py-2 rounded-l-lg border border-gray-300">
+          <span className="bg-gray-100 text-gray-600 px-2 py-2 rounded-l-lg border border-gray-300 text-sm">
             github.com/
           </span>
           <input
@@ -348,7 +333,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             value={formData.github}
             onChange={handleInputChange}
             placeholder="username"
-            className="flex-1 px-4 py-2 rounded-r-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-3 py-2 rounded-r-lg bg-white border border-gray-300 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -361,7 +346,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         <h4 className="font-medium text-gray-700 mb-2">Profile Picture</h4>
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 bg-white">
+            <div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 rounded-full overflow-hidden border-2 border-gray-200 bg-white">
               {profilePreview ? (
                 <img
                   src={profilePreview}
@@ -369,7 +354,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 text-white text-3xl">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xl sm:text-2xl md:text-3xl">
                   {user.username?.charAt(0).toUpperCase() || "U"}
                 </div>
               )}
@@ -377,11 +362,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <button
               type="button"
               onClick={() => profileInputRef.current?.click()}
-              className="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+              className="absolute bottom-0 right-0 bg-blue-600 text-white p-1 sm:p-1.5 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
+                className="h-3 sm:h-4 w-3 sm:w-4"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -413,7 +398,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
       <div>
         <h4 className="font-medium text-gray-700 mb-2">Cover Photo</h4>
-        <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-white h-40">
+        <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-white h-24 sm:h-32 md:h-40">
           {coverPreview ? (
             <img
               src={coverPreview}
@@ -421,7 +406,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 text-white opacity-70">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 text-white opacity-70 text-sm sm:text-base">
               No cover photo
             </div>
           )}
@@ -429,11 +414,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <button
               type="button"
               onClick={() => coverInputRef.current?.click()}
-              className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors flex items-center"
+              className="bg-blue-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-md hover:bg-blue-700 transition-colors flex items-center text-sm sm:text-base"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1"
+                className="h-4 sm:h-4 w-4 sm:w-4 mr-1"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -461,12 +446,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     </div>
   );
 
-  // Folosim un portal ca să renderăm modalul direct în body, nu în ierarhia normală a componentelor
   return ReactDOM.createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[9999] overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen p-4">
+          <div className="flex items-center justify-center min-h-screen p-2 sm:p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -482,12 +466,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="relative bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden z-[10000]"
+              className="relative bg-white rounded-xl shadow-xl w-full max-w-[95vw] sm:max-w-2xl md:max-w-3xl overflow-hidden z-[10000]"
               style={{ maxHeight: "90vh" }}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600">
-                <h2 className="text-xl font-bold text-white">Edit Profile</h2>
+              <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600">
+                <h2 className="text-lg sm:text-xl font-bold text-white">
+                  Edit Profile
+                </h2>
                 <button
                   type="button"
                   onClick={onClose}
@@ -495,7 +481,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
+                    className="h-5 sm:h-6 w-5 sm:w-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -511,14 +497,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               </div>
 
               {/* Content */}
-              <div className="flex h-[500px]">
-                {/* Sidebar navigation */}
-                <div className="w-56 border-r border-gray-200 p-4">
+              <div className="flex flex-col sm:flex-row sm:h-[500px]">
+                {/* Sidebar navigation (hidden on mobile, replaced with tabs) */}
+                <div className="hidden sm:block w-48 sm:w-56 border-r border-gray-200 p-3 sm:p-4">
                   <nav className="space-y-1">
                     <button
                       type="button"
                       onClick={() => handleChangeSection("general")}
-                      className={`w-full text-left px-3 py-2 rounded-md flex items-center ${
+                      className={`w-full text-left px-3 py-2 rounded-md flex items-center text-sm sm:text-base ${
                         activeSection === "general"
                           ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                           : "text-gray-700 hover:bg-gray-100"
@@ -526,7 +512,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mr-2"
+                        className="h-4 sm:h-5 w-4 sm:w-5 mr-2"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -544,7 +530,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleChangeSection("work")}
-                      className={`w-full text-left px-3 py-2 rounded-md flex items-center ${
+                      className={`w-full text-left px-3 py-2 rounded-md flex items-center text-sm sm:text-base ${
                         activeSection === "work"
                           ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                           : "text-gray-700 hover:bg-gray-100"
@@ -552,7 +538,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mr-2"
+                        className="h-4 sm:h-5 w-4 sm:w-5 mr-2"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -570,7 +556,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleChangeSection("social")}
-                      className={`w-full text-left px-3 py-2 rounded-md flex items-center ${
+                      className={`w-full text-left px-3 py-2 rounded-md flex items-center text-sm sm:text-base ${
                         activeSection === "social"
                           ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                           : "text-gray-700 hover:bg-gray-100"
@@ -578,7 +564,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mr-2"
+                        className="h-4 sm:h-5 w-4 sm:w-5 mr-2"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -596,7 +582,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleChangeSection("appearance")}
-                      className={`w-full text-left px-3 py-2 rounded-md flex items-center ${
+                      className={`w-full text-left px-3 py-2 rounded-md flex items-center text-sm sm:text-base ${
                         activeSection === "appearance"
                           ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                           : "text-gray-700 hover:bg-gray-100"
@@ -604,7 +590,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mr-2"
+                        className="h-4 sm:h-5 w-4 sm:w-5 mr-2"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -621,10 +607,58 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   </nav>
                 </div>
 
+                {/* Mobile tabs navigation */}
+                <div className="sm:hidden flex border-b border-gray-200 overflow-x-auto bg-gray-50">
+                  <button
+                    type="button"
+                    onClick={() => handleChangeSection("general")}
+                    className={`flex-1 px-2 py-2 text-sm ${
+                      activeSection === "general"
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    General
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChangeSection("work")}
+                    className={`flex-1 px-2 py-2 text-sm ${
+                      activeSection === "work"
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    Work
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChangeSection("social")}
+                    className={`flex-1 px-2 py-2 text-sm ${
+                      activeSection === "social"
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    Social
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChangeSection("appearance")}
+                    className={`flex-1 px-2 py-2 text-sm ${
+                      activeSection === "appearance"
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    Appearance
+                  </button>
+                </div>
+
                 {/* Main form area */}
-                <div className="flex-1 p-6 overflow-y-auto">
+                <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
                   {error && (
-                    <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                    <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                       <p>{error}</p>
                     </div>
                   )}
@@ -636,7 +670,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     {activeSection === "appearance" &&
                       renderAppearanceSection()}
 
-                    <div className="mt-6 flex justify-end space-x-3 border-t border-gray-200 pt-4">
+                    <div className="mt-6 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 border-t border-gray-200 pt-4">
                       <button
                         type="button"
                         onClick={onClose}
@@ -686,7 +720,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         </div>
       )}
     </AnimatePresence>,
-    document.body // Montăm direct în body, nu în containerul componentei
+    document.body
   );
 };
 

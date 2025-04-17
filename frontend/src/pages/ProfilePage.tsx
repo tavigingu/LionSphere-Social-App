@@ -15,6 +15,7 @@ import StoryViewer from "../components/Home/StoryViewer";
 import { IUser } from "../types/AuthTypes";
 import { IPost } from "../types/PostTypes";
 import { followUser, unfollowUser, checkFollowStatus } from "../api/User";
+import { motion } from "framer-motion";
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -48,7 +49,6 @@ const ProfilePage: React.FC = () => {
   const targetUserId = userId || currentUser?._id;
   const postCount = userPosts.length;
 
-  // Funcția pentru a încărca datele profilului
   const fetchProfileData = useCallback(async () => {
     if (!targetUserId) return;
 
@@ -57,7 +57,6 @@ const ProfilePage: React.FC = () => {
       const userResponse = await axios.get(
         `http://localhost:5001/user/${targetUserId}`
       );
-
       if (userResponse.data.success) {
         const userData = userResponse.data.user;
         setProfileUser(userData);
@@ -69,7 +68,6 @@ const ProfilePage: React.FC = () => {
         const postsResponse = await axios.get(
           `http://localhost:5001/post/${targetUserId}/posts`
         );
-
         if (postsResponse.data.success) {
           const userPosts = postsResponse.data.posts.filter(
             (post: IPost) => post.userId === targetUserId
@@ -82,10 +80,7 @@ const ProfilePage: React.FC = () => {
           setSavedPosts(usePostStore.getState().savedPosts);
         }
 
-        // Fetch tagged posts
         await fetchTaggedPosts(targetUserId);
-
-        // Încărcăm story-urile pentru utilizator
         await fetchStories(targetUserId);
       } else {
         setError("Failed to fetch user data");
@@ -110,7 +105,6 @@ const ProfilePage: React.FC = () => {
       navigate("/login");
       return;
     }
-
     fetchProfileData();
   }, [targetUserId, navigate, fetchProfileData]);
 
@@ -129,7 +123,6 @@ const ProfilePage: React.FC = () => {
     async (postId: string) => {
       if (currentUser && currentUser._id) {
         await likeSinglePost(postId, currentUser._id);
-
         const updatePostsWithLike = (posts: IPost[]) =>
           posts.map((post) => {
             if (post._id === postId) {
@@ -149,7 +142,6 @@ const ProfilePage: React.FC = () => {
         } else if (activeTab === "saved") {
           setSavedPosts(updatePostsWithLike(savedPosts));
         }
-        // Pentru taggedPosts folosim starea direct din store
 
         if (selectedPost && selectedPost._id === postId) {
           const isLiked = selectedPost.likes.includes(currentUser._id);
@@ -176,7 +168,6 @@ const ProfilePage: React.FC = () => {
     async (postId: string) => {
       if (currentUser && currentUser._id) {
         await savePostFunction(postId, currentUser._id);
-
         if (activeTab === "posts") {
           const updatedPosts = userPosts.map((post) => {
             if (post._id === postId) {
@@ -248,16 +239,14 @@ const ProfilePage: React.FC = () => {
 
   const handleFollowToggle = useCallback(async () => {
     if (!currentUser || !profileUser) return;
-
     setFollowLoading(true);
     try {
       if (isFollowing) {
         await unfollowUser(profileUser._id, currentUser._id);
-        // Actualizăm fără a declanșa un re-render complet
         setProfileUser((prev) => {
           if (!prev) return prev;
           const followers = Array.isArray(prev.followers)
-            ? ([...prev.followers] as string[])
+            ? [...prev.followers]
             : [];
           const updatedFollowers = followers.filter(
             (id) => id !== currentUser._id
@@ -269,7 +258,7 @@ const ProfilePage: React.FC = () => {
         setProfileUser((prev) => {
           if (!prev) return prev;
           const followers = Array.isArray(prev.followers)
-            ? ([...prev.followers] as string[])
+            ? [...prev.followers]
             : [];
           return { ...prev, followers: [...followers, currentUser._id] };
         });
@@ -313,7 +302,6 @@ const ProfilePage: React.FC = () => {
     setActiveStoryIndex(storyIndex);
   }, []);
 
-  // Memorăm props-urile pentru a preveni re-renderizări inutile
   const profileHeaderProps = useMemo(
     () => ({
       user: profileUser,
@@ -322,14 +310,16 @@ const ProfilePage: React.FC = () => {
       isFollowing,
       onProfileUpdate: handleProfileUpdate,
       onFollowToggle: handleFollowToggle,
+      onStoryClick: handleStoryClick,
     }),
     [
-      profileUser, // Include obiectul întreg ca dependență
+      profileUser,
       isOwnProfile,
       postCount,
       isFollowing,
       handleProfileUpdate,
       handleFollowToggle,
+      handleStoryClick,
     ]
   );
 
@@ -339,14 +329,9 @@ const ProfilePage: React.FC = () => {
       isOwnProfile,
       onProfileUpdate: handleProfileUpdate,
     }),
-    [
-      profileUser, // Include obiectul întreg ca dependență
-      isOwnProfile,
-      handleProfileUpdate,
-    ]
+    [profileUser, isOwnProfile, handleProfileUpdate]
   );
 
-  // Obține postările care trebuie afișate în funcție de tabul activ
   const displayPosts = useMemo(() => {
     if (activeTab === "posts") return userPosts;
     if (activeTab === "saved") return savedPosts;
@@ -357,10 +342,9 @@ const ProfilePage: React.FC = () => {
     return (
       <div className="relative min-h-screen text-white">
         <Background />
-        <div className="container mx-auto px-4 py-8 relative z-10 flex justify-center items-center h-screen">
+        <div className="container mx-auto px-4 py-8 flex justify-center items-center h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-        <Dashboard />
       </div>
     );
   }
@@ -369,7 +353,7 @@ const ProfilePage: React.FC = () => {
     return (
       <div className="relative min-h-screen text-white">
         <Background />
-        <div className="container mx-auto px-4 py-8 relative z-10 flex justify-center items-center h-screen">
+        <div className="container mx-auto px-4 py-8 flex justify-center items-center h-screen">
           <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl text-center">
             <h2 className="text-2xl font-bold mb-4">Error</h2>
             <p>{error || "User not found"}</p>
@@ -381,7 +365,6 @@ const ProfilePage: React.FC = () => {
             </button>
           </div>
         </div>
-        <Dashboard />
       </div>
     );
   }
@@ -389,30 +372,24 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="relative min-h-screen text-white">
       <Background />
-
-      <div className="container mx-auto px-4 py-4 relative z-10 lg:pr-96 lg:ml-48">
-        <div className="flex flex-col lg:flex-row">
-          {/* <div className="hidden lg:block lg:w-80 mb-6 lg:mb-2">
-            <div className="lg:sticky lg:top-4">
-              <UserInfoSidebar {...userInfoSidebarProps} />
-            </div>
-          </div> */}
-          <div className="hidden lg:block lg:w-72 mb-6 lg:mb-0 lg:-mr-44">
-            <div className="space-y-6">
-              <UserInfoSidebar {...userInfoSidebarProps} />
-            </div>
+      <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col lg:flex-row">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col lg:flex-row">
+          <div className="hidden lg:block lg:w-72 lg:mr-6">
+            <UserInfoSidebar {...userInfoSidebarProps} />
           </div>
 
-          <div className="w-full lg:flex-1 mx-0 lg:mx-6">
-            <div className="max-w-2xl mx-auto">
-              <div className="px-0">
-                <ProfileHeader
-                  {...profileHeaderProps}
-                  onStoryClick={handleStoryClick}
-                />
+          <div className="w-full lg:flex-1">
+            <div className="max-w-3xl mx-auto">
+              <div className="mb-6 lg:-ml-4">
+                <ProfileHeader {...profileHeaderProps} />
               </div>
 
-              <div className="mt-6">
+              <div className="md:block lg:hidden mb-6">
+                <UserInfoSidebar {...userInfoSidebarProps} />
+              </div>
+
+              <div>
                 <div className="flex mb-2">
                   <button
                     onClick={() => handleTabChange("posts")}
@@ -448,19 +425,65 @@ const ProfilePage: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="mt-2">
+                <div className="mt-8">
                   {displayPosts.length === 0 ? (
-                    <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-center">
-                      <p className="text-white">
-                        {activeTab === "posts"
-                          ? isOwnProfile
-                            ? "You haven't created any posts yet."
-                            : "This user hasn't created any posts yet."
-                          : activeTab === "saved"
-                          ? "You haven't saved any posts yet."
-                          : "This user hasn't been tagged in any posts yet."}
-                      </p>
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="text-center p-4 max-w-md mx-auto rounded-xl bg-gradient-to-r from-white/20 to-purple-500/20 backdrop-blur-sm shadow-lg border border-purple-300/30"
+                    >
+                      <div className="bg-gradient-to-br from-blue-400/20 to-purple-400/20 p-4 rounded-lg">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-12 w-12 mx-auto mb-3 text-purple-300"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          {activeTab === "posts" ? (
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          ) : activeTab === "saved" ? (
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                            />
+                          ) : (
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                            />
+                          )}
+                        </svg>
+                        <h2 className="text-xl font-bold text-white mb-2">
+                          {activeTab === "posts"
+                            ? isOwnProfile
+                              ? "No Posts Yet"
+                              : "This user hasn't posted yet"
+                            : activeTab === "saved"
+                            ? "No Saved Posts"
+                            : "No Tagged Posts"}
+                        </h2>
+                        <p className="text-purple-400 text-sm">
+                          {activeTab === "posts"
+                            ? isOwnProfile
+                              ? "Connect with friends through your posts"
+                              : "Check back later to see this user's posts"
+                            : activeTab === "saved"
+                            ? "Save posts you like to view them later"
+                            : "Posts where this user is tagged will appear here"}
+                        </p>
+                      </div>
+                    </motion.div>
                   ) : (
                     <div>
                       <PostGrid
@@ -469,7 +492,6 @@ const ProfilePage: React.FC = () => {
                         onViewModeChange={handleViewModeChange}
                         onPostClick={handlePostClick}
                       />
-
                       {viewMode === "list" && (
                         <div className="space-y-6 mt-2">
                           {displayPosts.map((post) => (
@@ -504,10 +526,61 @@ const ProfilePage: React.FC = () => {
                       )}
                     </div>
                   )}
+                  {/* Footer Section */}
+                  <div className="mt-8">
+                    <div className="border-t border-gray-200 my-4"></div>
+                    <div className="px-3">
+                      <div className="flex flex-wrap gap-1 text-xs text-gray-300 justify-center">
+                        <a
+                          href="/about"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          About
+                        </a>
+                        <span>·</span>
+                        <a
+                          href="/privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          Privacy Policy
+                        </a>
+                        <span>·</span>
+                        <a
+                          href="/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          Terms of Service
+                        </a>
+                        <span>·</span>
+                        <a
+                          href="/contact"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          Contact
+                        </a>
+                      </div>
+                      <p className="text-xs text-gray-300 mt-2 text-center">
+                        © 2025 LIONSHPERE BY TAVI GINGU
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Dashboard */}
+        <div className="hidden lg:block lg:w-80">
+          <Dashboard />
         </div>
       </div>
 
@@ -520,7 +593,7 @@ const ProfilePage: React.FC = () => {
         />
       )}
 
-      {/* {activeStoryIndex !== null && storyGroups[activeStoryIndex] && (
+      {activeStoryIndex !== null && storyGroups[activeStoryIndex] && (
         <StoryViewer
           storyGroup={storyGroups[activeStoryIndex]}
           onClose={() => {
@@ -528,9 +601,7 @@ const ProfilePage: React.FC = () => {
             setActiveStoryGroup(null);
           }}
         />
-      )} */}
-
-      <Dashboard />
+      )}
     </div>
   );
 };

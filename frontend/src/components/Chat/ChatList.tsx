@@ -20,17 +20,17 @@ const ChatList: React.FC<ChatListProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <div className="animate-pulse">
           {[...Array(5)].map((_, index) => (
             <div
               key={index}
-              className="flex items-center py-3 border-b border-purple-100/30"
+              className="flex items-center py-2 sm:py-3 border-b border-purple-100/30"
             >
-              <div className="w-12 h-12 bg-purple-200/30 rounded-full mr-3"></div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-200/30 rounded-full mr-2 sm:mr-3"></div>
               <div className="flex-grow">
-                <div className="h-4 bg-purple-200/30 rounded w-1/2 mb-2"></div>
-                <div className="h-3 bg-purple-200/30 rounded w-3/4"></div>
+                <div className="h-3 sm:h-4 bg-purple-200/30 rounded w-1/2 mb-1 sm:mb-2"></div>
+                <div className="h-2 sm:h-3 bg-purple-200/30 rounded w-3/4"></div>
               </div>
             </div>
           ))}
@@ -41,10 +41,12 @@ const ChatList: React.FC<ChatListProps> = ({
 
   if (chats.length === 0) {
     return (
-      <div className="p-6 text-center">
-        <div className="p-6 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm border border-purple-100/30">
-          <p className="text-gray-700 font-medium">No conversations yet</p>
-          <p className="text-sm text-gray-500 mt-1">
+      <div className="p-4 sm:p-6 text-center">
+        <div className="p-4 sm:p-6 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm border border-purple-100/30">
+          <p className="text-gray-700 font-medium text-sm sm:text-base">
+            No conversations yet
+          </p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
             Start a new chat to begin messaging
           </p>
         </div>
@@ -103,7 +105,7 @@ const ChatList: React.FC<ChatListProps> = ({
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ backgroundColor: "rgba(139, 92, 246, 0.05)" }}
             onClick={() => onChatSelect(chat)}
-            className={`flex items-center p-3 cursor-pointer transition-all ${
+            className={`flex items-center p-2 sm:p-3 cursor-pointer transition-all ${
               isActive
                 ? "bg-gradient-to-r from-blue-100/50 to-purple-100/50 border-l-4 border-purple-500"
                 : "hover:border-l-4 hover:border-purple-300 border-l-4 border-transparent"
@@ -111,7 +113,7 @@ const ChatList: React.FC<ChatListProps> = ({
           >
             {/* Avatar with online indicator */}
             <div className="relative">
-              <div className="w-12 h-12 rounded-full overflow-hidden border border-purple-100 shadow-md">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border border-purple-100 shadow-md">
                 {otherParticipant.profilePicture ? (
                   <img
                     src={otherParticipant.profilePicture}
@@ -125,17 +127,17 @@ const ChatList: React.FC<ChatListProps> = ({
                 )}
               </div>
               {isOnline && (
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
               )}
             </div>
 
             {/* Chat info */}
-            <div className="ml-3 flex-grow overflow-hidden">
+            <div className="ml-2 sm:ml-3 flex-grow overflow-hidden">
               <div className="flex justify-between items-center">
                 <h3
                   className={`font-semibold ${
                     isActive ? "text-purple-800" : "text-gray-800"
-                  } truncate`}
+                  } truncate text-sm sm:text-base`}
                 >
                   {otherParticipant.username}
                 </h3>
@@ -148,7 +150,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
               <div className="flex items-center">
                 <p
-                  className={`text-sm truncate mr-2 ${
+                  className={`text-xs sm:text-sm truncate mr-2 ${
                     chat.unreadCount > 0
                       ? "text-gray-800 font-medium"
                       : "text-gray-500"
@@ -165,7 +167,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
                 {/* Unread count badge */}
                 {chat.unreadCount > 0 && (
-                  <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                  <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shadow-sm">
                     {chat.unreadCount > 9 ? "9+" : chat.unreadCount}
                   </span>
                 )}

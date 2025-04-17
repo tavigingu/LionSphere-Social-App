@@ -66,7 +66,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
       {/* Show sender info (avatar and time) if needed */}
       {showSenderInfo && !isCurrentUser && (
         <div className="flex items-center mb-1">
-          <div className="w-6 h-6 rounded-full overflow-hidden mr-1 border border-purple-100 shadow-sm">
+          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden mr-1 border border-purple-100 shadow-sm">
             {otherUser.profilePicture ? (
               <img
                 src={otherUser.profilePicture}
@@ -93,11 +93,11 @@ const MessageItem: React.FC<MessageItemProps> = ({
 
       {/* Message bubble */}
       <div
-        className={`px-4 py-2 rounded-2xl max-w-xs sm:max-w-sm break-words shadow-sm ${
+        className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl max-w-[75%] sm:max-w-xs md:max-w-sm break-words shadow-sm ${
           isCurrentUser
             ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-tr-none"
             : "bg-white border border-purple-100/40 text-gray-800 rounded-tl-none"
-        } ${message.failed ? "opacity-75" : ""}`}
+        } ${message.failed ? "opacity-75" : ""} text-sm sm:text-base`}
       >
         {/* If message was deleted */}
         {message.text === "This message was deleted" ? (
@@ -119,7 +119,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
           <img
             src={message.image}
             alt="Message attachment"
-            className="max-w-xs sm:max-w-sm max-h-60 object-contain"
+            className="max-w-[75%] sm:max-w-xs md:max-w-sm max-h-60 object-contain"
           />
         </div>
       )}

@@ -11,12 +11,12 @@ const NewChatButton: React.FC<NewChatButtonProps> = ({ onClick }) => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full hover:shadow-md transition-all shadow-sm"
+      className="p-1.5 sm:p-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full hover:shadow-md transition-all shadow-sm"
       title="Start a new conversation"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
+        className="h-4 w-4 sm:h-5 sm:w-5"
         viewBox="0 0 20 20"
         fill="currentColor"
       >

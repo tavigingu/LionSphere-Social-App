@@ -145,9 +145,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
   if (!chat || !chat.participants || chat.participants.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-center p-6">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading conversation...</p>
+        <div className="text-center p-4 sm:p-6">
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm sm:text-base">
+            Loading conversation...
+          </p>
         </div>
       </div>
     );
@@ -161,24 +163,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
       {/* Messages Container */}
       <div
         ref={messageContainerRef}
-        className="flex-grow overflow-y-auto px-4 py-2 bg-gradient-to-b from-blue-50/70 to-purple-50/70"
+        className="flex-grow overflow-y-auto px-2 sm:px-4 py-2 bg-gradient-to-b from-blue-50/70 to-purple-50/70"
         onScroll={handleScrollTop}
       >
         {messagesLoading && chatMessages.length === 0 ? (
           <div className="flex justify-center items-center h-full">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
+            <div className="animate-spin h-6 w-6 sm:h-8 sm:w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
           </div>
         ) : (
           <>
             {/* Loading indicator for pagination */}
             {messagesLoading && (
               <div className="flex justify-center py-2">
-                <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
               </div>
             )}
 
             {/* Messages list */}
-            <div className="space-y-2 py-2">
+            <div className="space-y-1 sm:space-y-2 py-1 sm:py-2">
               {chatMessages.map((message, index) => {
                 const isCurrentUser = message.senderId === currentUser._id;
                 const previousMessage =
@@ -220,14 +222,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUser }) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-20 right-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+              className="absolute bottom-16 sm:bottom-20 right-3 sm:right-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-1.5 sm:p-2 rounded-full shadow-lg hover:shadow-xl transition-shadow"
               onClick={() =>
                 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
               }
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="h-4 w-4 sm:h-5 sm:w-5"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >

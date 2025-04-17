@@ -31,8 +31,8 @@ const ChatPage: React.FC = () => {
     <div className="relative min-h-screen text-gray-800">
       <Background />
 
-      {/* Full-height chat container that goes to the edges */}
-      <div className="relative z-10 h-screen pt-4 pb-4 pr-96">
+      {/* Full-height chat container that's responsive */}
+      <div className="relative z-10 h-screen pt-4 pb-4 pr-0 md:pr-6 lg:pr-96 px-4 md:px-6">
         <div className="h-full rounded-xl overflow-hidden shadow-xl">
           <ChatContainer />
         </div>

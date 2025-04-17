@@ -314,7 +314,7 @@ const StatisticsPage: React.FC = () => {
       );
     }
     return (
-      <span className="text-gray-500 flex items-center">
+      <span className="text-gray-700 flex items-center">
         <FaEquals className="mr-1" />
         0%
       </span>
@@ -330,7 +330,7 @@ const StatisticsPage: React.FC = () => {
           <div className="flex justify-center items-center h-screen">
             <div className="flex flex-col items-center">
               <div className="animate-spin w-12 h-12 border-4 border-t-blue-500 border-blue-200 rounded-full"></div>
-              <p className="mt-4 text-lg text-white">
+              <p className="mt-4 text-lg text-gray-800">
                 Loading your statistics...
               </p>
             </div>
@@ -350,10 +350,10 @@ const StatisticsPage: React.FC = () => {
           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-white">
+                <h1 className="text-2xl font-bold text-gray-800">
                   Account Statistics
                 </h1>
-                <p className="text-gray-300 mt-1">
+                <p className="text-gray-500 mt-1">
                   Track your growth and engagement
                 </p>
               </div>
@@ -363,8 +363,8 @@ const StatisticsPage: React.FC = () => {
                     onClick={() => setTimeframe("week")}
                     className={`px-4 py-2 rounded-md text-sm font-medium ${
                       timeframe === "week"
-                        ? "bg-blue-500 text-white"
-                        : "text-white hover:bg-white/10"
+                        ? "bg-blue-500 text-gray-800"
+                        : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
                     Week
@@ -373,8 +373,8 @@ const StatisticsPage: React.FC = () => {
                     onClick={() => setTimeframe("month")}
                     className={`px-4 py-2 rounded-md text-sm font-medium ${
                       timeframe === "month"
-                        ? "bg-blue-500 text-white"
-                        : "text-white hover:bg-white/10"
+                        ? "bg-blue-500 text-gray-800"
+                        : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
                     Month
@@ -383,8 +383,8 @@ const StatisticsPage: React.FC = () => {
                     onClick={() => setTimeframe("year")}
                     className={`px-4 py-2 rounded-md text-sm font-medium ${
                       timeframe === "year"
-                        ? "bg-blue-500 text-white"
-                        : "text-white hover:bg-white/10"
+                        ? "bg-blue-500 text-gray-800"
+                        : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
                     Year
@@ -400,8 +400,8 @@ const StatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-300 text-sm">Followers</p>
-                  <h3 className="text-3xl font-bold text-white mt-1">
+                  <p className="text-gray-500 text-sm">Followers</p>
+                  <h3 className="text-3xl font-bold text-gray-800 mt-1">
                     {stats.compareStats.followers.current}
                   </h3>
                 </div>
@@ -411,7 +411,7 @@ const StatisticsPage: React.FC = () => {
               </div>
               <div className="mt-2 text-sm">
                 {renderChangeIndicator(stats.compareStats.followers.change)}
-                <span className="text-gray-300 ml-1">
+                <span className="text-gray-500 ml-1">
                   vs previous {timeframe}
                 </span>
               </div>
@@ -421,8 +421,8 @@ const StatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-300 text-sm">Total Likes</p>
-                  <h3 className="text-3xl font-bold text-white mt-1">
+                  <p className="text-gray-500 text-sm">Total Likes</p>
+                  <h3 className="text-3xl font-bold text-gray-800 mt-1">
                     {stats.compareStats.likes.current}
                   </h3>
                 </div>
@@ -432,7 +432,7 @@ const StatisticsPage: React.FC = () => {
               </div>
               <div className="mt-2 text-sm">
                 {renderChangeIndicator(stats.compareStats.likes.change)}
-                <span className="text-gray-300 ml-1">
+                <span className="text-gray-500 ml-1">
                   vs previous {timeframe}
                 </span>
               </div>
@@ -442,8 +442,8 @@ const StatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-300 text-sm">Comments</p>
-                  <h3 className="text-3xl font-bold text-white mt-1">
+                  <p className="text-gray-500 text-sm">Comments</p>
+                  <h3 className="text-3xl font-bold text-gray-800 mt-1">
                     {stats.compareStats.comments.current}
                   </h3>
                 </div>
@@ -453,7 +453,7 @@ const StatisticsPage: React.FC = () => {
               </div>
               <div className="mt-2 text-sm">
                 {renderChangeIndicator(stats.compareStats.comments.change)}
-                <span className="text-gray-300 ml-1">
+                <span className="text-gray-500 ml-1">
                   vs previous {timeframe}
                 </span>
               </div>
@@ -463,8 +463,8 @@ const StatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-300 text-sm">Total Views</p>
-                  <h3 className="text-3xl font-bold text-white mt-1">
+                  <p className="text-gray-500 text-sm">Total Views</p>
+                  <h3 className="text-3xl font-bold text-gray-800 mt-1">
                     {stats.compareStats.views.current}
                   </h3>
                 </div>
@@ -474,7 +474,7 @@ const StatisticsPage: React.FC = () => {
               </div>
               <div className="mt-2 text-sm">
                 {renderChangeIndicator(stats.compareStats.views.change)}
-                <span className="text-gray-300 ml-1">
+                <span className="text-gray-500 ml-1">
                   vs previous {timeframe}
                 </span>
               </div>
@@ -485,7 +485,7 @@ const StatisticsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Follower Growth Chart */}
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaChartBar className="mr-2 text-blue-400" />
                 Follower Growth
               </h2>
@@ -515,21 +515,21 @@ const StatisticsPage: React.FC = () => {
                         />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
                     <XAxis
                       dataKey="date"
-                      stroke="#9CA3AF"
-                      tick={{ fill: "#D1D5DB" }}
+                      stroke="#374151"
+                      tick={{ fill: "#4B5563" }}
                     />
-                    <YAxis stroke="#9CA3AF" tick={{ fill: "#D1D5DB" }} />
+                    <YAxis stroke="#374151" tick={{ fill: "#4B5563" }} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "rgba(30, 41, 59, 0.9)",
                         borderColor: "#4B5563",
-                        color: "white",
+                        color: "#4B5563",
                       }}
-                      itemStyle={{ color: "#D1D5DB" }}
-                      labelStyle={{ color: "white" }}
+                      itemStyle={{ color: "#4B5563" }}
+                      labelStyle={{ color: "#4B5563" }}
                     />
                     <Area
                       type="monotone"
@@ -545,7 +545,7 @@ const StatisticsPage: React.FC = () => {
 
             {/* Post Engagement Chart */}
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaHeart className="mr-2 text-purple-400" />
                 Post Engagement
               </h2>
@@ -555,21 +555,21 @@ const StatisticsPage: React.FC = () => {
                     data={stats.postEngagement}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
                     <XAxis
                       dataKey="date"
-                      stroke="#9CA3AF"
-                      tick={{ fill: "#D1D5DB" }}
+                      stroke="#374151"
+                      tick={{ fill: "#4B5563" }}
                     />
-                    <YAxis stroke="#9CA3AF" tick={{ fill: "#D1D5DB" }} />
+                    <YAxis stroke="#374151" tick={{ fill: "#4B5563" }} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "rgba(30, 41, 59, 0.9)",
                         borderColor: "#4B5563",
-                        color: "white",
+                        color: "#4B5563",
                       }}
-                      itemStyle={{ color: "#D1D5DB" }}
-                      labelStyle={{ color: "white" }}
+                      itemStyle={{ color: "#4B5563" }}
+                      labelStyle={{ color: "#4B5563" }}
                     />
                     <Legend />
                     <Line
@@ -590,7 +590,7 @@ const StatisticsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Posts by Day of Week */}
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaCalendarAlt className="mr-2 text-yellow-400" />
                 Posts by Day of Week
               </h2>
@@ -602,23 +602,23 @@ const StatisticsPage: React.FC = () => {
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="#374151"
+                      stroke="#1F2937"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="day"
-                      stroke="#9CA3AF"
-                      tick={{ fill: "#D1D5DB" }}
+                      stroke="#374151"
+                      tick={{ fill: "#4B5563" }}
                     />
-                    <YAxis stroke="#9CA3AF" tick={{ fill: "#D1D5DB" }} />
+                    <YAxis stroke="#374151" tick={{ fill: "#4B5563" }} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "rgba(30, 41, 59, 0.9)",
                         borderColor: "#4B5563",
-                        color: "white",
+                        color: "#4B5563",
                       }}
-                      itemStyle={{ color: "#D1D5DB" }}
-                      labelStyle={{ color: "white" }}
+                      itemStyle={{ color: "#4B5563" }}
+                      labelStyle={{ color: "#4B5563" }}
                     />
                     <Bar
                       dataKey="count"
@@ -633,7 +633,7 @@ const StatisticsPage: React.FC = () => {
 
             {/* Engagement by Type */}
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaEye className="mr-2 text-green-400" />
                 Engagement by Type
               </h2>
@@ -660,10 +660,10 @@ const StatisticsPage: React.FC = () => {
                       contentStyle={{
                         backgroundColor: "rgba(30, 41, 59, 0.9)",
                         borderColor: "#4B5563",
-                        color: "white",
+                        color: "#4B5563",
                       }}
-                      itemStyle={{ color: "#D1D5DB" }}
-                      labelStyle={{ color: "white" }}
+                      itemStyle={{ color: "#4B5563" }}
+                      labelStyle={{ color: "#4B5563" }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -675,7 +675,7 @@ const StatisticsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Top Posts */}
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaBookmark className="mr-2 text-purple-400" />
                 Top Performing Posts
               </h2>
@@ -684,16 +684,16 @@ const StatisticsPage: React.FC = () => {
                   <table className="min-w-full divide-y divide-gray-600">
                     <thead className="bg-gray-800/40">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Date
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Likes
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Comments
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Saves
                         </th>
                       </tr>
@@ -704,22 +704,22 @@ const StatisticsPage: React.FC = () => {
                           key={post.postId || index.toString()}
                           className="hover:bg-white/5"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {post.date}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             <span className="flex items-center">
                               <FaHeart className="text-blue-500 mr-2" />
                               {post.likes}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             <span className="flex items-center">
                               <FaComment className="text-purple-500 mr-2" />
                               {post.comments}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             <span className="flex items-center">
                               <FaBookmark className="text-green-500 mr-2" />
                               {post.saves}
@@ -735,7 +735,7 @@ const StatisticsPage: React.FC = () => {
 
             {/* Best Time to Post */}
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaClock className="mr-2 text-blue-400" />
                 Best Time to Post
               </h2>
@@ -765,21 +765,21 @@ const StatisticsPage: React.FC = () => {
                         />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
                     <XAxis
                       dataKey="time"
-                      stroke="#9CA3AF"
-                      tick={{ fill: "#D1D5DB" }}
+                      stroke="#374151"
+                      tick={{ fill: "#4B5563" }}
                     />
-                    <YAxis stroke="#9CA3AF" tick={{ fill: "#D1D5DB" }} />
+                    <YAxis stroke="#374151" tick={{ fill: "#4B5563" }} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "rgba(30, 41, 59, 0.9)",
                         borderColor: "#4B5563",
-                        color: "white",
+                        color: "#4B5563",
                       }}
-                      itemStyle={{ color: "#D1D5DB" }}
-                      labelStyle={{ color: "white" }}
+                      itemStyle={{ color: "#4B5563" }}
+                      labelStyle={{ color: "#4B5563" }}
                     />
                     <Area
                       type="monotone"
@@ -791,16 +791,16 @@ const StatisticsPage: React.FC = () => {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div className="text-center text-sm text-gray-300 mt-2">
+              <div className="text-center text-sm text-gray-500 mt-2">
                 Optimal posting time:{" "}
-                <span className="font-bold text-white">18:00 - 21:00</span>
+                <span className="font-bold text-gray-800">18:00 - 21:00</span>
               </div>
             </div>
           </div>
 
           {/* Tips Section */}
           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-6">
-            <h2 className="text-lg font-semibold text-white mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
               Personalized Tips
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -808,7 +808,7 @@ const StatisticsPage: React.FC = () => {
                 <h3 className="text-blue-400 font-medium mb-2">
                   Grow your audience
                 </h3>
-                <p className="text-gray-300 text-sm">
+                <p className="text-gray-500 text-sm">
                   Try posting more consistently on Fridays when your engagement
                   is highest.
                 </p>
@@ -817,7 +817,7 @@ const StatisticsPage: React.FC = () => {
                 <h3 className="text-purple-400 font-medium mb-2">
                   Boost engagement
                 </h3>
-                <p className="text-gray-300 text-sm">
+                <p className="text-gray-500 text-sm">
                   Your photos with people get 38% more comments. Consider adding
                   more personal content.
                 </p>
@@ -826,7 +826,7 @@ const StatisticsPage: React.FC = () => {
                 <h3 className="text-green-400 font-medium mb-2">
                   Optimize content
                 </h3>
-                <p className="text-gray-300 text-sm">
+                <p className="text-gray-500 text-sm">
                   Posts with 3-5 hashtags perform better. Try to keep your
                   captions between 70-100 characters.
                 </p>
@@ -835,7 +835,7 @@ const StatisticsPage: React.FC = () => {
                 <h3 className="text-yellow-400 font-medium mb-2">
                   Best time to post
                 </h3>
-                <p className="text-gray-300 text-sm">
+                <p className="text-gray-500 text-sm">
                   Based on your audience's activity, try posting between 6-8pm
                   for maximum reach.
                 </p>
@@ -845,20 +845,20 @@ const StatisticsPage: React.FC = () => {
 
           {/* Export Section */}
           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-8 text-center">
-            <h2 className="text-lg font-semibold text-white mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
               Export Your Data
             </h2>
-            <p className="text-gray-300 mb-4">
+            <p className="text-gray-500 mb-4">
               Download your statistics for personal analysis or reporting
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition-colors">
+              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-gray-800 font-medium transition-colors">
                 Export as PDF
               </button>
-              <button className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium transition-colors">
+              <button className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-gray-800 font-medium transition-colors">
                 Export as CSV
               </button>
-              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-medium transition-colors">
+              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-gray-800 font-medium transition-colors">
                 Schedule Weekly Report
               </button>
             </div>

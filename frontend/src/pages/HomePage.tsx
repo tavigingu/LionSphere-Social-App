@@ -28,7 +28,6 @@ const HomePage: React.FC = () => {
     error: storiesError,
   } = useStoryStore();
 
-  // Fetch posts and stories when the component mounts
   useEffect(() => {
     if (user && user._id) {
       console.log("Fetching timeline posts and stories for user:", user._id);
@@ -37,7 +36,6 @@ const HomePage: React.FC = () => {
     }
   }, [user, fetchTimelinePosts, fetchStories]);
 
-  // Log for debugging
   useEffect(() => {
     console.log("Active story group in HomePage:", activeStoryGroup);
   }, [activeStoryGroup]);
@@ -58,11 +56,11 @@ const HomePage: React.FC = () => {
     <div className="relative min-h-screen text-white">
       <Background />
 
-      {/* Main content with adjusted padding */}
-      <div className="container mx-auto px-4 py-4 relative z-10 lg:pr-80 lg:ml-40">
-        <div className="max-w-5xl mx-auto flex flex-col lg:flex-row lg:gap-2">
-          {/* Left sidebar with profile - hidden on mobile */}
-          <div className="hidden lg:block lg:w-72 mb-6 lg:mb-0 mr-6">
+      {/* Main content with responsive padding */}
+      <div className="container mx-auto px-4 py-4 relative z-10 sm:px-6 md:px-8 lg:pr-80 lg:ml-10 xl:ml-20">
+        <div className="max-w-5xl mx-auto flex flex-col lg:flex-row lg:gap-4">
+          {/* Left sidebar with profile - hidden on mobile, adjusted for tablets */}
+          <div className="hidden lg:block lg:w-64 xl:w-72 mb-6 lg:mb-0 mr-4">
             <div className="space-y-6">
               <ProfileSide />
               <PeopleYouMayKnow />
@@ -70,10 +68,9 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Main content - middle column */}
-          <div className="w-full lg:flex-1 mx-0 lg:mx-0 lg:-ml-4 lg:mr-32">
+          <div className="w-full lg:flex-1 mx-0 lg:mx-0 lg:-ml-2 lg:mr-28 xl:mr-32">
             {/* Main content wrapper with consistent width */}
             <div className="max-w-xl mx-auto">
-              {/* Display loading or error state for stories */}
               {storiesLoading && (
                 <div className="flex justify-center items-center p-3 mb-6">
                   <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500"></div>
@@ -91,24 +88,20 @@ const HomePage: React.FC = () => {
                 </div>
               )}
 
-              {/* Add Stories Component */}
               <StoryCircles />
 
-              {/* Loading indicator for posts */}
               {postsLoading && (
                 <div className="flex justify-center items-center p-3">
                   <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
               )}
 
-              {/* Error message for posts */}
               {postsError && (
                 <div className="bg-red-400 bg-opacity-20 text-white p-3 rounded-lg mb-6">
                   <p>Eroare la încărcarea postărilor: {postsError}</p>
                 </div>
               )}
 
-              {/* Message when no posts */}
               {!postsLoading && timelinePosts.length === 0 ? (
                 <div className="text-center p-5 mb-6 backdrop-blur-sm bg-white/5 rounded-xl">
                   <p className="text-base text-gray-300">
@@ -119,7 +112,6 @@ const HomePage: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                /* Post list */
                 <div className="space-y-6">
                   {timelinePosts.map((post) => (
                     <PostCard
@@ -143,6 +135,52 @@ const HomePage: React.FC = () => {
                       }
                     />
                   ))}
+                  {/* Footer Section */}
+                  <div className="mt-8">
+                    <div className="border-t border-gray-200 my-4"></div>
+                    <div className="px-3">
+                      <div className="flex flex-wrap gap-1 text-xs text-gray-300 justify-center">
+                        <a
+                          href="/about"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          About
+                        </a>
+                        <span>·</span>
+                        <a
+                          href="/privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          Privacy Policy
+                        </a>
+                        <span>·</span>
+                        <a
+                          href="/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          Terms of Service
+                        </a>
+                        <span>·</span>
+                        <a
+                          href="/contact"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          Contact
+                        </a>
+                      </div>
+                      <p className="text-xs text-gray-300 mt-2 text-center">
+                        © 2025 LIONSHPERE BY TAVI GINGU
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -153,7 +191,6 @@ const HomePage: React.FC = () => {
       {/* Right-side fixed dashboard */}
       <Dashboard />
 
-      {/* Story Viewer (conditionally rendered) */}
       {activeStoryGroup && <StoryViewer />}
     </div>
   );

@@ -24,13 +24,11 @@ import useAuthStore from "../../store/AuthStore";
 import useNotificationStore from "../../store/NotificationStore";
 import useChatStore from "../../store/ChatStore";
 import SearchSidebar from "../Home/SearchSidebar";
-import PostCreationForm from "../PostCreationForm";
 import StoryEditor from "../Home/StoryEditor";
 import NotificationPanel from "../Home/NotificationPanel";
 import FullLogo from "../../assets/LionSphere_longlogo.png";
 import Logo from "../../assets/LionSphereLogo.png";
 import CreatePostModal from "../Home/CreatePostModal";
-import SearchBar from "./SearchBar";
 
 const Dashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
@@ -221,9 +219,7 @@ const Dashboard: React.FC = () => {
         : activeButton === name;
 
     return (
-      <div
-        className={`relative ${isMoreButton ? "mt-auto" : ""}`} // Asigurăm că "More" este lipit de jos
-      >
+      <div className={`relative ${isMoreButton ? "mt-auto" : ""}`}>
         <button
           data-button={name}
           onClick={() => (onClick ? onClick() : handleClick(name))}
@@ -261,7 +257,6 @@ const Dashboard: React.FC = () => {
           )}
         </button>
 
-        {/* Create menu */}
         <AnimatePresence>
           {isCreateButton && isCreateMenuOpen && (
             <motion.div
@@ -336,7 +331,6 @@ const Dashboard: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* More menu */}
         <AnimatePresence>
           {isMoreButton && isMoreMenuOpen && (
             <motion.div
@@ -474,14 +468,18 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div
-        className={`bg-white shadow-xl overflow-y-auto overflow-x-hidden transition-all duration-300 hover:shadow-2xl z-40
+        className={`bg-white shadow-xl overflow-y-auto overflow-x-hidden transition-all duration-300 hover:shadow-2xl z-40 fixed top-0 right-0 bottom-0
           ${
             mobileMenuOpen
-              ? "fixed inset-0 p-4"
-              : "fixed -right-80 top-0 bottom-0 p-4 lg:right-0"
+              ? "translate-x-0 w-80 sm:w-72 md:w-64"
+              : "translate-x-full w-80 sm:w-72 md:w-64 lg:translate-x-0 lg:w-72 xl:w-80"
           }
-          ${isMinimalist ? "lg:w-20" : "lg:w-80"}
-          lg:p-4 lg:pb-6 lg:fixed lg:right-0 lg:top-0 lg:bottom-0 flex flex-col`} // Am adăugat lg:pb-0 pentru a elimina padding-ul de jos
+          ${
+            isMinimalist
+              ? "sm:w-16 md:w-16 lg:w-20 xl:w-20"
+              : "sm:w-72 md:w-64 lg:w-72 xl:w-80"
+          }
+          flex flex-col p-4 sm:p-3 md:p-3 lg:p-4`}
       >
         <div className="flex justify-between items-center mb-6 lg:hidden">
           <img
@@ -618,14 +616,52 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {!isMinimalist && <div className="border-t border-gray-200 my-4"></div>}
-
         {!isMinimalist && (
-          <div className="text-center mb-4">
-            <p className="text-xs text-gray-300 font-light tracking-wider">
-              © 2025 LIONSHPERE BY TAVI GINGU
-            </p>
-          </div>
+          <>
+            <div className="border-t border-gray-200 my-4"></div>
+            <div className="px-3">
+              <div className="flex flex-wrap gap-1 text-xs text-gray-300">
+                <a
+                  href="/about"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  About
+                </a>
+                <span>·</span>
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  Privacy Policy
+                </a>
+                <span>·</span>
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  Terms of Service
+                </a>
+                <span>·</span>
+                <a
+                  href="/contact"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  Contact
+                </a>
+              </div>
+              <p className="text-xs text-gray-300 mt-2 text-center">
+                © 2025 LIONSHPERE BY TAVI GINGU
+              </p>
+            </div>
+          </>
         )}
 
         <NavButton

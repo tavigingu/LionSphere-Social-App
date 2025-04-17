@@ -22,6 +22,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   const { typingIn } = useChatStore();
   const { sendTypingStatus } = useSocketStore();
@@ -43,6 +44,23 @@ const MessageInput: React.FC<MessageInputProps> = ({
       }
     };
   }, [chatId, userId, isTyping, sendTypingStatus]);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setEmojiPickerVisible(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
@@ -156,14 +174,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="p-4 bg-white/80 backdrop-blur-sm border-t border-purple-100/30">
+    <div className="p-2 sm:p-4 bg-white/80 backdrop-blur-sm border-t border-purple-100/30">
       {/* Image preview */}
       {imagePreview && (
         <div className="relative mb-2 inline-block">
           <img
             src={imagePreview}
             alt="Upload preview"
-            className="h-20 w-auto rounded-md object-cover border border-purple-100 shadow-sm"
+            className="h-16 sm:h-20 w-auto rounded-md object-cover border border-purple-100 shadow-sm"
           />
           <button
             type="button"
@@ -172,7 +190,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
+              className="h-3 w-3 sm:h-4 sm:w-4"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -187,16 +205,16 @@ const MessageInput: React.FC<MessageInputProps> = ({
       )}
 
       {/* Message form */}
-      <form onSubmit={handleSubmit} className="flex items-end gap-2">
+      <form onSubmit={handleSubmit} className="flex items-end gap-1 sm:gap-2">
         {/* Emoji picker button */}
         <button
           type="button"
           onClick={() => setEmojiPickerVisible(!emojiPickerVisible)}
-          className="p-2 text-gray-500 hover:text-yellow-500 transition-colors rounded-full hover:bg-purple-50"
+          className="p-1.5 sm:p-2 text-gray-500 hover:text-yellow-500 transition-colors rounded-full hover:bg-purple-50"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
+            className="h-5 w-5 sm:h-6 sm:w-6"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -214,11 +232,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="p-2 text-gray-500 hover:text-blue-500 transition-colors rounded-full hover:bg-purple-50"
+          className="p-1.5 sm:p-2 text-gray-500 hover:text-blue-500 transition-colors rounded-full hover:bg-purple-50"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
+            className="h-5 w-5 sm:h-6 sm:w-6"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -248,7 +266,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             ref={inputRef}
-            className="w-full px-4 py-2 border border-purple-200/50 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent shadow-sm"
+            className="w-full px-3 sm:px-4 py-1.5 sm:py-2 border border-purple-200/50 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent shadow-sm text-sm sm:text-base"
             disabled={isUploading}
           />
         </div>
@@ -257,7 +275,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         <motion.button
           type="submit"
           disabled={(!text.trim() && !image) || isUploading}
-          className={`p-2 rounded-full ${
+          className={`p-1.5 sm:p-2 rounded-full ${
             (!text.trim() && !image) || isUploading
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-md"
@@ -265,11 +283,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
           whileTap={{ scale: 0.95 }}
         >
           {isUploading ? (
-            <div className="h-6 w-6 border-2 border-white rounded-full border-t-transparent animate-spin" />
+            <div className="h-5 w-5 sm:h-6 sm:w-6 border-2 border-white rounded-full border-t-transparent animate-spin" />
           ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
+              className="h-5 w-5 sm:h-6 sm:w-6"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -289,12 +307,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
       <AnimatePresence>
         {emojiPickerVisible && (
           <motion.div
+            ref={emojiPickerRef}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-16 left-4 bg-white rounded-lg shadow-lg p-2 border border-purple-100/50 z-10"
+            className="absolute bottom-16 left-2 sm:left-4 bg-white rounded-lg shadow-lg p-2 border border-purple-100/50 z-10"
           >
-            <div className="grid grid-cols-8 gap-1">
+            <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">
               {[
                 "😀",
                 "😂",
@@ -317,7 +336,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
                   key={emoji}
                   type="button"
                   onClick={() => handleEmojiClick(emoji)}
-                  className="w-8 h-8 text-xl hover:bg-purple-50 rounded transition-colors"
+                  className="w-7 h-7 sm:w-8 sm:h-8 text-lg sm:text-xl hover:bg-purple-50 rounded transition-colors"
                 >
                   {emoji}
                 </button>

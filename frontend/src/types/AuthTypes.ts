@@ -22,8 +22,8 @@ export interface IUser {
   worksAt: string;
   occupation: string;
   city: string;
-  followers: string[];  // Changed from [] to string[]
-  following: string[];  // Changed from [] to string[]
+  followers: string[]; 
+  following: string[]; 
   // Social media accounts
   instagram?: string;
   facebook?: string;

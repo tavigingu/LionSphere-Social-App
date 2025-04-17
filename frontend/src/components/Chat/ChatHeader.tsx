@@ -40,15 +40,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
   };
 
   return (
-    <div className="p-4 border-b border-purple-100/30 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm flex items-center justify-between shadow-sm">
+    <div className="p-3 md:p-4 border-b border-purple-100/30 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm flex items-center justify-between shadow-sm">
       {/* User info - Now clickable for profile */}
       <div
-        className="flex items-center cursor-pointer group"
+        className="flex items-center cursor-pointer group ml-8 md:ml-0"
         onClick={handleViewProfile}
       >
         {/* Avatar with online indicator */}
         <div className="relative">
-          <div className="w-12 h-12 rounded-full overflow-hidden border border-purple-100 shadow-md transition-all group-hover:shadow-lg group-hover:border-purple-300">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border border-purple-100 shadow-md transition-all group-hover:shadow-lg group-hover:border-purple-300">
             {otherUser.profilePicture ? (
               <img
                 src={otherUser.profilePicture}
@@ -62,13 +62,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
             )}
           </div>
           {isOnline && (
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+            <div className="absolute bottom-0 right-0 w-2 h-2 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
           )}
         </div>
 
         {/* User details */}
-        <div className="ml-3 transition-all group-hover:translate-x-1">
-          <h3 className="font-medium text-gray-800 group-hover:text-purple-700 transition-colors">
+        <div className="ml-2 md:ml-3 transition-all group-hover:translate-x-1">
+          <h3 className="font-medium text-gray-800 group-hover:text-purple-700 transition-colors text-sm md:text-base">
             {otherUser.username}
           </h3>
           <p className="text-xs">
@@ -87,14 +87,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ chat, currentUser }) => {
       </div>
 
       {/* Action buttons */}
-      <div className="relative">
+      <div className="relative mr-8 md:mr-0">
         <button
           onClick={() => setShowOptions(!showOptions)}
-          className="p-2 rounded-full hover:bg-purple-100/50 transition-colors text-gray-700"
+          className="p-1.5 md:p-2 rounded-full hover:bg-purple-100/50 transition-colors text-gray-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
+            className="h-4 w-4 md:h-5 md:w-5"
             viewBox="0 0 20 20"
             fill="currentColor"
           >

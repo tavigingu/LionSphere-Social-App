@@ -33,13 +33,13 @@ const OnlineIndicator: React.FC<OnlineIndicatorProps> = ({ connected }) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className="fixed top-4 right-4 z-50"
+          className="fixed top-2 right-2 sm:top-4 sm:right-4 z-50"
         >
-          <div className="px-4 py-2 rounded-full bg-white shadow-md flex items-center border border-purple-100/30">
+          <div className="px-2 py-1 sm:px-4 sm:py-2 rounded-full bg-white shadow-md flex items-center border border-purple-100/30">
             <div
-              className={`h-3 w-3 rounded-full bg-gradient-to-r ${statusColor} mr-2 animate-pulse`}
+              className={`h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-gradient-to-r ${statusColor} mr-1 sm:mr-2 animate-pulse`}
             ></div>
-            <span className="text-sm font-medium text-gray-800">
+            <span className="text-xs sm:text-sm font-medium text-gray-800">
               {statusText}
             </span>
           </div>

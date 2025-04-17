@@ -6,7 +6,11 @@ import ProfilePage from "./pages/ProfilePage.tsx";
 import ChatPage from "./pages/ChatPage.tsx";
 import LocationExplore from "./components/Explore/LoctationExplore.tsx";
 import TagExplore from "./components/Explore/TagExplore.tsx";
-import StatisticsPage from "./pages/StatisticsPage.tsx"; // Importați pagina de statistici
+import StatisticsPage from "./pages/StatisticsPage.tsx";
+import AboutPage from "./pages/AboutPage.tsx";
+import PrivacyPolicyPage from "./pages/PirvacyPoliticsPage.tsx";
+import TermsOfServicePage from "./pages/TermsOfServicePage.tsx";
+import ContactPage from "./pages/ContactPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -40,6 +44,22 @@ const router = createBrowserRouter([
   {
     path: "/statistics",
     element: <StatisticsPage />, // Noua rută pentru pagina de statistici
+  },
+  {
+    path: "/about",
+    element: <AboutPage />, // Noua rută pentru pagina de statistici
+  },
+  {
+    path: "/privacy",
+    element: <PrivacyPolicyPage />, // Noua rută pentru pagina de statistici
+  },
+  {
+    path: "/terms",
+    element: <TermsOfServicePage />, // Noua rută pentru pagina de statistici
+  },
+  {
+    path: "/contact",
+    element: <ContactPage />, // Noua rută pentru pagina de statistici
   },
 ]);
 

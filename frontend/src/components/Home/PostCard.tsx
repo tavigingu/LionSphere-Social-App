@@ -16,7 +16,7 @@ import useAuthStore from "../../store/AuthStore";
 import usePostStore from "../../store/PostStore";
 import axios from "axios";
 import UserListModal from "../UserListModal";
-import MentionsInput from "./MentionsInput"; // Presupunem că este în același director
+import MentionsInput from "./MentionsInput";
 
 interface PostCardProps {
   _id: string;
@@ -112,14 +112,15 @@ const PostCard: React.FC<PostCardProps> = ({
     string | null
   >(null);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+  const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
-  // Funcție pentru parsarea mențiunilor
   const parseCommentText = (text: string) => {
     const parts = text.split(/(@\w+)/g);
     return parts.map((part, index) => {
       if (part.startsWith("@") && part.length > 1) {
         const username = part.substring(1);
-        // Căutăm userId în commentUsers
         const userId = Object.keys(commentUsers).find(
           (id) => commentUsers[id].username === username
         );
@@ -134,7 +135,6 @@ const PostCard: React.FC<PostCardProps> = ({
             </span>
           );
         }
-        // Dacă nu găsim userId, folosim GET /search la click
         return (
           <span
             key={index}
@@ -147,7 +147,7 @@ const PostCard: React.FC<PostCardProps> = ({
                   )}`
                 );
                 if (response.data.success && response.data.users.length > 0) {
-                  const fetchedUser = response.data.users[0]; // Presupunem că primul rezultat e corect
+                  const fetchedUser = response.data.users[0];
                   const fetchedUserId = fetchedUser._id;
                   setCommentUsers((prev) => ({
                     ...prev,
@@ -174,11 +174,10 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const parseDescription = (text: string) => {
-    // Split text by hashtags while keeping the hashtags
     const parts = text.split(/(#[^\s#]+)/g);
     return parts.map((part, index) => {
       if (part.startsWith("#")) {
-        const tagName = part.substring(1); // Remove the # for navigation
+        const tagName = part.substring(1);
         return (
           <span
             key={index}
@@ -218,7 +217,6 @@ const PostCard: React.FC<PostCardProps> = ({
       try {
         setLocalSaved(!localSaved);
         await savePost(_id, currentUser._id);
-        //if (onSave) onSave();
       } catch (error) {
         setLocalSaved(localSaved);
         console.error("Error saving post:", error);
@@ -323,29 +321,31 @@ const PostCard: React.FC<PostCardProps> = ({
     const commentIndex = localComments.findIndex((c) => c._id === commentId);
 
     if (commentIndex !== -1) {
-      const isLiked =
-        localComments[commentIndex].likes?.includes(currentUser._id) || false;
-
-      const updatedComments = [...localComments];
-      if (!updatedComments[commentIndex].likes) {
-        updatedComments[commentIndex].likes = [];
-      }
-
-      if (isLiked) {
-        updatedComments[commentIndex].likes = updatedComments[
-          commentIndex
-        ].likes!.filter((id) => id !== currentUser._id);
-      } else {
-        updatedComments[commentIndex].likes!.push(currentUser._id);
-      }
-
-      setLocalComments(updatedComments);
-
       try {
         await likeComment(_id, commentId, currentUser._id);
+
+        setLocalComments((prevComments) => {
+          const updatedComments = [...prevComments];
+          const isLiked =
+            updatedComments[commentIndex].likes?.includes(currentUser._id) ||
+            false;
+
+          if (!updatedComments[commentIndex].likes) {
+            updatedComments[commentIndex].likes = [];
+          }
+
+          if (isLiked) {
+            updatedComments[commentIndex].likes = updatedComments[
+              commentIndex
+            ].likes!.filter((id) => id !== currentUser._id);
+          } else {
+            updatedComments[commentIndex].likes!.push(currentUser._id);
+          }
+
+          return updatedComments;
+        });
       } catch (error) {
         console.error("Error liking comment:", error);
-        setLocalComments(localComments);
       }
     }
   };
@@ -361,34 +361,35 @@ const PostCard: React.FC<PostCardProps> = ({
       );
 
       if (replyIndex !== -1) {
-        const isLiked =
-          localComments[commentIndex].replies![replyIndex].likes?.includes(
-            currentUser._id
-          ) || false;
-
-        const updatedComments = [...localComments];
-        if (!updatedComments[commentIndex].replies![replyIndex].likes) {
-          updatedComments[commentIndex].replies![replyIndex].likes = [];
-        }
-
-        if (isLiked) {
-          updatedComments[commentIndex].replies![replyIndex].likes =
-            updatedComments[commentIndex].replies![replyIndex].likes!.filter(
-              (id) => id !== currentUser._id
-            );
-        } else {
-          updatedComments[commentIndex].replies![replyIndex].likes!.push(
-            currentUser._id
-          );
-        }
-
-        setLocalComments(updatedComments);
-
         try {
           await likeReply(_id, commentId, replyId, currentUser._id);
+
+          setLocalComments((prevComments) => {
+            const updatedComments = [...prevComments];
+            const isLiked =
+              updatedComments[commentIndex].replies![
+                replyIndex
+              ].likes?.includes(currentUser._id) || false;
+
+            if (!updatedComments[commentIndex].replies![replyIndex].likes) {
+              updatedComments[containerIndex].replies![replyIndex].likes = [];
+            }
+
+            if (isLiked) {
+              updatedComments[commentIndex].replies![replyIndex].likes =
+                updatedComments[commentIndex].replies![
+                  replyIndex
+                ].likes!.filter((id) => id !== currentUser._id);
+            } else {
+              updatedComments[commentIndex].replies![replyIndex].likes!.push(
+                currentUser._id
+              );
+            }
+
+            return updatedComments;
+          });
         } catch (error) {
           console.error("Error liking reply:", error);
-          setLocalComments(localComments);
         }
       }
     }
@@ -577,7 +578,7 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-xl overflow-hidden mb-6 max-w-xl">
+    <div className="bg-white rounded-xl shadow-xl overflow-hidden mb-8 w-full">
       <div className="p-4 flex items-center justify-between">
         <div
           className="flex items-center cursor-pointer"
@@ -646,7 +647,7 @@ const PostCard: React.FC<PostCardProps> = ({
           )}
       </div>
       <div
-        className="w-full h-[500px] sm:h-[500px] bg-gray-100 relative"
+        className="w-full aspect-[1/1] ipad-nest:aspect-[4/3] bg-gray-100 relative"
         onClick={handleImageClick}
       >
         {image ? (
@@ -901,6 +902,25 @@ const PostCard: React.FC<PostCardProps> = ({
                           Reply
                         </button>
                       </div>
+                      {comment.replies && comment.replies.length > 0 && (
+                        <button
+                          onClick={() =>
+                            setShowReplies((prev) => ({
+                              ...prev,
+                              [comment._id!]: !prev[comment._id!],
+                            }))
+                          }
+                          className="text-blue-500 hover:text-blue-700 text-xs mt-1"
+                        >
+                          {showReplies[comment._id!]
+                            ? "Hide replies"
+                            : `View ${comment.replies.length} ${
+                                comment.replies.length === 1
+                                  ? "reply"
+                                  : "replies"
+                              }`}
+                        </button>
+                      )}
                       {replyingTo === comment._id && (
                         <MentionsInput
                           value={replyText}
@@ -912,136 +932,150 @@ const PostCard: React.FC<PostCardProps> = ({
                           className="border border-gray-300 rounded-full px-3 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       )}
-                      {comment.replies && comment.replies.length > 0 && (
-                        <div className="ml-6 mt-2 space-y-2">
-                          {comment.replies.map((reply, replyIndex) => (
-                            <div
-                              key={
-                                reply._id ||
-                                `${comment._id}-reply-${replyIndex}`
-                              }
-                              className="flex"
-                            >
+                      {showReplies[comment._id!] &&
+                        comment.replies &&
+                        comment.replies.length > 0 && (
+                          <div className="ml-6 mt-2 space-y-2">
+                            {comment.replies.map((reply, replyIndex) => (
                               <div
-                                className="w-6 h-6 rounded-full overflow-hidden mr-2 cursor-pointer"
-                                onClick={() => navigateToProfile(reply.userId)}
+                                key={
+                                  reply._id ||
+                                  `${comment._id}-reply-${replyIndex}`
+                                }
+                                className="flex"
                               >
-                                {commentUsers[reply.userId]?.profilePicture ? (
-                                  <img
-                                    src={
-                                      commentUsers[reply.userId].profilePicture
-                                    }
-                                    alt="Profile"
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                                    <span className="text-white text-xs font-bold">
-                                      {commentUsers[reply.userId]?.username
-                                        ?.charAt(0)
-                                        .toUpperCase() || "?"}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <div className="bg-gray-100 rounded-lg p-2 relative">
-                                  <p
-                                    className="text-xs font-medium text-gray-800 cursor-pointer hover:text-blue-600"
-                                    onClick={() =>
-                                      navigateToProfile(reply.userId)
-                                    }
-                                  >
-                                    {commentUsers[reply.userId]?.username ||
-                                      "Unknown User"}
-                                  </p>
-                                  <p className="text-xs text-gray-700">
-                                    {parseCommentText(reply.text)}
-                                  </p>
-                                  {currentUser &&
-                                    currentUser._id === reply.userId && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (
-                                            window.confirm(
-                                              "Are you sure you want to delete this reply?"
-                                            )
-                                          ) {
-                                            const updatedComments = [
-                                              ...localComments,
-                                            ];
-                                            const commentIndex =
-                                              updatedComments.findIndex(
-                                                (c) => c._id === comment._id
-                                              );
-                                            if (
-                                              commentIndex !== -1 &&
-                                              updatedComments[commentIndex]
-                                                .replies
-                                            ) {
-                                              updatedComments[
-                                                commentIndex
-                                              ].replies = updatedComments[
-                                                commentIndex
-                                              ].replies!.filter(
-                                                (r) => r._id !== reply._id
-                                              );
-                                              setLocalComments(updatedComments);
-                                            }
-                                          }
-                                        }}
-                                        className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
-                                      >
-                                        <FaTrash size={10} />
-                                      </button>
-                                    )}
-                                </div>
-                                <div className="flex items-center mt-1 text-xs space-x-4">
-                                  <span className="text-gray-500">
-                                    {formatDate(reply.createdAt)}
-                                  </span>
-                                  <button
-                                    className="flex items-center text-gray-500 hover:text-purple-500"
-                                    onClick={() => {
-                                      if (comment._id && reply._id) {
-                                        handleLikeReply(comment._id, reply._id);
+                                <div
+                                  className="w-6 h-6 rounded-full overflow-hidden mr-2 cursor-pointer"
+                                  onClick={() =>
+                                    navigateToProfile(reply.userId)
+                                  }
+                                >
+                                  {commentUsers[reply.userId]
+                                    ?.profilePicture ? (
+                                    <img
+                                      src={
+                                        commentUsers[reply.userId]
+                                          .profilePicture
                                       }
-                                    }}
-                                  >
-                                    {reply.likes &&
-                                    reply.likes.includes(
-                                      currentUser?._id || ""
-                                    ) ? (
-                                      <FaHeart
-                                        className="text-purple-500 mr-1"
-                                        size={10}
-                                      />
-                                    ) : (
-                                      <FaRegHeart className="mr-1" size={10} />
-                                    )}
-                                    <span
-                                      className={`${
-                                        reply.likes &&
-                                        reply.likes.includes(
-                                          currentUser?._id || ""
-                                        )
-                                          ? "text-purple-500"
-                                          : ""
-                                      }`}
+                                      alt="Profile"
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                                      <span className="text-white text-xs font-bold">
+                                        {commentUsers[reply.userId]?.username
+                                          ?.charAt(0)
+                                          .toUpperCase() || "?"}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="bg-gray-100 rounded-lg p-2 relative">
+                                    <p
+                                      className="text-xs font-medium text-gray-800 cursor-pointer hover:text-blue-600"
+                                      onClick={() =>
+                                        navigateToProfile(reply.userId)
+                                      }
                                     >
-                                      {reply.likes?.length || 0}{" "}
-                                      {(reply.likes?.length || 0) === 1
-                                        ? "like"
-                                        : "likes"}
+                                      {commentUsers[reply.userId]?.username ||
+                                        "Unknown User"}
+                                    </p>
+                                    <p className="text-xs text-gray-700">
+                                      {parseCommentText(reply.text)}
+                                    </p>
+                                    {currentUser &&
+                                      currentUser._id === reply.userId && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (
+                                              window.confirm(
+                                                "Are you sure you want to delete this reply?"
+                                              )
+                                            ) {
+                                              const updatedComments = [
+                                                ...localComments,
+                                              ];
+                                              const commentIndex =
+                                                updatedComments.findIndex(
+                                                  (c) => c._id === comment._id
+                                                );
+                                              if (
+                                                commentIndex !== -1 &&
+                                                updatedComments[commentIndex]
+                                                  .replies
+                                              ) {
+                                                updatedComments[
+                                                  commentIndex
+                                                ].replies = updatedComments[
+                                                  commentIndex
+                                                ].replies!.filter(
+                                                  (r) => r._id !== reply._id
+                                                );
+                                                setLocalComments(
+                                                  updatedComments
+                                                );
+                                              }
+                                            }
+                                          }}
+                                          className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                                        >
+                                          <FaTrash size={10} />
+                                        </button>
+                                      )}
+                                  </div>
+                                  <div className="flex items-center mt-1 text-xs space-x-4">
+                                    <span className="text-gray-500">
+                                      {formatDate(reply.createdAt)}
                                     </span>
-                                  </button>
+                                    <button
+                                      className="flex items-center text-gray-500 hover:text-purple-500"
+                                      onClick={() => {
+                                        if (comment._id && reply._id) {
+                                          handleLikeReply(
+                                            comment._id,
+                                            reply._id
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      {reply.likes &&
+                                      reply.likes.includes(
+                                        currentUser?._id || ""
+                                      ) ? (
+                                        <FaHeart
+                                          className="text-purple-500 mr-1"
+                                          size={10}
+                                        />
+                                      ) : (
+                                        <FaRegHeart
+                                          className="mr-1"
+                                          size={10}
+                                        />
+                                      )}
+                                      <span
+                                        className={`${
+                                          reply.likes &&
+                                          reply.likes.includes(
+                                            currentUser?._id || ""
+                                          )
+                                            ? "text-purple-500"
+                                            : ""
+                                        }`}
+                                      >
+                                        {reply.likes?.length || 0}{" "}
+                                        {(reply.likes?.length || 0) === 1
+                                          ? "like"
+                                          : "likes"}
+                                      </span>
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                            ))}
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>

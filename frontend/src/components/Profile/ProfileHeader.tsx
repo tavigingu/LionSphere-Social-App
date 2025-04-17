@@ -84,6 +84,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         // Unfollow
         await unfollowUser(user._id, currentUser._id);
         updateUserProfile({
+          ...currentUser,
           following: currentUser.following.filter((id) => id !== user._id),
         });
         setIsFollowing(false);
@@ -91,12 +92,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         // Follow
         await followUser(user._id, currentUser._id);
         updateUserProfile({
+          ...currentUser,
           following: [...currentUser.following, user._id],
         });
         setIsFollowing(true);
-      }
-      if (onFollowToggle) {
-        onFollowToggle();
       }
     } catch (err) {
       setError(
@@ -193,17 +192,15 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     }
   };
 
-  const containerClasses = `w-full max-w-xl lg:mx-0 bg-white rounded-xl shadow-xl overflow-hidden mb-6 duration-400 hover:shadow-2xl 
-    ${
-      isVisible
-        ? "opacity-100 transform translate-y-0"
-        : "opacity-0 transform -translate-y-8"
-    } 
-    transition-all ease-out`;
+  const containerClasses = `w-full lg:max-w-xl lg:ml-4 lg:mr-auto bg-white rounded-xl shadow-xl overflow-hidden mb-6 duration-400 hover:shadow-2xl transition-all ease-out ${
+    isVisible
+      ? "opacity-100 transform translate-y-0"
+      : "opacity-0 transform -translate-y-8"
+  }`;
 
   if (!user) {
     return (
-      <div className="w-full max-w-xl lg:mx-0 lg:ml-6 bg-white rounded-xl shadow-xl overflow-hidden mb-6 p-6 duration-300 hover:shadow-2xl opacity-0 animate-pulse">
+      <div className="w-full lg:max-w-lg lg:mx-auto bg-white rounded-xl shadow-xl overflow-hidden mb-6 p-6 duration-300 hover:shadow-2xl opacity-0 animate-pulse">
         <div className="flex justify-center items-center h-40">
           <p className="text-gray-500">Loading user profile...</p>
         </div>
@@ -242,7 +239,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     <div className={containerClasses}>
       {/* Cover Image */}
       <div
-        className={`h-48 bg-cover bg-center relative transition duration-500 ease-in-out ${
+        className={`h-32 sm:h-48 bg-cover bg-center relative transition duration-500 ease-in-out ${
           isVisible ? "opacity-100" : "opacity-0"
         }`}
         style={
@@ -257,10 +254,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       />
 
       {/* Profile Information */}
-      <div className="px-6 py-5 relative">
+      <div className="px-4 sm:px-6 py-5 relative">
         {/* Profile Picture with Story Ring */}
         <motion.div
-          className={`absolute -top-20 mt-5 left-6 transition-all duration-1000 ease-out ${
+          className={`absolute -top-16 sm:-top-20 left-4 sm:left-6 transition-all duration-1000 ease-out ${
             isVisible
               ? "opacity-100 transform translate-y-0"
               : "opacity-0 transform translate-y-6"
@@ -272,7 +269,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <button
             onClick={handleProfileClick}
             disabled={!hasStory}
-            className="relative w-40 h-40"
+            className="relative w-32 h-32 sm:w-40 sm:h-40"
           >
             {hasStory && hasUnseenStories && (
               <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 p-[3px] animate-story-ring">
@@ -297,7 +294,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                  <span className="text-white text-4xl font-bold">
+                  <span className="text-white text-2xl sm:text-4xl font-bold">
                     {user.username?.charAt(0).toUpperCase() || "U"}
                   </span>
                 </div>
@@ -308,33 +305,33 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
         {/* User Details */}
         <div
-          className={`ml-44 -mt-1 transition-all duration-700 ${
+          className={`mt-16 sm:mt-0 sm:ml-44 transition-all duration-700 ${
             isVisible
               ? "opacity-100 transform translate-x-0 delay-200"
               : "opacity-0 transform translate-x-8"
           }`}
         >
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
             <div>
-              <h2 className="text-3xl font-bold text-gray-800">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
                 {user.username}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm sm:text-base">
                 {user.firstname} {user.lastname}
               </p>
             </div>
             {isOwnProfile ? (
               <button
                 onClick={handleEditProfile}
-                className="bg-blue-600 hover:bg-blue-700 mt-2 text-white px-4 py-2 rounded-lg transition flex items-center"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition flex items-center text-sm sm:text-base"
               >
-                <FaPen className="mr-2" /> Edit Profile
+                <FaPen className="mr-1 sm:mr-2" /> Edit Profile
               </button>
             ) : (
               <button
                 onClick={handleFollow}
                 disabled={followLoading}
-                className={`mt-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                   isFollowing
                     ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
                     : "bg-blue-600 text-white hover:bg-blue-700"
@@ -362,17 +359,19 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
           {/* Bio */}
           <div
-            className={`mt-8 -ml-40 px-6 transition-all duration-700 ${
+            className={`mt-4 sm:mt-8 -ml-0 sm:-ml-40 px-0 sm:px-6 transition-all duration-700 ${
               isVisible
                 ? "opacity-100 transform translate-y-0 delay-300"
                 : "opacity-0 transform translate-y-4"
             }`}
           >
-            <h4 className="text-md font-semibold text-gray-700 mb-2">About</h4>
+            <h4 className="text-sm sm:text-md font-semibold text-gray-700 mb-2">
+              About
+            </h4>
             {user.about ? (
-              <p className="text-gray-700">{user.about}</p>
+              <p className="text-gray-700 text-sm sm:text-base">{user.about}</p>
             ) : (
-              <p className="text-gray-500 italic">
+              <p className="text-gray-500 italic text-sm sm:text-base">
                 {isOwnProfile
                   ? "Add a bio to tell people more about yourself."
                   : "This user hasn't added a bio yet."}
@@ -382,15 +381,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
           {/* Stats */}
           <div
-            className={`mt-6 flex space-x-8 ml-30 px-6 transition-all duration-700 ${
+            className={`mt-4 sm:mt-6 flex space-x-6 sm:space-x-8 ml-0 sm:ml-30 px-0 sm:px-6 transition-all duration-700 ${
               isVisible
                 ? "opacity-100 transform translate-y-0 delay-400"
                 : "opacity-0 transform translate-y-4"
             }`}
           >
             <div className="text-center">
-              <p className="font-bold text-gray-800">{postCount}</p>
-              <p className="text-gray-500 text-sm">Posts</p>
+              <p className="font-bold text-gray-800 text-sm sm:text-base">
+                {postCount}
+              </p>
+              <p className="text-gray-500 text-xs sm:text-sm">Posts</p>
             </div>
             <div
               className={`text-center ${
@@ -404,10 +405,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                   : undefined
               }
             >
-              <p className="font-bold text-gray-800 group-hover:text-blue-500">
+              <p className="font-bold text-gray-800 group-hover:text-blue-500 text-sm sm:text-base">
                 {user.followers?.length || 0}
               </p>
-              <p className="text-gray-500 text-sm group-hover:text-blue-500">
+              <p className="text-gray-500 text-xs sm:text-sm group-hover:text-blue-500">
                 Followers
               </p>
             </div>
@@ -423,10 +424,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                   : undefined
               }
             >
-              <p className="font-bold text-gray-800 group-hover:text-blue-500">
+              <p className="font-bold text-gray-800 group-hover:text-blue-500 text-sm sm:text-base">
                 {user.following?.length || 0}
               </p>
-              <p className="text-gray-500 text-sm group-hover:text-blue-500">
+              <p className="text-gray-500 text-xs sm:text-sm group-hover:text-blue-500">
                 Following
               </p>
             </div>

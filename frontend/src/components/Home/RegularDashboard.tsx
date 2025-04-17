@@ -30,49 +30,30 @@ import FullLogo from "../../assets/LionSphere_longlogo.png";
 import Logo from "../../assets/LionSphereLogo.png";
 import CreatePostModal from "../Home/CreatePostModal";
 
-const RegularDashboard: React.FC = () => {
-  const { logout, user } = useAuthStore();
-  const { unreadCount, fetchUnreadCount } = useNotificationStore();
-  const { chats } = useChatStore();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const unreadMessages =
-    chats?.reduce((total, chat) => total + (chat.unreadCount || 0), 0) || 0;
-
-  const [activeButton, setActiveButton] = useState("home");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
-  const [isPostFormOpen, setIsPostFormOpen] = useState(false);
-  const [isStoryFormOpen, setIsStoryFormOpen] = useState(false);
+// Minimalist Sidebar Component
+const MinimalistSidebar: React.FC<{
+  activeButton: string;
+  setActiveButton: (buttonName: string) => void;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (open: boolean) => void;
+  unreadMessages: number;
+  unreadCount: number;
+  navigate: (path: string) => void;
+  handleClick: (buttonName: string) => void;
+}> = ({
+  activeButton,
+  setActiveButton,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  unreadMessages,
+  unreadCount,
+  navigate,
+  handleClick,
+}) => {
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const createMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
-
-  const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
-
-  useEffect(() => {
-    const path = location.pathname;
-    if (path.includes("/profile")) {
-      setActiveButton("profile");
-    } else if (path.includes("/home")) {
-      setActiveButton("home");
-    } else if (path.includes("/chat")) {
-      setActiveButton("messages");
-    }
-  }, [location.pathname]);
-
-  useEffect(() => {
-    if (user?._id) {
-      fetchUnreadCount(user._id);
-      const interval = setInterval(() => {
-        fetchUnreadCount(user._id);
-      }, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [user, fetchUnreadCount]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -102,14 +83,463 @@ const RegularDashboard: React.FC = () => {
     };
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+  const getIconSize = (buttonName: string) => {
+    return activeButton === buttonName ? 24 : 20;
   };
+
+  const getIconClass = (buttonName: string) => {
+    return `${
+      activeButton === buttonName ? "text-blue-600" : "text-blue-500"
+    } transition-all duration-300 ease-in-out`;
+  };
+
+  interface NavButtonProps {
+    name: string;
+    icon: React.ReactNode;
+    label: string;
+    badge?: number | null;
+    onClick?: () => void;
+  }
+
+  const NavButton: React.FC<NavButtonProps> = ({
+    name,
+    icon,
+    label,
+    badge = null,
+    onClick,
+  }) => {
+    const isCreateButton = name === "create";
+    const isMoreButton = name === "more";
+    const isActive =
+      isCreateButton || isMoreButton
+        ? isCreateButton
+          ? isCreateMenuOpen
+          : isMoreMenuOpen
+        : activeButton === name;
+
+    return (
+      <div className="relative">
+        <button
+          data-button={name}
+          onClick={() => (onClick ? onClick() : handleClick(name))}
+          className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 ease-in-out ${
+            isActive
+              ? "font-bold text-blue-600 bg-blue-50"
+              : "font-normal text-gray-700 hover:bg-gray-100"
+          }`}
+          style={{ cursor: "pointer" }}
+          aria-label={label}
+        >
+          <div className="relative transition-all duration-300 ease-in-out">
+            {icon}
+            {badge !== null && badge > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {badge > 9 ? "9+" : badge}
+              </span>
+            )}
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {isCreateButton && isCreateMenuOpen && (
+            <motion.div
+              initial={{
+                opacity: 0,
+                height: 0,
+                x: -20,
+              }}
+              animate={{
+                opacity: 1,
+                height: "auto",
+                x: 0,
+              }}
+              exit={{
+                opacity: 0,
+                height: 0,
+                x: -20,
+              }}
+              transition={{
+                duration: 0.3,
+                ease: "easeInOut",
+              }}
+              className="absolute right-full mr-2 mt-1 bg-white rounded-lg shadow-lg w-full z-10 border border-gray-200 overflow-hidden"
+              style={{
+                transformOrigin: "right center",
+                minWidth: "180px",
+              }}
+              ref={createMenuRef}
+            >
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.05, duration: 0.2 }}
+                className="py-2"
+              >
+                <button
+                  onClick={() => handleClick("create-story")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                >
+                  <FaCamera className="mr-3 text-blue-500" />
+                  <span>Create Story</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.1, duration: 0.2 }}
+                className="py-2"
+              >
+                <button
+                  onClick={() => handleClick("create-post")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                >
+                  <FaEdit className="mr-3 text-blue-500" />
+                  <span>Create Post</span>
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {isMoreButton && isMoreMenuOpen && (
+            <motion.div
+              initial={{
+                opacity: 0,
+                height: 0,
+                x: -20,
+              }}
+              animate={{
+                opacity: 1,
+                height: "auto",
+                x: 0,
+              }}
+              exit={{
+                opacity: 0,
+                height: 0,
+                x: -20,
+              }}
+              transition={{
+                duration: 0.3,
+                ease: "easeInOut",
+              }}
+              className="absolute right-full mr-2 mb-1 bg-white rounded-lg shadow-lg w-full z-10 border border-gray-200 overflow-hidden"
+              style={{
+                transformOrigin: "right center",
+                minWidth: "180px",
+              }}
+              ref={moreMenuRef}
+            >
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.05, duration: 0.2 }}
+                className="py-2"
+              >
+                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                  <FaCog className="mr-3 text-blue-500" />
+                  <span>Settings</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.1, duration: 0.2 }}
+                className="py-2"
+              >
+                <button
+                  onClick={() => navigate("/statistics")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                >
+                  <FaHistory className="mr-3 text-blue-500" />
+                  <span>Your activity</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.15, duration: 0.2 }}
+                className="py-2"
+              >
+                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                  <FaBookmark className="mr-3 text-blue-500" />
+                  <span>Saved</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.2, duration: 0.2 }}
+                className="py-2"
+              >
+                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                  <FaExclamationTriangle className="mr-3 text-blue-500" />
+                  <span>Report a problem</span>
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.25, duration: 0.2 }}
+                className="py-2"
+              >
+                <button
+                  onClick={() => handleClick("logout")}
+                  className="flex items-center w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-colors duration-200"
+                >
+                  <FaSignOutAlt className="mr-3 text-red-600" />
+                  <span>Log out</span>
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <div className="fixed top-4 right-4 z-50 lg:hidden">
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="bg-white p-2 rounded-full shadow-md text-blue-600"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        </button>
+      </div>
+
+      <div
+        className={`bg-white shadow-xl overflow-y-auto overflow-x-hidden transition-all duration-300 hover:shadow-2xl z-40 fixed top-0 right-0 bottom-0
+          ${
+            mobileMenuOpen
+              ? "translate-x-0 w-80 sm:w-72 md:w-64"
+              : "translate-x-[-100%] w-80 sm:w-72 md:w-64 lg:translate-x-0 lg:w-20 xl:w-20"
+          }
+          flex flex-col p-4 justify-between items-center`}
+      >
+        {/* Top padding to align with OriginalDashboard's logo */}
+        <div className="h-[120px]" /> {/* Adjusted to align Home button */}
+        {/* Navigation Buttons */}
+        <div className="flex flex-col space-y-8 items-center">
+          <NavButton
+            name="home"
+            icon={
+              <FaHome
+                className={getIconClass("home")}
+                size={getIconSize("home")}
+              />
+            }
+            label="Home"
+          />
+          <NavButton
+            name="search"
+            icon={
+              <FaSearch
+                className={getIconClass("search")}
+                size={getIconSize("search")}
+              />
+            }
+            label="Search"
+          />
+          <NavButton
+            name="messages"
+            icon={
+              <FaEnvelope
+                className={getIconClass("messages")}
+                size={getIconSize("messages")}
+              />
+            }
+            label="Messages"
+            badge={unreadMessages}
+            onClick={() => navigate("/chat")}
+          />
+          <NavButton
+            name="notifications"
+            icon={
+              <FaBell
+                className={getIconClass("notifications")}
+                size={getIconSize("notifications")}
+              />
+            }
+            label="Notifications"
+            badge={unreadCount}
+          />
+          <NavButton
+            name="create"
+            icon={
+              <FaPlusCircle
+                className={`${
+                  isCreateMenuOpen ? "text-blue-600" : "text-blue-500"
+                } transition-all duration-300 ease-in-out`}
+                size={isCreateMenuOpen ? 24 : 20}
+              />
+            }
+            label="Create"
+          />
+          <NavButton
+            name="profile"
+            icon={
+              <FaUser
+                className={getIconClass("profile")}
+                size={getIconSize("profile")}
+              />
+            }
+            label="Profile"
+          />
+        </div>
+        {/* Bottom padding to align 'More' button */}
+        <div className="flex flex-col items-center space-y-8">
+          <div className="h-[160px]" /> {/* Adjusted to align More button */}
+          <NavButton
+            name="more"
+            icon={
+              <FaEllipsisH
+                className={`${
+                  isMoreMenuOpen ? "text-blue-600" : "text-blue-500"
+                } transition-all duration-300 ease-in-out`}
+                size={isMoreMenuOpen ? 24 : 20}
+              />
+            }
+            label="More"
+          />
+        </div>
+      </div>
+
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+    </>
+  );
+};
+
+// Original RegularDashboard (unchanged)
+const OriginalDashboard: React.FC<{
+  activeButton: string;
+  setActiveButton: (buttonName: string) => void;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (open: boolean) => void;
+  isSearchOpen: boolean;
+  setIsSearchOpen: (open: boolean) => void;
+  isNotificationPanelOpen: boolean;
+  setIsNotificationPanelOpen: (open: boolean) => void;
+  isPostFormOpen: boolean;
+  setIsPostFormOpen: (open: boolean) => void;
+  isStoryFormOpen: boolean;
+  setIsStoryFormOpen: (open: boolean) => void;
+  isNewPostModalOpen: boolean;
+  setIsNewPostModalOpen: (open: boolean) => void;
+  unreadMessages: number;
+  unreadCount: number;
+  navigate: (path: string) => void;
+  user: any;
+  logout: () => Promise<void>;
+}> = ({
+  activeButton,
+  setActiveButton,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  isSearchOpen,
+  setIsSearchOpen,
+  isNotificationPanelOpen,
+  setIsNotificationPanelOpen,
+  isPostFormOpen,
+  setIsPostFormOpen,
+  isStoryFormOpen,
+  setIsStoryFormOpen,
+  isNewPostModalOpen,
+  setIsNewPostModalOpen,
+  unreadMessages,
+  unreadCount,
+  navigate,
+  user,
+  logout,
+}) => {
+  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const createMenuRef = useRef<HTMLDivElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  const isMinimalist =
+    isSearchOpen ||
+    isNotificationPanelOpen ||
+    isPostFormOpen ||
+    isStoryFormOpen;
+
+  const getIconSize = (buttonName: string) => {
+    return activeButton === buttonName ? 24 : 20;
+  };
+
+  const getIconClass = (buttonName: string) => {
+    return `${!isMinimalist ? "mr-4" : ""} ${
+      activeButton === buttonName ? "text-blue-600" : "text-blue-500"
+    } transition-all duration-200`;
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        createMenuRef.current &&
+        !createMenuRef.current.contains(event.target as Node)
+      ) {
+        const createButton = document.querySelector(`[data-button="create"]`);
+        if (createButton && !createButton.contains(event.target as Node)) {
+          setIsCreateMenuOpen(false);
+        }
+      }
+      if (
+        moreMenuRef.current &&
+        !moreMenuRef.current.contains(event.target as Node)
+      ) {
+        const moreButton = document.querySelector(`[data-button="more"]`);
+        if (moreButton && !moreButton.contains(event.target as Node)) {
+          setIsMoreMenuOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleClick = (buttonName: string) => {
     if (buttonName === "create") {
@@ -152,46 +582,13 @@ const RegularDashboard: React.FC = () => {
     setIsStoryFormOpen(true);
   };
 
-  const handleCloseSearch = () => {
-    setIsSearchOpen(false);
-    setActiveButton(
-      location.pathname.includes("/profile") ? "profile" : "home"
-    );
-  };
-
-  const handleCloseNotifications = () => {
-    setIsNotificationPanelOpen(false);
-    setActiveButton(
-      location.pathname.includes("/profile") ? "profile" : "home"
-    );
-  };
-
-  const handleClosePostForm = () => {
-    setIsPostFormOpen(false);
-  };
-
-  const handleCloseStoryForm = () => {
-    setIsStoryFormOpen(false);
-  };
-
-  const handleCloseNewPostModal = () => {
-    setIsNewPostModalOpen(false);
-  };
-
-  const isMinimalist =
-    isSearchOpen ||
-    isNotificationPanelOpen ||
-    isPostFormOpen ||
-    isStoryFormOpen;
-
-  const getIconSize = (buttonName: string) => {
-    return activeButton === buttonName ? 24 : 20;
-  };
-
-  const getIconClass = (buttonName: string) => {
-    return `${!isMinimalist ? "mr-4" : ""} ${
-      activeButton === buttonName ? "text-blue-600" : "text-blue-500"
-    } transition-all duration-200`;
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   interface NavButtonProps {
@@ -684,6 +1081,175 @@ const RegularDashboard: React.FC = () => {
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
+    </>
+  );
+};
+
+// Main RegularDashboard Component with Conditional Rendering
+const RegularDashboard: React.FC = () => {
+  const { logout, user } = useAuthStore();
+  const { unreadCount, fetchUnreadCount } = useNotificationStore();
+  const { chats } = useChatStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const unreadMessages =
+    chats?.reduce((total, chat) => total + (chat.unreadCount || 0), 0) || 0;
+
+  const [activeButton, setActiveButton] = useState("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  const [isPostFormOpen, setIsPostFormOpen] = useState(false);
+  const [isStoryFormOpen, setIsStoryFormOpen] = useState(false);
+  const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
+
+  const isMinimalist =
+    isSearchOpen ||
+    isNotificationPanelOpen ||
+    isPostFormOpen ||
+    isStoryFormOpen;
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes("/profile")) {
+      setActiveButton("profile");
+    } else if (path.includes("/home")) {
+      setActiveButton("home");
+    } else if (path.includes("/chat")) {
+      setActiveButton("messages");
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchUnreadCount(user._id);
+      const interval = setInterval(() => {
+        fetchUnreadCount(user._id);
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, fetchUnreadCount]);
+
+  const handleClick = (buttonName: string) => {
+    if (buttonName === "create") {
+      return; // Handled within the components
+    }
+    if (buttonName === "more") {
+      return; // Handled within the components
+    }
+    if (buttonName === "create-post") {
+      setIsNewPostModalOpen(true);
+      return;
+    }
+    if (buttonName === "create-story") {
+      setIsStoryFormOpen(true);
+      return;
+    }
+    if (buttonName === "logout") {
+      logout().then(() => navigate("/login"));
+      return;
+    }
+
+    setActiveButton(buttonName);
+    setMobileMenuOpen(false);
+
+    setIsSearchOpen(false);
+    setIsNotificationPanelOpen(false);
+    setIsPostFormOpen(false);
+    setIsStoryFormOpen(false);
+
+    if (buttonName === "search") {
+      setIsSearchOpen(true);
+    } else if (buttonName === "notifications") {
+      setIsNotificationPanelOpen(true);
+    } else if (buttonName === "home") {
+      navigate("/home");
+    } else if (buttonName === "profile") {
+      navigate("/profile");
+    }
+  };
+
+  const handleCloseSearch = () => {
+    setIsSearchOpen(false);
+    setActiveButton(
+      location.pathname.includes("/profile") ? "profile" : "home"
+    );
+  };
+
+  const handleCloseNotifications = () => {
+    setIsNotificationPanelOpen(false);
+    setActiveButton(
+      location.pathname.includes("/profile") ? "profile" : "home"
+    );
+  };
+
+  const handleClosePostForm = () => {
+    setIsPostFormOpen(false);
+  };
+
+  const handleCloseStoryForm = () => {
+    setIsStoryFormOpen(false);
+  };
+
+  const handleCloseNewPostModal = () => {
+    setIsNewPostModalOpen(false);
+  };
+
+  return (
+    <>
+      <AnimatePresence>
+        {isMinimalist ? (
+          <motion.div
+            key="minimalist"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            <MinimalistSidebar
+              activeButton={activeButton}
+              setActiveButton={setActiveButton}
+              mobileMenuOpen={mobileMenuOpen}
+              setMobileMenuOpen={setMobileMenuOpen}
+              unreadMessages={unreadMessages}
+              unreadCount={unreadCount}
+              navigate={navigate}
+              handleClick={handleClick}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="original"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            <OriginalDashboard
+              activeButton={activeButton}
+              setActiveButton={setActiveButton}
+              mobileMenuOpen={mobileMenuOpen}
+              setMobileMenuOpen={setMobileMenuOpen}
+              isSearchOpen={isSearchOpen}
+              setIsSearchOpen={setIsSearchOpen}
+              isNotificationPanelOpen={isNotificationPanelOpen}
+              setIsNotificationPanelOpen={setIsNotificationPanelOpen}
+              isPostFormOpen={isPostFormOpen}
+              setIsPostFormOpen={setIsPostFormOpen}
+              isStoryFormOpen={isStoryFormOpen}
+              setIsStoryFormOpen={setIsStoryFormOpen}
+              isNewPostModalOpen={isNewPostModalOpen}
+              setIsNewPostModalOpen={setIsNewPostModalOpen}
+              unreadMessages={unreadMessages}
+              unreadCount={unreadCount}
+              navigate={navigate}
+              user={user}
+              logout={logout}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div style={{ zIndex: 50 }}>
         <SearchSidebar isOpen={isSearchOpen} onClose={handleCloseSearch} />

@@ -34,12 +34,12 @@ const AdminDashboard: React.FC = () => {
     }
   }, [location.pathname]);
 
-  useEffect(() => {
-    // Redirect to statistics page if admin navigates to home
-    if (location.pathname === "/home" && user?.role === "admin") {
-      navigate("/admin/statistics");
-    }
-  }, [location.pathname, navigate, user]);
+  //   useEffect(() => {
+  //     // Redirect to statistics page if admin navigates to home
+  //     if (location.pathname === "/home" && user?.role === "admin") {
+  //       navigate("/admin/statistics");
+  //     }
+  //   }, [location.pathname, navigate, user]);
 
   const handleLogout = async () => {
     try {

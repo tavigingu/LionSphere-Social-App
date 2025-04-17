@@ -11,6 +11,10 @@ import AboutPage from "./pages/AboutPage.tsx";
 import PrivacyPolicyPage from "./pages/PirvacyPoliticsPage.tsx";
 import TermsOfServicePage from "./pages/TermsOfServicePage.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
+import AdminStatisticsPage from "./pages/StatisticsPage.tsx";
+import AdminUsersPage from "./pages/AdminUsersPage.tsx";
+import AdminReportsPage from "./pages/AdminReportsPage.tsx";
+import AdminReportedPostsPage from "./pages/AdminReportedPosts.tsx";
 
 const router = createBrowserRouter([
   {
@@ -60,6 +64,22 @@ const router = createBrowserRouter([
   {
     path: "/contact",
     element: <ContactPage />, // Noua rută pentru pagina de statistici
+  },
+  {
+    path: "/admin/statistics",
+    element: <AdminStatisticsPage />, // New admin statistics route
+  },
+  {
+    path: "/admin/users",
+    element: <AdminUsersPage />, // New admin statistics route
+  },
+  {
+    path: "/admin/reports",
+    element: <AdminReportsPage />, // New admin statistics route
+  },
+  {
+    path: "/admin/reported-posts",
+    element: <AdminReportedPostsPage />, // New admin statistics route
   },
 ]);
 

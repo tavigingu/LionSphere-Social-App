@@ -1,4 +1,8 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 //import App from "./App";
 import AuthPage from "./pages/AuthPage.tsx";
 import HomePage from "./pages/HomePage.tsx";
@@ -17,6 +21,10 @@ import AdminReportsPage from "./pages/AdminReportsPage.tsx";
 import AdminReportedPostsPage from "./pages/AdminReportedPosts.tsx";
 
 const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Navigate to="/login" replace />,
+  },
   {
     path: "/login",
     element: <AuthPage />,

@@ -29,7 +29,8 @@ import NotificationPanel from "../Home/NotificationPanel";
 import FullLogo from "../../assets/LionSphere_longlogo.png";
 import Logo from "../../assets/LionSphereLogo.png";
 import CreatePostModal from "../Home/CreatePostModal";
-import UserReportModal from "../Home/UserReportModal"; // Added import for UserReportModal
+import UserReportModal from "../Home/UserReportModal";
+import EditProfileModal from "../Profile/EditProfileModal";
 
 // Minimalist Sidebar Component
 const MinimalistSidebar: React.FC<{
@@ -250,7 +251,10 @@ const MinimalistSidebar: React.FC<{
                 transition={{ delay: 0.05, duration: 0.2 }}
                 className="py-2"
               >
-                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                <button
+                  onClick={() => handleClick("settings")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                >
                   <FaCog className="mr-3 text-blue-500" />
                   <span>Settings</span>
                 </button>
@@ -285,7 +289,10 @@ const MinimalistSidebar: React.FC<{
                 transition={{ delay: 0.15, duration: 0.2 }}
                 className="py-2"
               >
-                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                <button
+                  onClick={() => handleClick("saved")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                >
                   <FaBookmark className="mr-3 text-blue-500" />
                   <span>Saved</span>
                 </button>
@@ -356,9 +363,7 @@ const MinimalistSidebar: React.FC<{
           }
           flex flex-col p-4 justify-between items-center`}
       >
-        {/* Top padding to align with OriginalDashboard's logo */}
-        <div className="h-[120px]" /> {/* Adjusted to align Home button */}
-        {/* Navigation Buttons */}
+        <div className="h-[120px]" />
         <div className="flex flex-col space-y-8 items-center">
           <NavButton
             name="home"
@@ -426,9 +431,8 @@ const MinimalistSidebar: React.FC<{
             label="Profile"
           />
         </div>
-        {/* Bottom padding to align 'More' button */}
         <div className="flex flex-col items-center space-y-8">
-          <div className="h-[160px]" /> {/* Adjusted to align More button */}
+          <div className="h-[160px]" />
           <NavButton
             name="more"
             icon={
@@ -454,7 +458,7 @@ const MinimalistSidebar: React.FC<{
   );
 };
 
-// Original RegularDashboard (unchanged)
+// Original RegularDashboard
 const OriginalDashboard: React.FC<{
   activeButton: string;
   setActiveButton: (buttonName: string) => void;
@@ -470,8 +474,8 @@ const OriginalDashboard: React.FC<{
   setIsStoryFormOpen: (open: boolean) => void;
   isNewPostModalOpen: boolean;
   setIsNewPostModalOpen: (open: boolean) => void;
-  isReportModalOpen: boolean; // Added prop for report modal
-  setIsReportModalOpen: (open: boolean) => void; // Added prop for report modal
+  isReportModalOpen: boolean;
+  setIsReportModalOpen: (open: boolean) => void;
   unreadMessages: number;
   unreadCount: number;
   navigate: (path: string) => void;
@@ -492,8 +496,8 @@ const OriginalDashboard: React.FC<{
   setIsStoryFormOpen,
   isNewPostModalOpen,
   setIsNewPostModalOpen,
-  isReportModalOpen, // Added prop
-  setIsReportModalOpen, // Added prop
+  isReportModalOpen,
+  setIsReportModalOpen,
   unreadMessages,
   unreadCount,
   navigate,
@@ -787,7 +791,10 @@ const OriginalDashboard: React.FC<{
                 transition={{ delay: 0.05 }}
                 className="py-2"
               >
-                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <button
+                  onClick={() => handleClick("settings")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
                   <FaCog className="mr-3 text-blue-500" />
                   <span>Settings</span>
                 </button>
@@ -822,7 +829,10 @@ const OriginalDashboard: React.FC<{
                 transition={{ delay: 0.15 }}
                 className="py-2"
               >
-                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <button
+                  onClick={() => handleClick("saved")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
                   <FaBookmark className="mr-3 text-blue-500" />
                   <span>Saved</span>
                 </button>
@@ -1122,7 +1132,8 @@ const RegularDashboard: React.FC = () => {
   const [isPostFormOpen, setIsPostFormOpen] = useState(false);
   const [isStoryFormOpen, setIsStoryFormOpen] = useState(false);
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false); // Added state for report modal
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false); // Added state for EditProfileModal
 
   const isMinimalist =
     isSearchOpen ||
@@ -1172,6 +1183,17 @@ const RegularDashboard: React.FC = () => {
     }
     if (buttonName === "logout") {
       logout().then(() => navigate("/login"));
+      return;
+    }
+    if (buttonName === "saved") {
+      navigate("/profile", { state: { activeTab: "saved" } });
+      setActiveButton("profile");
+      return;
+    }
+    if (buttonName === "settings") {
+      navigate("/profile");
+      setActiveButton("profile");
+      setIsEditProfileModalOpen(true);
       return;
     }
 
@@ -1224,6 +1246,10 @@ const RegularDashboard: React.FC = () => {
     setIsReportModalOpen(false);
   };
 
+  const handleCloseEditProfileModal = () => {
+    setIsEditProfileModalOpen(false);
+  };
+
   return (
     <>
       <AnimatePresence>
@@ -1251,7 +1277,7 @@ const RegularDashboard: React.FC = () => {
             key="original"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            exit
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
             <OriginalDashboard
@@ -1269,8 +1295,8 @@ const RegularDashboard: React.FC = () => {
               setIsStoryFormOpen={setIsStoryFormOpen}
               isNewPostModalOpen={isNewPostModalOpen}
               setIsNewPostModalOpen={setIsNewPostModalOpen}
-              isReportModalOpen={isReportModalOpen} // Added prop
-              setIsReportModalOpen={setIsReportModalOpen} // Added prop
+              isReportModalOpen={isReportModalOpen}
+              setIsReportModalOpen={setIsReportModalOpen}
               unreadMessages={unreadMessages}
               unreadCount={unreadCount}
               navigate={navigate}
@@ -1316,6 +1342,15 @@ const RegularDashboard: React.FC = () => {
         isOpen={isReportModalOpen}
         onClose={handleCloseReportModal}
       />
+
+      {isEditProfileModalOpen && user && (
+        <EditProfileModal
+          user={user}
+          isOpen={isEditProfileModalOpen}
+          onClose={handleCloseEditProfileModal}
+          onProfileUpdate={() => {}}
+        />
+      )}
     </>
   );
 };

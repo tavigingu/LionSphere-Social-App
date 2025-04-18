@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
@@ -30,6 +30,7 @@ const ProfilePage: React.FC = () => {
   } = usePostStore();
   const { storyGroups, fetchStories, setActiveStoryGroup } = useStoryStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [profileUser, setProfileUser] = useState<IUser | null>(null);
   const [userPosts, setUserPosts] = useState<IPost[]>([]);
@@ -48,6 +49,19 @@ const ProfilePage: React.FC = () => {
   const isOwnProfile = currentUser?._id === (userId || currentUser?._id);
   const targetUserId = userId || currentUser?._id;
   const postCount = userPosts.length;
+
+  // Handle activeTab from navigation state
+  useEffect(() => {
+    if (location.state && (location.state as any).activeTab) {
+      const newTab = (location.state as any).activeTab as
+        | "posts"
+        | "saved"
+        | "tagged";
+      setActiveTab(newTab);
+      // Clear the state to prevent re-triggering
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const fetchProfileData = useCallback(async () => {
     if (!targetUserId) return;
@@ -349,31 +363,10 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  // if (error) {
-  //   return (
-  //     <div className="relative min-h-screen text-white">
-  //       <Background />
-  //       <div className="container mx-auto px-4 py-8 flex justify-center items-center h-screen">
-  //         <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl text-center">
-  //           <h2 className="text-2xl font-bold mb-4">Error</h2>
-  //           <p>{error || "User not found"}</p>
-  //           <button
-  //             onClick={() => navigate("/home")}
-  //             className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-  //           >
-  //             Return to Home
-  //           </button>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <div className="relative min-h-screen text-white">
       <Background />
       <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col lg:flex-row">
-        {/* Main Content */}
         <div className="flex-1 flex flex-col lg:flex-row">
           <div className="hidden lg:block lg:w-72 lg:mr-6">
             <UserInfoSidebar {...userInfoSidebarProps} />
@@ -526,7 +519,6 @@ const ProfilePage: React.FC = () => {
                       )}
                     </div>
                   )}
-                  {/* Footer Section */}
                   <div className="mt-8">
                     <div className="border-t border-gray-200 my-4"></div>
                     <div className="px-3">
@@ -578,7 +570,6 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Dashboard */}
         <div className="hidden lg:block lg:w-80">
           <Dashboard />
         </div>

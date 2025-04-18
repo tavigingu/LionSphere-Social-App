@@ -7,8 +7,8 @@ import {
   FaBookmark,
   FaRegBookmark,
   FaReply,
-  FaRegPaperPlane,
   FaMapMarkerAlt,
+  FaFlag,
 } from "react-icons/fa";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ import usePostStore from "../../store/PostStore";
 import axios from "axios";
 import UserListModal from "../UserListModal";
 import MentionsInput from "./MentionsInput";
+import PostReportModal from "./PostReportModal";
 
 interface PostCardProps {
   _id: string;
@@ -94,6 +95,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const [loading, setLoading] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [commentUsers, setCommentUsers] = useState<{
     [key: string]: {
@@ -115,6 +117,8 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>(
     {}
   );
+
+  const isAdmin = currentUser?.role === "admin";
 
   const parseCommentText = (text: string) => {
     const parts = text.split(/(@\w+)/g);
@@ -203,6 +207,11 @@ const PostCard: React.FC<PostCardProps> = ({
         console.error("Error deleting post:", error);
       }
     }
+  };
+
+  const handleReportPost = () => {
+    setShowMenu(false);
+    setShowReportModal(true);
   };
 
   const handleImageClick = () => {
@@ -310,86 +319,6 @@ const PostCard: React.FC<PostCardProps> = ({
             ].replies!.filter((r) => r._id !== newReply._id);
           }
           setLocalComments(fallbackComments);
-        }
-      }
-    }
-  };
-
-  const handleLikeComment = async (commentId: string) => {
-    if (!currentUser?._id || !_id) return;
-
-    const commentIndex = localComments.findIndex((c) => c._id === commentId);
-
-    if (commentIndex !== -1) {
-      try {
-        await likeComment(_id, commentId, currentUser._id);
-
-        setLocalComments((prevComments) => {
-          const updatedComments = [...prevComments];
-          const isLiked =
-            updatedComments[commentIndex].likes?.includes(currentUser._id) ||
-            false;
-
-          if (!updatedComments[commentIndex].likes) {
-            updatedComments[commentIndex].likes = [];
-          }
-
-          if (isLiked) {
-            updatedComments[commentIndex].likes = updatedComments[
-              commentIndex
-            ].likes!.filter((id) => id !== currentUser._id);
-          } else {
-            updatedComments[commentIndex].likes!.push(currentUser._id);
-          }
-
-          return updatedComments;
-        });
-      } catch (error) {
-        console.error("Error liking comment:", error);
-      }
-    }
-  };
-
-  const handleLikeReply = async (commentId: string, replyId: string) => {
-    if (!currentUser?._id || !_id) return;
-
-    const commentIndex = localComments.findIndex((c) => c._id === commentId);
-
-    if (commentIndex !== -1 && localComments[commentIndex].replies) {
-      const replyIndex = localComments[commentIndex].replies!.findIndex(
-        (r) => r._id === replyId
-      );
-
-      if (replyIndex !== -1) {
-        try {
-          await likeReply(_id, commentId, replyId, currentUser._id);
-
-          setLocalComments((prevComments) => {
-            const updatedComments = [...prevComments];
-            const isLiked =
-              updatedComments[commentIndex].replies![
-                replyIndex
-              ].likes?.includes(currentUser._id) || false;
-
-            if (!updatedComments[commentIndex].replies![replyIndex].likes) {
-              updatedComments[containerIndex].replies![replyIndex].likes = [];
-            }
-
-            if (isLiked) {
-              updatedComments[commentIndex].replies![replyIndex].likes =
-                updatedComments[commentIndex].replies![
-                  replyIndex
-                ].likes!.filter((id) => id !== currentUser._id);
-            } else {
-              updatedComments[commentIndex].replies![replyIndex].likes!.push(
-                currentUser._id
-              );
-            }
-
-            return updatedComments;
-          });
-        } catch (error) {
-          console.error("Error liking reply:", error);
         }
       }
     }
@@ -623,17 +552,18 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         </div>
 
-        {currentUser &&
-          (currentUser._id === userId || currentUser.role === "admin") && (
-            <div className="relative" ref={menuRef}>
-              <button
-                className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                onClick={() => setShowMenu(!showMenu)}
-              >
-                <FaEllipsisV />
-              </button>
-              {showMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+        <div className="relative" ref={menuRef}>
+          <button
+            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            onClick={() => setShowMenu(!showMenu)}
+          >
+            <FaEllipsisV />
+          </button>
+          {showMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+              {currentUser &&
+                (currentUser._id === userId ||
+                  currentUser.role === "admin") && (
                   <button
                     className="flex items-center w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100 rounded-md"
                     onClick={handleDeletePost}
@@ -641,10 +571,17 @@ const PostCard: React.FC<PostCardProps> = ({
                     <FaTrash className="mr-2" />
                     Delete post
                   </button>
-                </div>
-              )}
+                )}
+              <button
+                className="flex items-center w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100 rounded-md"
+                onClick={handleReportPost}
+              >
+                <FaFlag className="mr-2" />
+                Report post
+              </button>
             </div>
           )}
+        </div>
       </div>
       <div
         className="w-full aspect-[1/1] ipad-nest:aspect-[4/3] bg-gray-100 relative"
@@ -711,7 +648,13 @@ const PostCard: React.FC<PostCardProps> = ({
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex space-x-8">
           <div className="flex flex-col items-center">
-            <button onClick={onLike} className="transition-colors">
+            <button
+              onClick={onLike}
+              className={`transition-colors ${
+                isAdmin ? "cursor-not-allowed opacity-50" : ""
+              }`}
+              disabled={isAdmin}
+            >
               {isLiked ? (
                 <FaHeart
                   className="text-2xl text-purple-500 filter drop-shadow-lg"
@@ -720,7 +663,13 @@ const PostCard: React.FC<PostCardProps> = ({
                   }}
                 />
               ) : (
-                <FaRegHeart className="text-2xl text-gray-700 hover:text-purple-500 transition-colors" />
+                <FaRegHeart
+                  className={`text-2xl ${
+                    isAdmin
+                      ? "text-gray-400"
+                      : "text-gray-700 hover:text-purple-500 transition-colors"
+                  }`}
+                />
               )}
             </button>
             <button
@@ -748,7 +697,13 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         </div>
         <div className="flex flex-col items-center -mt-6">
-          <button onClick={handleSavePost} className="transition-colors">
+          <button
+            onClick={handleSavePost}
+            className={`transition-colors ${
+              isAdmin ? "cursor-not-allowed opacity-50" : ""
+            }`}
+            disabled={isAdmin}
+          >
             {localSaved ? (
               <FaBookmark
                 className="text-2xl"
@@ -761,7 +716,13 @@ const PostCard: React.FC<PostCardProps> = ({
                 }}
               />
             ) : (
-              <FaRegBookmark className="text-2xl text-gray-700 hover:text-yellow-500 transition-colors" />
+              <FaRegBookmark
+                className={`text-2xl ${
+                  isAdmin
+                    ? "text-gray-400"
+                    : "text-gray-700 hover:text-yellow-500 transition-colors"
+                }`}
+              />
             )}
           </button>
         </div>
@@ -817,46 +778,62 @@ const PostCard: React.FC<PostCardProps> = ({
                         <p className="text-sm text-gray-700">
                           {parseCommentText(comment.text)}
                         </p>
-                        {currentUser && currentUser._id === comment.userId && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (
-                                window.confirm(
-                                  "Are you sure you want to delete this comment?"
-                                )
-                              ) {
-                                setLocalComments(
-                                  localComments.filter(
-                                    (c) => c._id !== comment._id
+                        {currentUser &&
+                          (currentUser._id === comment.userId ||
+                            currentUser.role === "admin") && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (
+                                  window.confirm(
+                                    "Are you sure you want to delete this comment?"
                                   )
-                                );
-                              }
-                            }}
-                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
-                          >
-                            <FaTrash size={12} />
-                          </button>
-                        )}
+                                ) {
+                                  setLocalComments(
+                                    localComments.filter(
+                                      (c) => c._id !== comment._id
+                                    )
+                                  );
+                                }
+                              }}
+                              className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                            >
+                              <FaTrash size={12} />
+                            </button>
+                          )}
                       </div>
                       <div className="flex items-center mt-1 text-xs space-x-4">
                         <span className="text-gray-500">
                           {formatDate(comment.createdAt)}
                         </span>
                         <button
-                          className="flex items-center text-gray-500 hover:text-purple-500"
+                          className={`flex items-center text-gray-500 ${
+                            isAdmin
+                              ? "cursor-not-allowed"
+                              : "hover:text-purple-500"
+                          }`}
                           onClick={() =>
-                            comment._id && handleLikeComment(comment._id)
+                            !isAdmin &&
+                            comment._id &&
+                            handleLikeComment(comment._id)
                           }
+                          disabled={isAdmin}
                         >
                           {comment.likes &&
                           comment.likes.includes(currentUser?._id || "") ? (
                             <FaHeart
-                              className="text-purple-500 mr-1"
+                              className={`mr-1 ${
+                                isAdmin ? "text-gray-400" : "text-purple-500"
+                              }`}
                               size={12}
                             />
                           ) : (
-                            <FaRegHeart className="mr-1" size={12} />
+                            <FaRegHeart
+                              className={`mr-1 ${
+                                isAdmin ? "text-gray-400" : ""
+                              }`}
+                              size={12}
+                            />
                           )}
                           <span
                             className={`${
@@ -985,7 +962,8 @@ const PostCard: React.FC<PostCardProps> = ({
                                       {parseCommentText(reply.text)}
                                     </p>
                                     {currentUser &&
-                                      currentUser._id === reply.userId && (
+                                      (currentUser._id === reply.userId ||
+                                        currentUser.role === "admin") && (
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -1030,27 +1008,42 @@ const PostCard: React.FC<PostCardProps> = ({
                                       {formatDate(reply.createdAt)}
                                     </span>
                                     <button
-                                      className="flex items-center text-gray-500 hover:text-purple-500"
+                                      className={`flex items-center text-gray-500 ${
+                                        isAdmin
+                                          ? "cursor-not-allowed"
+                                          : "hover:text-purple-500"
+                                      }`}
                                       onClick={() => {
-                                        if (comment._id && reply._id) {
+                                        if (
+                                          !isAdmin &&
+                                          comment._id &&
+                                          reply._id
+                                        ) {
                                           handleLikeReply(
                                             comment._id,
                                             reply._id
                                           );
                                         }
                                       }}
+                                      disabled={isAdmin}
                                     >
                                       {reply.likes &&
                                       reply.likes.includes(
                                         currentUser?._id || ""
                                       ) ? (
                                         <FaHeart
-                                          className="text-purple-500 mr-1"
+                                          className={`mr-1 ${
+                                            isAdmin
+                                              ? "text-gray-400"
+                                              : "text-purple-500"
+                                          }`}
                                           size={10}
                                         />
                                       ) : (
                                         <FaRegHeart
-                                          className="mr-1"
+                                          className={`mr-1 ${
+                                            isAdmin ? "text-gray-400" : ""
+                                          }`}
                                           size={10}
                                         />
                                       )}
@@ -1094,15 +1087,17 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         </div>
       )}
-      <div className="px-4 pb-4 pt-2 border-t border-gray-100">
-        <MentionsInput
-          value={commentText}
-          onChange={setCommentText}
-          placeholder="Add a comment..."
-          onSubmit={handleAddComment}
-          className="border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+      {!isAdmin && (
+        <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+          <MentionsInput
+            value={commentText}
+            onChange={setCommentText}
+            placeholder="Add a comment..."
+            onSubmit={handleAddComment}
+            className="border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      )}
 
       <UserListModal
         isOpen={isLikesModalOpen}
@@ -1123,6 +1118,14 @@ const PostCard: React.FC<PostCardProps> = ({
             fetchCommentLikes(activeCommentId, page, limit)
           }
           postId={_id}
+        />
+      )}
+
+      {showReportModal && (
+        <PostReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          post={{ _id, userId, desc, likes, image: image || "" }}
         />
       )}
     </div>

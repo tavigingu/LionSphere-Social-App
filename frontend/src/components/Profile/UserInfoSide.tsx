@@ -1,4 +1,3 @@
-// UserInfoSide.tsx
 import React, { useState, useEffect } from "react";
 import { IUser } from "../../types/AuthTypes";
 import {
@@ -289,7 +288,7 @@ const UserInfoSide: React.FC<UserInfoSidebarProps> = ({
     <div className={containerClasses}>
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-bold text-gray-800">Profile Information</h3>
-        {isOwnProfile && (
+        {(isOwnProfile || currentUser?.role === "admin") && (
           <button
             onClick={() => setIsEditing(true)}
             className="p-1 text-blue-500 hover:text-blue-700 rounded-full hover:bg-blue-50 transition-all duration-300 transform hover:rotate-90"

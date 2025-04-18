@@ -81,6 +81,10 @@ const router = createBrowserRouter([
     path: "/admin/reported-posts",
     element: <AdminReportedPostsPage />, // New admin statistics route
   },
+  {
+    path: "/admin/profile/:userId",
+    element: <ProfilePage />,
+  },
 ]);
 
 const Router = () => <RouterProvider router={router} />;

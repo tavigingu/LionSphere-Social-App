@@ -320,7 +320,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 {user.firstname} {user.lastname}
               </p>
             </div>
-            {isOwnProfile ? (
+            {isOwnProfile || currentUser?.role === "admin" ? (
               <button
                 onClick={handleEditProfile}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition flex items-center text-sm sm:text-base"
@@ -328,26 +328,28 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 <FaPen className="mr-1 sm:mr-2" /> Edit Profile
               </button>
             ) : (
-              <button
-                onClick={handleFollow}
-                disabled={followLoading}
-                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
-                  isFollowing
-                    ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-              >
-                {followLoading ? (
-                  <span className="flex items-center justify-center">
-                    <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-current rounded-full"></div>
-                    Processing...
-                  </span>
-                ) : isFollowing ? (
-                  "Unfollow"
-                ) : (
-                  "Follow"
-                )}
-              </button>
+              currentUser?.role !== "admin" && (
+                <button
+                  onClick={handleFollow}
+                  disabled={followLoading}
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                    isFollowing
+                      ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  {followLoading ? (
+                    <span className="flex items-center justify-center">
+                      <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-current rounded-full"></div>
+                      Processing...
+                    </span>
+                  ) : isFollowing ? (
+                    "Unfollow"
+                  ) : (
+                    "Follow"
+                  )}
+                </button>
+              )
             )}
           </div>
 

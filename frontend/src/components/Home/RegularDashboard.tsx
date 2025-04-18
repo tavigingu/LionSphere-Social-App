@@ -29,6 +29,7 @@ import NotificationPanel from "../Home/NotificationPanel";
 import FullLogo from "../../assets/LionSphere_longlogo.png";
 import Logo from "../../assets/LionSphereLogo.png";
 import CreatePostModal from "../Home/CreatePostModal";
+import UserReportModal from "../Home/UserReportModal"; // Added import for UserReportModal
 
 // Minimalist Sidebar Component
 const MinimalistSidebar: React.FC<{
@@ -300,7 +301,10 @@ const MinimalistSidebar: React.FC<{
                 transition={{ delay: 0.2, duration: 0.2 }}
                 className="py-2"
               >
-                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                <button
+                  onClick={() => handleClick("report")}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                >
                   <FaExclamationTriangle className="mr-3 text-blue-500" />
                   <span>Report a problem</span>
                 </button>
@@ -466,6 +470,8 @@ const OriginalDashboard: React.FC<{
   setIsStoryFormOpen: (open: boolean) => void;
   isNewPostModalOpen: boolean;
   setIsNewPostModalOpen: (open: boolean) => void;
+  isReportModalOpen: boolean; // Added prop for report modal
+  setIsReportModalOpen: (open: boolean) => void; // Added prop for report modal
   unreadMessages: number;
   unreadCount: number;
   navigate: (path: string) => void;
@@ -486,6 +492,8 @@ const OriginalDashboard: React.FC<{
   setIsStoryFormOpen,
   isNewPostModalOpen,
   setIsNewPostModalOpen,
+  isReportModalOpen, // Added prop
+  setIsReportModalOpen, // Added prop
   unreadMessages,
   unreadCount,
   navigate,
@@ -580,6 +588,12 @@ const OriginalDashboard: React.FC<{
   const handleCreateStory = () => {
     setIsCreateMenuOpen(false);
     setIsStoryFormOpen(true);
+  };
+
+  const handleReport = () => {
+    setIsCreateMenuOpen(false);
+    setIsMoreMenuOpen(false);
+    setIsReportModalOpen(true);
   };
 
   const handleLogout = async () => {
@@ -696,6 +710,7 @@ const OriginalDashboard: React.FC<{
                 animate="visible"
                 transition={{ delay: 0.05 }}
                 className="py-2"
+                ref={createMenuRef}
               >
                 <button
                   onClick={handleCreateStory}
@@ -760,6 +775,7 @@ const OriginalDashboard: React.FC<{
                 transformOrigin: isMinimalist ? "left center" : "bottom center",
                 minWidth: "180px",
               }}
+              ref={moreMenuRef}
             >
               <motion.div
                 variants={{
@@ -822,7 +838,10 @@ const OriginalDashboard: React.FC<{
                 transition={{ delay: 0.2 }}
                 className="py-2"
               >
-                <button className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <button
+                  onClick={handleReport}
+                  className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
                   <FaExclamationTriangle className="mr-3 text-blue-500" />
                   <span>Report a problem</span>
                 </button>
@@ -1103,6 +1122,7 @@ const RegularDashboard: React.FC = () => {
   const [isPostFormOpen, setIsPostFormOpen] = useState(false);
   const [isStoryFormOpen, setIsStoryFormOpen] = useState(false);
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false); // Added state for report modal
 
   const isMinimalist =
     isSearchOpen ||
@@ -1144,6 +1164,10 @@ const RegularDashboard: React.FC = () => {
     }
     if (buttonName === "create-story") {
       setIsStoryFormOpen(true);
+      return;
+    }
+    if (buttonName === "report") {
+      setIsReportModalOpen(true);
       return;
     }
     if (buttonName === "logout") {
@@ -1196,6 +1220,10 @@ const RegularDashboard: React.FC = () => {
     setIsNewPostModalOpen(false);
   };
 
+  const handleCloseReportModal = () => {
+    setIsReportModalOpen(false);
+  };
+
   return (
     <>
       <AnimatePresence>
@@ -1241,6 +1269,8 @@ const RegularDashboard: React.FC = () => {
               setIsStoryFormOpen={setIsStoryFormOpen}
               isNewPostModalOpen={isNewPostModalOpen}
               setIsNewPostModalOpen={setIsNewPostModalOpen}
+              isReportModalOpen={isReportModalOpen} // Added prop
+              setIsReportModalOpen={setIsReportModalOpen} // Added prop
               unreadMessages={unreadMessages}
               unreadCount={unreadCount}
               navigate={navigate}
@@ -1280,6 +1310,11 @@ const RegularDashboard: React.FC = () => {
       <CreatePostModal
         isOpen={isNewPostModalOpen}
         onClose={handleCloseNewPostModal}
+      />
+
+      <UserReportModal
+        isOpen={isReportModalOpen}
+        onClose={handleCloseReportModal}
       />
     </>
   );

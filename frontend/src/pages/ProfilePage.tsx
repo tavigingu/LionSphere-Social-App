@@ -349,25 +349,25 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  if (error || !profileUser) {
-    return (
-      <div className="relative min-h-screen text-white">
-        <Background />
-        <div className="container mx-auto px-4 py-8 flex justify-center items-center h-screen">
-          <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl text-center">
-            <h2 className="text-2xl font-bold mb-4">Error</h2>
-            <p>{error || "User not found"}</p>
-            <button
-              onClick={() => navigate("/home")}
-              className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-            >
-              Return to Home
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="relative min-h-screen text-white">
+  //       <Background />
+  //       <div className="container mx-auto px-4 py-8 flex justify-center items-center h-screen">
+  //         <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl text-center">
+  //           <h2 className="text-2xl font-bold mb-4">Error</h2>
+  //           <p>{error || "User not found"}</p>
+  //           <button
+  //             onClick={() => navigate("/home")}
+  //             className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+  //           >
+  //             Return to Home
+  //           </button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="relative min-h-screen text-white">

@@ -180,7 +180,7 @@ const AdminUsersPage: React.FC = () => {
                     value={searchTerm}
                     onChange={handleSearchChange}
                     onKeyDown={handleSearchKeyDown}
-                    className="pl-10 pr-4 py-2 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64 text-gray-800"
+                    className="pl-10 pr-4 py-2 bg-white/50 backdrop-blur-sm rounded-lg border border-gray?"
                   />
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
@@ -223,7 +223,7 @@ const AdminUsersPage: React.FC = () => {
           <div className="backdrop-blur-md bg-white/10 rounded-xl overflow-hidden">
             <div className="bg-gray-800/20 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <h2 className="font-semibold text-gray-800">
-                All Users ({filteredUsers.length})
+                Displayed Users ({filteredUsers.length})
               </h2>
               <div className="text-sm text-gray-500">
                 {searchTerm
@@ -284,29 +284,30 @@ const AdminUsersPage: React.FC = () => {
                             </span>
                           )}
                         </div>
+                      </div>
 
-                        <div className="absolute -bottom-8 left-4 z-10">
-                          <div className="h-20 w-20 rounded-full border-4 border-white">
-                            <div className="h-full w-full rounded-full overflow-hidden bg-white">
-                              {user.profilePicture ? (
-                                <img
-                                  src={user.profilePicture}
-                                  alt={user.username}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="h-full w-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                                  <span className="text-white text-xl font-bold">
-                                    {user.username.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                      {/* Profile picture container */}
+                      <div className="relative flex justify-center -mt-10 z-10">
+                        <div className="h-20 w-20 rounded-full border-4 border-white bg-white">
+                          <div className="h-full w-full rounded-full overflow-hidden">
+                            {user.profilePicture ? (
+                              <img
+                                src={user.profilePicture}
+                                alt={user.username}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-full w-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                                <span className="text-white text-xl font-bold">
+                                  {user.username.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      <div className="pt-12 pb-4 px-4">
+                      <div className="pt-4 pb-4 px-4 text-center">
                         <h3 className="font-medium text-gray-900">
                           {user.username}
                         </h3>

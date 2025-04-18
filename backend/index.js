@@ -12,8 +12,9 @@ import UserRoute from "./routes/UserRoute.js";
 import PostRoute from "./routes/PostRoute.js";
 import NotificationRoute from "./routes/NotificationRoute.js";
 import StoryRoute from "./routes/StoryRoute.js";
-import ChatRoute from "./routes/ChatRoute.js"; // New Chat routes
-import MessageRoute from "./routes/MessageRoute.js"; // New Message routes
+import ChatRoute from "./routes/ChatRoute.js"; 
+import MessageRoute from "./routes/MessageRoute.js"; 
+import ReportRoute from "./routes/ReportRoute.js";
 import cron from 'node-cron';
 import { cleanExpiredStories } from "./controller/StoryController.js";
 
@@ -161,5 +162,6 @@ app.use('/user', UserRoute);
 app.use('/post', PostRoute);
 app.use('/notification', NotificationRoute);
 app.use('/story', StoryRoute);
-app.use('/chat', ChatRoute); // New route for chats
-app.use('/message', MessageRoute); // New route for messages
+app.use('/chat', ChatRoute);
+app.use('/message', MessageRoute); 
+app.use('/report', ReportRoute);

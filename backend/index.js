@@ -18,6 +18,7 @@ import ReportRoute from "./routes/ReportRoute.js";
 import cron from 'node-cron';
 import { cleanExpiredStories } from "./controller/StoryController.js";
 import StatisticsRoute from "./routes/StatisticsRoute.js";
+import StatisticsAdminRoute from "./routes/StatisticsAdminRoute.js";
 
 dotenv.config();
 
@@ -167,3 +168,4 @@ app.use('/chat', ChatRoute);
 app.use('/message', MessageRoute); 
 app.use('/report', ReportRoute);
 app.use('/statistics', StatisticsRoute);
+app.use('/admin/statistics', StatisticsAdminRoute);

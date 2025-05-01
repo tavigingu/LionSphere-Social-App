@@ -15,7 +15,7 @@ import AboutPage from "./pages/AboutPage.tsx";
 import PrivacyPolicyPage from "./pages/PirvacyPoliticsPage.tsx";
 import TermsOfServicePage from "./pages/TermsOfServicePage.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
-import AdminStatisticsPage from "./pages/StatisticsPage.tsx";
+import AdminStatisticsPage from "./pages/AdminStatisticsPage.tsx";
 import AdminUsersPage from "./pages/AdminUsersPage.tsx";
 import AdminReportsPage from "./pages/AdminReportsPage.tsx";
 import AdminReportedPostsPage from "./pages/AdminReportedPosts.tsx";

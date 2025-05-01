@@ -9,9 +9,7 @@ import {
   FaTimes,
   FaBars,
 } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
 import useAuthStore from "../../store/AuthStore";
-import Logo from "../../assets/LionSphereLogo.png";
 import FullLogo from "../../assets/LionSphere_longlogo.png";
 
 const AdminDashboard: React.FC = () => {

@@ -128,7 +128,8 @@ interface StatsData {
 
 type TimeframeType = "week" | "month" | "year";
 
-const StatisticsPage: React.FC = () => {
+const 
+StatisticsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 

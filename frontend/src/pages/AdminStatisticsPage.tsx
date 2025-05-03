@@ -25,21 +25,16 @@ import {
   FaClock,
   FaExclamationTriangle,
   FaCalendarAlt,
-  FaGlobe,
   FaChartLine,
   FaBell,
   FaHeart,
-  FaUser,
 } from "react-icons/fa";
 import useAuthStore from "../store/AuthStore";
 import Background from "../components/Home/Background";
 import AdminDashboard from "../components/Home/AdminDashboard";
-import {
-  getAdminStatistics,
-  AdminStats,
-  TimeframeType,
-} from "../api/StatisticsAdmin";
+import { getAdminStatistics, TimeframeType } from "../api/StatisticsAdmin";
 
+// Define consistent colors for charts
 const COLORS = [
   "#0088FE",
   "#00C49F",
@@ -56,7 +51,7 @@ const AdminStatisticsPage: React.FC = () => {
   const [timeframe, setTimeframe] = useState<TimeframeType>("month");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [stats, setStats] = useState<any | null>(null);
 
   // Check if user is admin and fetch statistics
   useEffect(() => {
@@ -86,14 +81,13 @@ const AdminStatisticsPage: React.FC = () => {
     } catch (err) {
       console.error("Error fetching admin statistics:", err);
       setError(
-        err instanceof Error
-          ? err.message
-          : "Eroare la încărcarea statisticilor admin"
+        err instanceof Error ? err.message : "Error loading admin statistics"
       );
       setLoading(false);
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="relative min-h-screen">
@@ -103,7 +97,7 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="flex flex-col items-center">
               <div className="animate-spin w-12 h-12 border-4 border-t-blue-500 border-blue-200 rounded-full"></div>
               <p className="mt-4 text-lg text-gray-800">
-                Încărcare statistici admin...
+                Loading admin statistics...
               </p>
             </div>
           </div>
@@ -113,6 +107,7 @@ const AdminStatisticsPage: React.FC = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="relative min-h-screen">
@@ -122,14 +117,14 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="flex flex-col items-center">
               <FaExclamationTriangle className="text-yellow-500 text-4xl mb-4" />
               <p className="mt-2 text-xl text-gray-800">
-                Eroare la încărcarea statisticilor
+                Error loading statistics
               </p>
               <p className="mt-1 text-gray-600">{error}</p>
               <button
                 onClick={() => fetchAdminStatistics()}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
               >
-                Încearcă din nou
+                Try again
               </button>
             </div>
           </div>
@@ -139,6 +134,7 @@ const AdminStatisticsPage: React.FC = () => {
     );
   }
 
+  // No data state
   if (!stats) {
     return (
       <div className="relative min-h-screen">
@@ -148,10 +144,10 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="flex flex-col items-center">
               <FaExclamationTriangle className="text-yellow-500 text-4xl mb-4" />
               <p className="mt-2 text-xl text-gray-800">
-                Nu există date statistice disponibile
+                No statistical data available
               </p>
               <p className="mt-1 text-gray-600">
-                Nu există date de analizat în acest moment.
+                There is no data to analyze at the moment.
               </p>
             </div>
           </div>
@@ -159,6 +155,77 @@ const AdminStatisticsPage: React.FC = () => {
         <AdminDashboard />
       </div>
     );
+  }
+
+  // Extract and provide defaults for all required data objects
+  const userStats = stats.userStats || {
+    totalUsers: 0,
+    newUsersToday: 0,
+    newUsersThisWeek: 0,
+    newUsersThisMonth: 0,
+    userGrowth: [{ date: "No data", total: 0 }],
+  };
+
+  const postStats = stats.postStats || {
+    totalPosts: 0,
+    newPostsToday: 0,
+    newPostsThisWeek: 0,
+    postGrowth: [{ date: "No data", total: 0 }],
+    totalLikes: 0,
+    totalComments: 0,
+    interactionGrowth: [{ date: "No data", likes: 0, comments: 0 }],
+  };
+
+  const storyStats = stats.storyStats || {
+    totalStories: 0,
+    newStoriesToday: 0,
+    storyViews: 0,
+    storyViewsGrowth: [{ date: "No data", total: 0 }],
+  };
+
+  const reportStats = stats.reportStats || {
+    totalReports: 0,
+    pendingReports: 0,
+    reportTypes: [{ name: "No data", value: 100 }],
+  };
+
+  const notificationStats = stats.notificationStats || {
+    totalNotifications: 0,
+    notificationTypes: [{ name: "No data", value: 100 }],
+  };
+
+  // Ensure that all arrays have at least one element to prevent chart rendering errors
+  if (!userStats.userGrowth || userStats.userGrowth.length === 0) {
+    userStats.userGrowth = [{ date: "No data", total: 0 }];
+  }
+
+  if (!postStats.postGrowth || postStats.postGrowth.length === 0) {
+    postStats.postGrowth = [{ date: "No data", total: 0 }];
+  }
+
+  if (
+    !postStats.interactionGrowth ||
+    postStats.interactionGrowth.length === 0
+  ) {
+    postStats.interactionGrowth = [{ date: "No data", likes: 0, comments: 0 }];
+  }
+
+  if (
+    !storyStats.storyViewsGrowth ||
+    storyStats.storyViewsGrowth.length === 0
+  ) {
+    storyStats.storyViewsGrowth = [{ date: "No data", total: 0 }];
+  }
+
+  if (!reportStats.reportTypes || reportStats.reportTypes.length === 0) {
+    reportStats.reportTypes = [{ name: "No data", value: 100 }];
+  }
+
+  if (
+    !notificationStats.notificationTypes ||
+    notificationStats.notificationTypes.length === 0
+  ) {
+    notificationStats.notificationTypes = [{ name: "No data", value: 100 }];
   }
 
   return (
@@ -171,10 +238,10 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">
-                  Panou statistici administrative
+                  Administrative Statistics Dashboard
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  Vizualizare metrici și activitate platformă
+                  View platform metrics and activity
                 </p>
               </div>
               <div className="mt-4 md:mt-0">
@@ -187,7 +254,7 @@ const AdminStatisticsPage: React.FC = () => {
                         : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
-                    Săptămână
+                    Week
                   </button>
                   <button
                     onClick={() => setTimeframe("month")}
@@ -197,7 +264,7 @@ const AdminStatisticsPage: React.FC = () => {
                         : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
-                    Lună
+                    Month
                   </button>
                   <button
                     onClick={() => setTimeframe("year")}
@@ -207,7 +274,7 @@ const AdminStatisticsPage: React.FC = () => {
                         : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
-                    An
+                    Year
                   </button>
                 </div>
               </div>
@@ -220,9 +287,9 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Total utilizatori</p>
+                  <p className="text-gray-500 text-sm">Total Users</p>
                   <h3 className="text-3xl font-bold text-gray-800 mt-1">
-                    {stats.userStats.totalUsers.toLocaleString()}
+                    {userStats.totalUsers.toLocaleString()}
                   </h3>
                 </div>
                 <div className="bg-blue-500/20 p-3 rounded-full">
@@ -243,16 +310,9 @@ const AdminStatisticsPage: React.FC = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  +{stats.userStats.newUsersThisWeek}
+                  +{userStats.newUsersThisWeek}
                 </span>
-                <span className="text-gray-500 ml-1">
-                  în această{" "}
-                  {timeframe === "week"
-                    ? "săptămână"
-                    : timeframe === "month"
-                    ? "lună"
-                    : "an"}
-                </span>
+                <span className="text-gray-500 ml-1">this {timeframe}</span>
               </div>
             </div>
 
@@ -260,9 +320,9 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Total postări</p>
+                  <p className="text-gray-500 text-sm">Total Posts</p>
                   <h3 className="text-3xl font-bold text-gray-800 mt-1">
-                    {stats.postStats.totalPosts.toLocaleString()}
+                    {postStats.totalPosts.toLocaleString()}
                   </h3>
                 </div>
                 <div className="bg-green-500/20 p-3 rounded-full">
@@ -283,16 +343,9 @@ const AdminStatisticsPage: React.FC = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  +{stats.postStats.newPostsThisWeek}
+                  +{postStats.newPostsThisWeek}
                 </span>
-                <span className="text-gray-500 ml-1">
-                  în această{" "}
-                  {timeframe === "săptămână"
-                    ? "week"
-                    : timeframe === "month"
-                    ? "lună"
-                    : "an"}
-                </span>
+                <span className="text-gray-500 ml-1">this {timeframe}</span>
               </div>
             </div>
 
@@ -300,9 +353,9 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Total stories</p>
+                  <p className="text-gray-500 text-sm">Total Stories</p>
                   <h3 className="text-3xl font-bold text-gray-800 mt-1">
-                    {stats.storyStats.totalStories.toLocaleString()}
+                    {storyStats.totalStories.toLocaleString()}
                   </h3>
                 </div>
                 <div className="bg-purple-500/20 p-3 rounded-full">
@@ -323,9 +376,9 @@ const AdminStatisticsPage: React.FC = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  {stats.storyStats.newStoriesToday}
+                  {storyStats.newStoriesToday}
                 </span>
-                <span className="text-gray-500 ml-1">astăzi</span>
+                <span className="text-gray-500 ml-1">today</span>
               </div>
             </div>
 
@@ -333,9 +386,9 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Raportări</p>
+                  <p className="text-gray-500 text-sm">Reports</p>
                   <h3 className="text-3xl font-bold text-gray-800 mt-1">
-                    {stats.reportStats.totalReports.toLocaleString()}
+                    {reportStats.totalReports.toLocaleString()}
                   </h3>
                 </div>
                 <div className="bg-red-500/20 p-3 rounded-full">
@@ -356,9 +409,9 @@ const AdminStatisticsPage: React.FC = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  {stats.reportStats.pendingReports}
+                  {reportStats.pendingReports}
                 </span>
-                <span className="text-gray-500 ml-1">în așteptare</span>
+                <span className="text-gray-500 ml-1">pending</span>
               </div>
             </div>
           </div>
@@ -369,12 +422,12 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaUsers className="mr-2 text-blue-400" />
-                Creștere utilizatori
+                User Growth
               </h2>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
-                    data={stats.userStats.userGrowth}
+                    data={userStats.userGrowth}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
                     <defs>
@@ -429,12 +482,12 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaNewspaper className="mr-2 text-green-400" />
-                Creștere postări
+                Post Growth
               </h2>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
-                    data={stats.postStats.postGrowth}
+                    data={postStats.postGrowth}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
                     <defs>
@@ -488,71 +541,29 @@ const AdminStatisticsPage: React.FC = () => {
 
           {/* Charts Section - Second Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* User Activity by Day */}
+            {/* Report Types */}
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                <FaCalendarAlt className="mr-2 text-yellow-400" />
-                Utilizatori activi zilnic
-              </h2>
-              <div className="h-60">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={stats.userStats.dailyActiveUsers}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="#1F2937"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="date"
-                      stroke="#374151"
-                      tick={{ fill: "#4B5563" }}
-                    />
-                    <YAxis stroke="#374151" tick={{ fill: "#4B5563" }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "rgba(30, 41, 59, 0.9)",
-                        borderColor: "#4B5563",
-                        color: "#4B5563",
-                      }}
-                      itemStyle={{ color: "#4B5563" }}
-                      labelStyle={{ color: "#4B5563" }}
-                    />
-                    <Bar
-                      dataKey="total"
-                      fill="#F59E0B"
-                      barSize={36}
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* User Distribution by Country */}
-            <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                <FaGlobe className="mr-2 text-purple-400" />
-                Distribuția utilizatorilor după țară
+                <FaExclamationTriangle className="mr-2 text-red-400" />
+                Report Types
               </h2>
               <div className="h-60 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={stats.userStats.usersByCountry}
+                      data={reportStats.reportTypes}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
+                      nameKey="name"
                       label={({ name, percent }) =>
                         `${name}: ${(percent * 100).toFixed(0)}%`
                       }
                     >
-                      {stats.userStats.usersByCountry.map((entry, index) => (
+                      {reportStats.reportTypes.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
@@ -580,12 +591,12 @@ const AdminStatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaHeart className="mr-2 text-pink-400" />
-                Interacțiuni utilizatori
+                User Interactions
               </h2>
               <div className="h-60">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={stats.postStats.interactionGrowth}
+                    data={postStats.interactionGrowth}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
@@ -612,7 +623,7 @@ const AdminStatisticsPage: React.FC = () => {
                       strokeWidth={2}
                       dot={{ r: 4 }}
                       activeDot={{ r: 8 }}
-                      name="Aprecieri"
+                      name="Likes"
                     />
                     <Line
                       type="monotone"
@@ -620,48 +631,43 @@ const AdminStatisticsPage: React.FC = () => {
                       stroke="#8B5CF6"
                       strokeWidth={2}
                       dot={{ r: 4 }}
-                      name="Comentarii"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="shares"
-                      stroke="#10B981"
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      name="Distribuiri"
+                      name="Comments"
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Report Types */}
+            {/* Notification Types */}
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                <FaExclamationTriangle className="mr-2 text-red-400" />
-                Tipuri de raportări
+                <FaBell className="mr-2 text-yellow-400" />
+                Notification Distribution
               </h2>
               <div className="h-60 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={stats.reportStats.reportTypes}
+                      data={notificationStats.notificationTypes}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
+                      nameKey="name"
                       label={({ name, percent }) =>
                         `${name}: ${(percent * 100).toFixed(0)}%`
                       }
                     >
-                      {stats.reportStats.reportTypes.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
+                      {notificationStats.notificationTypes.map(
+                        (entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        )
+                      )}
                     </Pie>
                     <Tooltip
                       contentStyle={{
@@ -678,35 +684,86 @@ const AdminStatisticsPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Story Views Growth */}
+          <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <FaCamera className="mr-2 text-purple-400" />
+              Story Views
+            </h2>
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={storyStats.storyViewsGrowth}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="colorStoryViews"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
+                  <XAxis
+                    dataKey="date"
+                    stroke="#374151"
+                    tick={{ fill: "#4B5563" }}
+                  />
+                  <YAxis stroke="#374151" tick={{ fill: "#4B5563" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(30, 41, 59, 0.9)",
+                      borderColor: "#4B5563",
+                      color: "#4B5563",
+                    }}
+                    itemStyle={{ color: "#4B5563" }}
+                    labelStyle={{ color: "#4B5563" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#8B5CF6"
+                    fillOpacity={1}
+                    fill="url(#colorStoryViews)"
+                    name="Views"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
           {/* Quick Stats Section */}
           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Statistici rapide platformă
+              Quick Platform Stats
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white/30 rounded-lg p-4 backdrop-blur-sm">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-gray-500 text-xs">
-                      Utilizatori noi astăzi
-                    </p>
+                    <p className="text-gray-500 text-xs">New Users Today</p>
                     <p className="text-2xl font-bold text-gray-800">
-                      {stats.userStats.newUsersToday}
+                      {userStats.newUsersToday}
                     </p>
                   </div>
                   <div className="bg-blue-100 p-3 rounded-full">
-                    <FaUser className="text-blue-500" />
+                    <FaUsers className="text-blue-500" />
                   </div>
                 </div>
                 <div className="mt-2">
                   <p className="text-xs text-green-500">
                     +
-                    {Math.round(
-                      (stats.userStats.newUsersToday /
-                        stats.userStats.totalUsers) *
-                        100
-                    )}
-                    % din total
+                    {userStats.totalUsers > 0
+                      ? Math.round(
+                          (userStats.newUsersToday / userStats.totalUsers) * 100
+                        )
+                      : 0}
+                    % of total
                   </p>
                 </div>
               </div>
@@ -714,9 +771,9 @@ const AdminStatisticsPage: React.FC = () => {
               <div className="bg-white/30 rounded-lg p-4 backdrop-blur-sm">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-gray-500 text-xs">Postări noi astăzi</p>
+                    <p className="text-gray-500 text-xs">New Posts Today</p>
                     <p className="text-2xl font-bold text-gray-800">
-                      {stats.postStats.newPostsToday}
+                      {postStats.newPostsToday}
                     </p>
                   </div>
                   <div className="bg-green-100 p-3 rounded-full">
@@ -726,12 +783,12 @@ const AdminStatisticsPage: React.FC = () => {
                 <div className="mt-2">
                   <p className="text-xs text-green-500">
                     +
-                    {Math.round(
-                      (stats.postStats.newPostsToday /
-                        stats.postStats.totalPosts) *
-                        100
-                    )}
-                    % din total
+                    {postStats.totalPosts > 0
+                      ? Math.round(
+                          (postStats.newPostsToday / postStats.totalPosts) * 100
+                        )
+                      : 0}
+                    % of total
                   </p>
                 </div>
               </div>
@@ -739,9 +796,9 @@ const AdminStatisticsPage: React.FC = () => {
               <div className="bg-white/30 rounded-lg p-4 backdrop-blur-sm">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-gray-500 text-xs">Vizualizări stories</p>
+                    <p className="text-gray-500 text-xs">Story Views</p>
                     <p className="text-2xl font-bold text-gray-800">
-                      {stats.storyStats.storyViews}
+                      {storyStats.storyViews}
                     </p>
                   </div>
                   <div className="bg-purple-100 p-3 rounded-full">
@@ -750,12 +807,13 @@ const AdminStatisticsPage: React.FC = () => {
                 </div>
                 <div className="mt-2">
                   <p className="text-xs text-green-500">
-                    Media de{" "}
-                    {Math.round(
-                      stats.storyStats.storyViews /
-                        stats.storyStats.totalStories
-                    )}{" "}
-                    vizualizări/story
+                    Average of{" "}
+                    {storyStats.totalStories > 0
+                      ? Math.round(
+                          storyStats.storyViews / storyStats.totalStories
+                        )
+                      : 0}{" "}
+                    views/story
                   </p>
                 </div>
               </div>
@@ -766,7 +824,7 @@ const AdminStatisticsPage: React.FC = () => {
           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <FaChartLine className="mr-2 text-blue-400" />
-              Metrici lunare principale
+              Monthly Top Metrics
             </h2>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-300">
@@ -779,10 +837,10 @@ const AdminStatisticsPage: React.FC = () => {
                       Total
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Media zilnică
+                      Daily Average
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tendință
+                      Trend
                     </th>
                   </tr>
                 </thead>
@@ -791,14 +849,14 @@ const AdminStatisticsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                       <div className="flex items-center">
                         <FaUsers className="text-blue-500 mr-2" />
-                        Utilizatori noi
+                        New Users
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {stats.userStats.newUsersThisMonth}
+                      {userStats.newUsersThisMonth}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Math.round(stats.userStats.newUsersThisMonth / 30)}
+                      {Math.round(userStats.newUsersThisMonth / 30)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -809,7 +867,7 @@ const AdminStatisticsPage: React.FC = () => {
                         >
                           <circle cx="4" cy="4" r="3" />
                         </svg>
-                        Crește
+                        Increasing
                       </span>
                     </td>
                   </tr>
@@ -817,14 +875,14 @@ const AdminStatisticsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                       <div className="flex items-center">
                         <FaNewspaper className="text-green-500 mr-2" />
-                        Postări noi
+                        New Posts
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {stats.postStats.newPostsThisWeek * 4}
+                      {postStats.newPostsThisWeek * 4}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Math.round((stats.postStats.newPostsThisWeek * 4) / 30)}
+                      {Math.round((postStats.newPostsThisWeek * 4) / 30)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -835,7 +893,7 @@ const AdminStatisticsPage: React.FC = () => {
                         >
                           <circle cx="4" cy="4" r="3" />
                         </svg>
-                        Crește
+                        Increasing
                       </span>
                     </td>
                   </tr>
@@ -843,14 +901,14 @@ const AdminStatisticsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                       <div className="flex items-center">
                         <FaHeart className="text-pink-500 mr-2" />
-                        Aprecieri
+                        Likes
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Math.round(stats.postStats.totalLikes / 12)}
+                      {Math.round(postStats.totalLikes / 12)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Math.round(stats.postStats.totalLikes / 12 / 30)}
+                      {Math.round(postStats.totalLikes / 12 / 30)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -861,7 +919,7 @@ const AdminStatisticsPage: React.FC = () => {
                         >
                           <circle cx="4" cy="4" r="3" />
                         </svg>
-                        Crește
+                        Increasing
                       </span>
                     </td>
                   </tr>
@@ -869,14 +927,14 @@ const AdminStatisticsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                       <div className="flex items-center">
                         <FaComments className="text-indigo-500 mr-2" />
-                        Comentarii
+                        Comments
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Math.round(stats.postStats.totalComments / 12)}
+                      {Math.round(postStats.totalComments / 12)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Math.round(stats.postStats.totalComments / 12 / 30)}
+                      {Math.round(postStats.totalComments / 12 / 30)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -887,7 +945,7 @@ const AdminStatisticsPage: React.FC = () => {
                         >
                           <circle cx="4" cy="4" r="3" />
                         </svg>
-                        Crește
+                        Increasing
                       </span>
                     </td>
                   </tr>
@@ -895,14 +953,14 @@ const AdminStatisticsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                       <div className="flex items-center">
                         <FaExclamationTriangle className="text-red-500 mr-2" />
-                        Raportări
+                        Reports
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Math.round(stats.reportStats.totalReports / 12)}
+                      {Math.round(reportStats.totalReports / 12)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {Math.round(stats.reportStats.totalReports / 12 / 30)}
+                      {Math.round(reportStats.totalReports / 12 / 30)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -913,7 +971,7 @@ const AdminStatisticsPage: React.FC = () => {
                         >
                           <circle cx="4" cy="4" r="3" />
                         </svg>
-                        Crește
+                        Increasing
                       </span>
                     </td>
                   </tr>
@@ -925,177 +983,38 @@ const AdminStatisticsPage: React.FC = () => {
           {/* Actions Section */}
           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-8">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Acțiuni administrative
+              Administrative Actions
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-blue-500 bg-opacity-10 border border-blue-300 rounded-lg p-4">
                 <h3 className="text-blue-600 font-medium mb-2 flex items-center">
-                  <FaUsers className="mr-2" /> Gestiune utilizatori
+                  <FaUsers className="mr-2" /> User Management
                 </h3>
                 <p className="text-gray-600 text-sm mb-3">
-                  Administrează conturile utilizatorilor, rolurile și
-                  permisiunile
+                  Manage user accounts, roles, and permissions
                 </p>
                 <button
                   onClick={() => navigate("/admin/users")}
                   className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
                 >
-                  Gestionează utilizatori
+                  Manage Users
                 </button>
               </div>
 
               <div className="bg-red-500 bg-opacity-10 border border-red-300 rounded-lg p-4">
                 <h3 className="text-red-600 font-medium mb-2 flex items-center">
-                  <FaExclamationTriangle className="mr-2" /> Raportări conținut
+                  <FaExclamationTriangle className="mr-2" /> Content Reports
                 </h3>
                 <p className="text-gray-600 text-sm mb-3">
-                  Revizuiește și gestionează conținutul raportat
+                  Review and manage reported content
                 </p>
                 <button
                   onClick={() => navigate("/admin/reports")}
                   className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors"
                 >
-                  Vezi raportări
+                  View Reports
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* Notification Types */}
-          <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-8">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <FaBell className="mr-2 text-yellow-400" />
-              Distribuția notificărilor
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="h-60">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={stats.notificationStats.notificationTypes}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={30}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label
-                      >
-                        {stats.notificationStats.notificationTypes.map(
-                          (entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                            />
-                          )
-                        )}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(30, 41, 59, 0.9)",
-                          borderColor: "#4B5563",
-                          color: "#4B5563",
-                        }}
-                        itemStyle={{ color: "#4B5563" }}
-                        labelStyle={{ color: "#4B5563" }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="flex flex-col justify-center">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Total notificări
-                    </h3>
-                    <p className="text-3xl font-bold text-gray-800">
-                      {stats.notificationStats.totalNotifications.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    {stats.notificationStats.notificationTypes.map(
-                      (type, index) => (
-                        <div key={index} className="flex items-center">
-                          <div
-                            className="w-3 h-3 rounded-full mr-2"
-                            style={{
-                              backgroundColor: COLORS[index % COLORS.length],
-                            }}
-                          ></div>
-                          <div className="text-sm text-gray-700">
-                            {type.name}: {type.value}%
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Post Types */}
-          <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-8">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Distribuția tipurilor de postări
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {stats.postStats.postTypes.map((type, index) => (
-                <div
-                  key={index}
-                  className={`bg-${COLORS[index % COLORS.length].replace(
-                    "#",
-                    ""
-                  )}/10 border border-${COLORS[index % COLORS.length].replace(
-                    "#",
-                    ""
-                  )}/30 rounded-lg p-4`}
-                >
-                  <h3
-                    className="font-medium mb-2"
-                    style={{ color: COLORS[index % COLORS.length] }}
-                  >
-                    {type.name}
-                  </h3>
-                  <div className="flex items-end justify-between">
-                    <p className="text-2xl font-bold text-gray-800">
-                      {type.value}%
-                    </p>
-                    <div className="w-24 h-6 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${type.value}%`,
-                          backgroundColor: COLORS[index % COLORS.length],
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Export Options */}
-          <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-8 text-center">
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">
-              Exportă rapoarte
-            </h2>
-            <p className="text-gray-600 mb-4 text-sm">
-              Descarcă rapoarte statistice pentru evidență sau prezentări
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-                Exportă ca PDF
-              </button>
-              <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
-                Exportă ca CSV
-              </button>
-              <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
-                Programează raport săptămânal
-              </button>
             </div>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { searchTags, getPostsByTag } from "../api/Post";
 interface PostStore extends PostState {
     fetchTimelinePosts: (userId: string) => Promise<void>;
     fetchUserPosts: (userId: string) => Promise<void>;
-    fetchTaggedPosts: (userId: string) => Promise<void>; // Adăugat
+    fetchTaggedPosts: (userId: string) => Promise<void>;
     likePost: (postId: string, userId: string) => Promise<void>;
     savePost: (postId: string, userId: string) => Promise<void>;
     createNewPost: (postData: Omit<IPost, '_id' | 'username' | 'likes' | 'savedBy' | 'createdAt' | 'updatedAt'>) => Promise<IPost>;
@@ -14,7 +14,7 @@ interface PostStore extends PostState {
     addComment: (postId: string, userId: string, text: string) => Promise<void>;
     fetchSavedPosts: (userId: string) => Promise<void>;
     replyToComment: (postId: string, commentId: string, userId: string, text: string) => Promise<void>;
-    likeComment: (postId: string, commentId: string, userId: string) => Promise<void>;
+    likeComment: (postId: string, commentId: string, userId: string) => Promise<{ action: 'liked' | 'unliked', likes: string[] }>;
     likeReply: (postId: string, commentId: string, replyId: string, userId: string) => Promise<void>;
     searchTags: (query: string) => Promise<string[]>;
     fetchPostsByTag: (tagName: string) => Promise<void>;
@@ -27,7 +27,7 @@ const initialState: PostState = {
     timelinePosts: [],
     userPosts: [],
     savedPosts: [],
-    taggedPosts: [], // Adăugat
+    taggedPosts: [],
     tagPosts: [],
     currentPost: null,
     loading: false,
@@ -67,7 +67,7 @@ const usePostStore = create<PostStore>((set, get) => ({
         }
     },
 
-    fetchTaggedPosts: async (userId: string) => { // Adăugat
+    fetchTaggedPosts: async (userId: string) => {
         set({ loading: true, error: null });
         try {
             const taggedPosts = await getTaggedPosts(userId);
@@ -103,7 +103,7 @@ const usePostStore = create<PostStore>((set, get) => ({
                 timelinePosts: updatePostsWithLike(state.timelinePosts),
                 userPosts: updatePostsWithLike(state.userPosts),
                 savedPosts: updatePostsWithLike(state.savedPosts),
-                taggedPosts: updatePostsWithLike(state.taggedPosts), // Adăugat
+                taggedPosts: updatePostsWithLike(state.taggedPosts),
                 posts: updatePostsWithLike(state.posts),
                 currentPost: state.currentPost?._id === postId
                     ? {
@@ -144,14 +144,14 @@ const usePostStore = create<PostStore>((set, get) => ({
                 const updatedTimelinePosts = updatePostsWithSave(state.timelinePosts);
                 const updatedUserPosts = updatePostsWithSave(state.userPosts);
                 const updatedPosts = updatePostsWithSave(state.posts);
-                const updatedTaggedPosts = updatePostsWithSave(state.taggedPosts); // Adăugat
+                const updatedTaggedPosts = updatePostsWithSave(state.taggedPosts);
                 
                 let updatedSavedPosts = [...state.savedPosts];
                 const post = state.timelinePosts.find(p => p._id === postId) ||
                             state.userPosts.find(p => p._id === postId) ||
                             state.posts.find(p => p._id === postId) ||
                             state.savedPosts.find(p => p._id === postId) ||
-                            state.taggedPosts.find(p => p._id === postId); // Adăugat
+                            state.taggedPosts.find(p => p._id === postId);
                 
                 if (post) {
                     const savedBy = post.savedBy || [];
@@ -178,7 +178,7 @@ const usePostStore = create<PostStore>((set, get) => ({
                     userPosts: updatedUserPosts,
                     posts: updatedPosts,
                     savedPosts: updatedSavedPosts,
-                    taggedPosts: updatedTaggedPosts, // Adăugat
+                    taggedPosts: updatedTaggedPosts,
                     currentPost: state.currentPost?._id === postId
                         ? {
                             ...state.currentPost,
@@ -220,7 +220,7 @@ const usePostStore = create<PostStore>((set, get) => ({
             posts: [newPost, ...state.posts],
             taggedPosts: newPost.taggedUsers?.some(tagged => tagged.userId === postData.userId) 
                 ? [newPost, ...state.taggedPosts] 
-                : state.taggedPosts, // Adăugat
+                : state.taggedPosts,
             loading: false,
           }));
           
@@ -271,84 +271,25 @@ const usePostStore = create<PostStore>((set, get) => ({
     likeComment: async (postId, commentId, userId) => {
         try {
             const result = await likeComment(postId, commentId, userId);
-            
-            const updatePostsWithCommentLike = (posts: IPost[]) =>
-                posts.map((post) => {
-                    if (post._id === postId) {
-                        return {
-                            ...post,
-                            comments: post.comments?.map(comment => {
-                                if (comment._id === commentId) {
-                                    return {
-                                        ...comment,
-                                        likes: result.action === 'liked'
-                                            ? [...(comment.likes || []), userId]
-                                            : (comment.likes || []).filter(id => id !== userId)
-                                    };
-                                }
-                                return comment;
-                            })
-                        };
-                    }
-                    return post;
-                });
-            
-            set((state) => ({
-                timelinePosts: updatePostsWithCommentLike(state.timelinePosts),
-                userPosts: updatePostsWithCommentLike(state.userPosts),
-                savedPosts: updatePostsWithCommentLike(state.savedPosts),
-                taggedPosts: updatePostsWithCommentLike(state.taggedPosts), // Adăugat
-                posts: updatePostsWithCommentLike(state.posts)
-            }));
+            console.log(`likeComment result for post ${postId}, comment ${commentId}:`, result);
+            return result; // Return { action, likes } for PostModal
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to like comment';
+            console.error(`Error in likeComment for post ${postId}, comment ${commentId}:`, errorMessage);
             set({ error: errorMessage });
+            throw error;
         }
     },
     
     likeReply: async (postId, commentId, replyId, userId) => {
         try {
             const result = await likeReply(postId, commentId, replyId, userId);
-            
-            const updatePostsWithReplyLike = (posts: IPost[]) =>
-                posts.map((post) => {
-                    if (post._id === postId) {
-                        return {
-                            ...post,
-                            comments: post.comments?.map(comment => {
-                                if (comment._id === commentId) {
-                                    return {
-                                        ...comment,
-                                        replies: comment.replies?.map(reply => {
-                                            if (reply._id === replyId) {
-                                                return {
-                                                    ...reply,
-                                                    likes: result.action === 'liked'
-                                                        ? [...(reply.likes || []), userId]
-                                                        : (reply.likes || []).filter(id => id !== userId)
-                                                };
-                                            }
-                                            return reply;
-                                        })
-                                    };
-                                }
-                                return comment;
-                            })
-                        };
-                    }
-                    return post;
-                });
-            
-            set((state) => ({
-                timelinePosts: updatePostsWithReplyLike(state.timelinePosts),
-                userPosts: updatePostsWithReplyLike(state.userPosts),
-                savedPosts: updatePostsWithReplyLike(state.savedPosts),
-                taggedPosts: updatePostsWithReplyLike(state.taggedPosts), // Adăugat
-                posts: updatePostsWithReplyLike(state.posts)
-            }));
+            console.log(`likeReply result for post ${postId}, comment ${commentId}, reply ${replyId}:`, result);
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to like reply';
+            console.error(`Error in likeReply for post ${postId}, comment ${commentId}, reply ${replyId}:`, errorMessage);
             set({ error: errorMessage });
+            throw error;
         }
     },
 
@@ -361,7 +302,7 @@ const usePostStore = create<PostStore>((set, get) => ({
                 timelinePosts: state.timelinePosts.filter(post => post._id !== postId),
                 userPosts: state.userPosts.filter(post => post._id !== postId),
                 savedPosts: state.savedPosts.filter(post => post._id !== postId),
-                taggedPosts: state.taggedPosts.filter(post => post._id !== postId), // Adăugat
+                taggedPosts: state.taggedPosts.filter(post => post._id !== postId),
                 posts: state.posts.filter(post => post._id !== postId),
                 loading: false
             }));
@@ -380,9 +321,9 @@ const usePostStore = create<PostStore>((set, get) => ({
           set({ error: errorMessage });
           return [];
         }
-      },
+    },
       
-      fetchPostsByTag: async (tagName: string) => {
+    fetchPostsByTag: async (tagName: string) => {
         set({ loading: true, error: null });
         try {
           const posts = await getPostsByTag(tagName);

@@ -155,7 +155,6 @@ const getUserStats = async (timeframe, startDate, endDate) => {
             newUsersThisWeek,
             newUsersThisMonth,
             userGrowth,
-            dailyActiveUsers
         };
         
     } catch (error) {

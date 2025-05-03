@@ -177,6 +177,58 @@ const PostCard: React.FC<PostCardProps> = ({
     });
   };
 
+  const handleLikeComment = async (commentId: string) => {
+    if (!currentUser?._id || !commentId) return;
+
+    try {
+      const { action, likes } = await likeComment(
+        _id,
+        commentId,
+        currentUser._id
+      );
+
+      setLocalComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === commentId
+            ? { ...comment, likes: likes || [] }
+            : comment
+        )
+      );
+    } catch (error) {
+      console.error("Error liking/unliking comment:", error);
+    }
+  };
+
+  const handleLikeReply = async (commentId: string, replyId: string) => {
+    if (!currentUser?._id || !commentId || !replyId) return;
+
+    try {
+      const { action, likes } = await likeReply(
+        _id,
+        commentId,
+        replyId,
+        currentUser._id
+      );
+
+      setLocalComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === commentId && comment.replies
+            ? {
+                ...comment,
+                replies: comment.replies.map((reply) =>
+                  reply._id === replyId
+                    ? { ...reply, likes: likes || [] }
+                    : reply
+                ),
+              }
+            : comment
+        )
+      );
+    } catch (error) {
+      console.error("Error liking/unliking reply:", error);
+    }
+  };
+
   const parseDescription = (text: string) => {
     const parts = text.split(/(#[^\s#]+)/g);
     return parts.map((part, index) => {

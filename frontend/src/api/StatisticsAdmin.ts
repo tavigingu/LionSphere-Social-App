@@ -1,4 +1,4 @@
-// frontend/src/api/AdminStatistics.ts
+// frontend/src/api/StatisticsAdmin.ts
 import axios from 'axios';
 
 export type TimeframeType = "week" | "month" | "year";
@@ -10,7 +10,7 @@ export interface UserStats {
   newUsersThisWeek: number;
   newUsersThisMonth: number;
   userGrowth: Array<{ date: string; total: number }>;
-  dailyActiveUsers: Array<{ date: string; total: number }>;
+  // Note: dailyActiveUsers no longer used, we're using userGrowth for active users visualization
 }
 
 // Post statistics
@@ -70,12 +70,59 @@ export const getAdminStatistics = async (
     console.log(`Fetching admin statistics with timeframe: ${timeframe}`);
     const response = await axios.get(`${BASE_URL}/admin/statistics`, {
       params: { timeframe },
-      withCredentials: true // Important to include cookies for auth
+      withCredentials: true
     });
     
     if (response.data.success) {
       console.log("Admin statistics fetched successfully");
-      return response.data.stats as AdminStats;
+      
+      // Check and provide fallbacks for missing data
+      const stats = response.data.stats || {};
+      
+      // Create fallback data for any missing properties
+      const userStats = stats.userStats || {
+        totalUsers: 0,
+        newUsersToday: 0,
+        newUsersThisWeek: 0,
+        newUsersThisMonth: 0,
+        userGrowth: []
+      };
+      
+      const postStats = stats.postStats || {
+        totalPosts: 0,
+        newPostsToday: 0,
+        newPostsThisWeek: 0,
+        postGrowth: [],
+        totalLikes: 0,
+        totalComments: 0,
+        interactionGrowth: []
+      };
+      
+      const storyStats = stats.storyStats || {
+        totalStories: 0,
+        newStoriesToday: 0,
+        storyViews: 0,
+        storyViewsGrowth: []
+      };
+      
+      const reportStats = stats.reportStats || {
+        totalReports: 0,
+        pendingReports: 0,
+        reportTypes: []
+      };
+      
+      const notificationStats = stats.notificationStats || {
+        totalNotifications: 0,
+        notificationTypes: []
+      };
+      
+      return {
+        userStats,
+        postStats,
+        storyStats,
+        reportStats,
+        notificationStats
+      };
     } else {
       console.error("Failed to fetch admin statistics:", response.data.message);
       throw new Error(response.data.message || 'Failed to fetch admin statistics');

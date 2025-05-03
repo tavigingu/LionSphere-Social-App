@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaHome,
   FaSearch,
@@ -19,7 +20,6 @@ import {
   FaExclamationTriangle,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
 import useAuthStore from "../../store/AuthStore";
 import useNotificationStore from "../../store/NotificationStore";
 import useChatStore from "../../store/ChatStore";
@@ -32,7 +32,7 @@ import CreatePostModal from "../Home/CreatePostModal";
 import UserReportModal from "../Home/UserReportModal";
 import EditProfileModal from "../Profile/EditProfileModal";
 
-// Minimalist Sidebar Component
+// Minimalist Sidebar Component (Reverted to Original)
 const MinimalistSidebar: React.FC<{
   activeButton: string;
   setActiveButton: (buttonName: string) => void;
@@ -54,36 +54,6 @@ const MinimalistSidebar: React.FC<{
 }) => {
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-  const createMenuRef = useRef<HTMLDivElement>(null);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        createMenuRef.current &&
-        !createMenuRef.current.contains(event.target as Node)
-      ) {
-        const createButton = document.querySelector(`[data-button="create"]`);
-        if (createButton && !createButton.contains(event.target as Node)) {
-          setIsCreateMenuOpen(false);
-        }
-      }
-      if (
-        moreMenuRef.current &&
-        !moreMenuRef.current.contains(event.target as Node)
-      ) {
-        const moreButton = document.querySelector(`[data-button="more"]`);
-        if (moreButton && !moreButton.contains(event.target as Node)) {
-          setIsMoreMenuOpen(false);
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   const getIconSize = (buttonName: string) => {
     return activeButton === buttonName ? 24 : 20;
@@ -169,7 +139,6 @@ const MinimalistSidebar: React.FC<{
                 transformOrigin: "right center",
                 minWidth: "180px",
               }}
-              ref={createMenuRef}
             >
               <motion.div
                 variants={{
@@ -239,7 +208,6 @@ const MinimalistSidebar: React.FC<{
                 transformOrigin: "right center",
                 minWidth: "180px",
               }}
-              ref={moreMenuRef}
             >
               <motion.div
                 variants={{
@@ -458,7 +426,7 @@ const MinimalistSidebar: React.FC<{
   );
 };
 
-// Original RegularDashboard
+// Original Dashboard (Reverted to Original)
 const OriginalDashboard: React.FC<{
   activeButton: string;
   setActiveButton: (buttonName: string) => void;
@@ -506,8 +474,6 @@ const OriginalDashboard: React.FC<{
 }) => {
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-  const createMenuRef = useRef<HTMLDivElement>(null);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
 
   const isMinimalist =
     isSearchOpen ||
@@ -524,34 +490,6 @@ const OriginalDashboard: React.FC<{
       activeButton === buttonName ? "text-blue-600" : "text-blue-500"
     } transition-all duration-200`;
   };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        createMenuRef.current &&
-        !createMenuRef.current.contains(event.target as Node)
-      ) {
-        const createButton = document.querySelector(`[data-button="create"]`);
-        if (createButton && !createButton.contains(event.target as Node)) {
-          setIsCreateMenuOpen(false);
-        }
-      }
-      if (
-        moreMenuRef.current &&
-        !moreMenuRef.current.contains(event.target as Node)
-      ) {
-        const moreButton = document.querySelector(`[data-button="more"]`);
-        if (moreButton && !moreButton.contains(event.target as Node)) {
-          setIsMoreMenuOpen(false);
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   const handleClick = (buttonName: string) => {
     if (buttonName === "create") {
@@ -714,7 +652,6 @@ const OriginalDashboard: React.FC<{
                 animate="visible"
                 transition={{ delay: 0.05 }}
                 className="py-2"
-                ref={createMenuRef}
               >
                 <button
                   onClick={handleCreateStory}
@@ -779,7 +716,6 @@ const OriginalDashboard: React.FC<{
                 transformOrigin: isMinimalist ? "left center" : "bottom center",
                 minWidth: "180px",
               }}
-              ref={moreMenuRef}
             >
               <motion.div
                 variants={{
@@ -840,7 +776,7 @@ const OriginalDashboard: React.FC<{
 
               <motion.div
                 variants={{
-                  hidden: { opacity: 0, y: 10 },
+                  hidden: { aldrich: 0, y: 10 },
                   visible: { opacity: 1, y: 0 },
                 }}
                 initial="hidden"
@@ -1114,7 +1050,7 @@ const OriginalDashboard: React.FC<{
   );
 };
 
-// Main RegularDashboard Component with Conditional Rendering
+// Main RegularDashboard Component with Updated CreatePostModal Rendering
 const RegularDashboard: React.FC = () => {
   const { logout, user } = useAuthStore();
   const { unreadCount, fetchUnreadCount } = useNotificationStore();
@@ -1133,7 +1069,7 @@ const RegularDashboard: React.FC = () => {
   const [isStoryFormOpen, setIsStoryFormOpen] = useState(false);
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false); // Added state for EditProfileModal
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
   const isMinimalist =
     isSearchOpen ||
@@ -1162,41 +1098,63 @@ const RegularDashboard: React.FC = () => {
     }
   }, [user, fetchUnreadCount]);
 
+  useEffect(() => {
+    // Log when isNewPostModalOpen changes
+    console.log("isNewPostModalOpen changed:", isNewPostModalOpen);
+  }, [isNewPostModalOpen]);
+
   const handleClick = (buttonName: string) => {
+    console.log("handleClick triggered with buttonName:", buttonName);
+
     if (buttonName === "create") {
+      console.log("Create button clicked, opening create menu");
       return; // Handled within the components
     }
     if (buttonName === "more") {
+      console.log("More button clicked, opening more menu");
       return; // Handled within the components
     }
     if (buttonName === "create-post") {
+      console.log(
+        "Create Post button clicked, setting isNewPostModalOpen to true"
+      );
       setIsNewPostModalOpen(true);
       return;
     }
     if (buttonName === "create-story") {
+      console.log(
+        "Create Story button clicked, setting isStoryFormOpen to true"
+      );
       setIsStoryFormOpen(true);
       return;
     }
     if (buttonName === "report") {
+      console.log("Report button clicked, setting isReportModalOpen to true");
       setIsReportModalOpen(true);
       return;
     }
     if (buttonName === "logout") {
+      console.log("Logout button clicked, initiating logout");
       logout().then(() => navigate("/login"));
       return;
     }
     if (buttonName === "saved") {
+      console.log("Saved button clicked, navigating to profile with saved tab");
       navigate("/profile", { state: { activeTab: "saved" } });
       setActiveButton("profile");
       return;
     }
     if (buttonName === "settings") {
+      console.log(
+        "Settings button clicked, navigating to profile and opening edit modal"
+      );
       navigate("/profile");
       setActiveButton("profile");
       setIsEditProfileModalOpen(true);
       return;
     }
 
+    console.log("Setting activeButton to:", buttonName);
     setActiveButton(buttonName);
     setMobileMenuOpen(false);
 
@@ -1206,17 +1164,22 @@ const RegularDashboard: React.FC = () => {
     setIsStoryFormOpen(false);
 
     if (buttonName === "search") {
+      console.log("Search button clicked, opening search sidebar");
       setIsSearchOpen(true);
     } else if (buttonName === "notifications") {
+      console.log("Notifications button clicked, opening notification panel");
       setIsNotificationPanelOpen(true);
     } else if (buttonName === "home") {
+      console.log("Home button clicked, navigating to /home");
       navigate("/home");
     } else if (buttonName === "profile") {
+      console.log("Profile button clicked, navigating to /profile");
       navigate("/profile");
     }
   };
 
   const handleCloseSearch = () => {
+    console.log("Closing search sidebar");
     setIsSearchOpen(false);
     setActiveButton(
       location.pathname.includes("/profile") ? "profile" : "home"
@@ -1224,6 +1187,7 @@ const RegularDashboard: React.FC = () => {
   };
 
   const handleCloseNotifications = () => {
+    console.log("Closing notification panel");
     setIsNotificationPanelOpen(false);
     setActiveButton(
       location.pathname.includes("/profile") ? "profile" : "home"
@@ -1231,22 +1195,27 @@ const RegularDashboard: React.FC = () => {
   };
 
   const handleClosePostForm = () => {
+    console.log("Closing post form");
     setIsPostFormOpen(false);
   };
 
   const handleCloseStoryForm = () => {
+    console.log("Closing story form");
     setIsStoryFormOpen(false);
   };
 
   const handleCloseNewPostModal = () => {
+    console.log("Closing CreatePostModal");
     setIsNewPostModalOpen(false);
   };
 
   const handleCloseReportModal = () => {
+    console.log("Closing report modal");
     setIsReportModalOpen(false);
   };
 
   const handleCloseEditProfileModal = () => {
+    console.log("Closing edit profile modal");
     setIsEditProfileModalOpen(false);
   };
 
@@ -1277,7 +1246,6 @@ const RegularDashboard: React.FC = () => {
             key="original"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
             <OriginalDashboard
@@ -1333,10 +1301,23 @@ const RegularDashboard: React.FC = () => {
         </>
       )}
 
-      <CreatePostModal
-        isOpen={isNewPostModalOpen}
-        onClose={handleCloseNewPostModal}
-      />
+      {isNewPostModalOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50"
+            onClick={() => {
+              console.log("Backdrop clicked, closing CreatePostModal");
+              handleCloseNewPostModal();
+            }}
+          />
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl overflow-hidden">
+            <CreatePostModal
+              isOpen={isNewPostModalOpen}
+              onClose={handleCloseNewPostModal}
+            />
+          </div>
+        </>
+      )}
 
       <UserReportModal
         isOpen={isReportModalOpen}

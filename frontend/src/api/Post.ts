@@ -157,46 +157,6 @@ export const getTaggedPosts = async (userId: string): Promise<IPost[]> => {
   }
 };
 
-// export const createPost = async (postData: {
-//     userId: string;
-//     desc: string;
-//     image?: string;
-//   }): Promise<IPost> => {
-//     console.log("API: Creating post with data:", postData);
-    
-//     try {
-//       console.log("API: Using BASE_URL:", BASE_URL);
-      
-//       const response = await axios.post<{ message: string; success: boolean; post: IPost }>(
-//         `${BASE_URL}/post`,
-//         postData,
-//         { withCredentials: true }
-//       );
-      
-//       console.log("API: Response from server:", response.data);
-      
-//       if (response.data.success) {
-//         return response.data.post;
-//       } else {
-//         console.error("API: Server returned success=false:", response.data.message);
-//         throw new Error(response.data.message || 'Failed to create post');
-//       }
-//     } catch (error) {
-//       console.error("API: Error creating post:", error);
-      
-//       if (axios.isAxiosError(error)) {
-//         console.error('API: Axios error details:', {
-//           status: error.response?.status,
-//           data: error.response?.data,
-//           headers: error.response?.headers
-//         });
-//         throw new Error(error.response?.data?.message || 'Failed to create post');
-//       }
-      
-//       throw error;
-//     }
-// };
-
 export const createPost = async (postData: {
   userId: string;
   desc: string;

@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { IPost, IComment } from "../../types/PostTypes";
+import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/AuthStore";
 import usePostStore from "../../store/PostStore";
-import { useNavigate } from "react-router-dom";
 import {
   FaTimes,
   FaHeart,
@@ -11,28 +10,60 @@ import {
   FaRegBookmark,
   FaRegComment,
   FaReply,
-  FaRegPaperPlane,
   FaMapMarkerAlt,
   FaTrash,
   FaEllipsisV,
+  FaFlag,
 } from "react-icons/fa";
 import axios from "axios";
 import UserListModal from "../UserListModal";
-import MentionsInput from "../Home/MentionsInput"; // Adjust path as needed
+import MentionsInput from "../Home/MentionsInput";
+import PostReportModal from "../Home/PostReportModal";
 
 interface PostModalProps {
-  post: IPost | null;
+  post: {
+    _id: string;
+    userId: string;
+    desc: string;
+    image?: string;
+    likes: string[];
+    savedBy?: string[];
+    location?: {
+      name: string;
+      coordinates?: {
+        lat: number;
+        lng: number;
+      };
+    };
+    taggedUsers?: {
+      userId: string;
+      username: string;
+      position: {
+        x: number;
+        y: number;
+      };
+    }[];
+    comments?: {
+      _id?: string;
+      userId: string;
+      text: string;
+      likes?: string[];
+      createdAt?: string;
+      replies?: {
+        _id?: string;
+        userId: string;
+        text: string;
+        likes?: string[];
+        createdAt?: string;
+      }[];
+    }[];
+  } | null;
   onClose: () => void;
   onLike?: (postId: string) => Promise<void>;
   onSave?: (postId: string) => Promise<void>;
 }
 
-const PostModal: React.FC<PostModalProps> = ({
-  post,
-  onClose,
-  onLike,
-  onSave,
-}) => {
+const PostModal: React.FC<PostModalProps> = ({ post, onClose, onLike }) => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuthStore();
   const {
@@ -50,18 +81,12 @@ const PostModal: React.FC<PostModalProps> = ({
     lastname?: string;
   } | null>(null);
   const [commentUsers, setCommentUsers] = useState<
-    Record<
-      string,
-      {
-        username: string;
-        profilePicture?: string;
-      }
-    >
+    Record<string, { username: string; profilePicture?: string }>
   >({});
   const [commentText, setCommentText] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [localComments, setLocalComments] = useState<IComment[]>([]);
+  const [localComments, setLocalComments] = useState(post?.comments || []);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [showTaggedUsers, setShowTaggedUsers] = useState(false);
@@ -74,9 +99,11 @@ const PostModal: React.FC<PostModalProps> = ({
   >(null);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Initialize state
+  const isAdmin = currentUser?.role === "admin";
+
   useEffect(() => {
     if (post && currentUser) {
       setIsLiked(post.likes.includes(currentUser._id));
@@ -85,7 +112,6 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   }, [post, currentUser]);
 
-  // Fetch post author details
   useEffect(() => {
     const fetchUserData = async () => {
       if (!post?.userId) return;
@@ -101,13 +127,11 @@ const PostModal: React.FC<PostModalProps> = ({
     fetchUserData();
   }, [post?.userId]);
 
-  // Fetch comment authors' details
   useEffect(() => {
     const fetchCommentUsers = async () => {
-      if (!post?.comments || post.comments.length === 0) return;
-
+      if (!localComments || localComments.length === 0) return;
       const userIds = new Set<string>();
-      post.comments.forEach((comment) => {
+      localComments.forEach((comment) => {
         userIds.add(comment.userId);
         if (comment.replies) {
           comment.replies.forEach((reply) => userIds.add(reply.userId));
@@ -141,25 +165,21 @@ const PostModal: React.FC<PostModalProps> = ({
       }
       setCommentUsers(newCommentUsers);
     };
-
     fetchCommentUsers();
-  }, [post?.comments]);
+  }, [localComments]);
 
-  // Handle click outside to close menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowMenu(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  // Parse mentions
   const parseCommentText = (text: string) => {
     const parts = text.split(/(@\w+)/g);
     return parts.map((part, index) => {
@@ -215,7 +235,6 @@ const PostModal: React.FC<PostModalProps> = ({
     });
   };
 
-  // Parse hashtags
   const parseDescription = (text: string) => {
     const parts = text.split(/(#[^\s#]+)/g);
     return parts.map((part, index) => {
@@ -238,20 +257,22 @@ const PostModal: React.FC<PostModalProps> = ({
   };
 
   const handleLike = async () => {
-    if (!post?._id || !currentUser) return;
-    setIsLiked(!isLiked);
-    if (onLike) {
-      try {
-        await onLike(post._id);
-      } catch (error) {
-        setIsLiked(isLiked);
-        console.error("Error liking post:", error);
-      }
+    if (!post?._id || !currentUser || isAdmin) return;
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    const updatedLikes = newLikedState
+      ? [...post.likes, currentUser._id]
+      : post.likes.filter((id) => id !== currentUser._id);
+    try {
+      await onLike?.(post._id);
+    } catch (error) {
+      setIsLiked(isLiked);
+      console.error("Error liking/unliking post:", error);
     }
   };
 
   const handleSave = async () => {
-    if (!post?._id || !currentUser) return;
+    if (!post?._id || !currentUser || isAdmin) return;
     const newSavedState = !isSaved;
     setIsSaved(newSavedState);
     try {
@@ -273,31 +294,26 @@ const PostModal: React.FC<PostModalProps> = ({
     }
   };
 
+  const handleReportPost = () => {
+    setShowMenu(false);
+    setShowReportModal(true);
+  };
+
   const handleComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!post?._id || !currentUser?._id || !commentText.trim()) return;
-
-    const tempId = `temp-${Date.now()}`;
-    const newComment: IComment = {
-      _id: tempId,
+    const newComment = {
+      _id: `temp-${Date.now()}`,
       userId: currentUser._id,
       text: commentText,
       likes: [],
       createdAt: new Date().toISOString(),
       replies: [],
     };
-
     setLocalComments([...localComments, newComment]);
     setCommentText("");
-
     try {
-      const response = await addComment(post._id, currentUser._id, commentText);
-      // Update temp comment with server ID if available
-      if (response._id && response._id !== tempId) {
-        setLocalComments((prev) =>
-          prev.map((c) => (c._id === tempId ? { ...c, _id: response._id } : c))
-        );
-      }
+      await addComment(post._id, currentUser._id, commentText);
       if (!commentUsers[currentUser._id]) {
         setCommentUsers({
           ...commentUsers,
@@ -309,7 +325,7 @@ const PostModal: React.FC<PostModalProps> = ({
       }
     } catch (error) {
       console.error("Error adding comment:", error);
-      setLocalComments(localComments.filter((c) => c._id !== tempId));
+      setLocalComments(localComments.filter((c) => c._id !== newComment._id));
     }
   };
 
@@ -317,19 +333,15 @@ const PostModal: React.FC<PostModalProps> = ({
     e.preventDefault();
     if (!post?._id || !currentUser?._id || !replyText.trim() || !replyingTo)
       return;
-
     const commentIndex = localComments.findIndex((c) => c._id === replyingTo);
     if (commentIndex === -1) return;
-
-    const tempId = `temp-reply-${Date.now()}`;
-    const newReply: IComment = {
-      _id: tempId,
+    const newReply = {
+      _id: `temp-reply-${Date.now()}`,
       userId: currentUser._id,
       text: replyText,
       likes: [],
       createdAt: new Date().toISOString(),
     };
-
     const updatedComments = [...localComments];
     if (!updatedComments[commentIndex].replies) {
       updatedComments[commentIndex].replies = [];
@@ -338,26 +350,8 @@ const PostModal: React.FC<PostModalProps> = ({
     setLocalComments(updatedComments);
     setReplyText("");
     setReplyingTo(null);
-
     try {
-      const response = await replyToComment(
-        post._id,
-        replyingTo,
-        currentUser._id,
-        replyText
-      );
-      // Update temp reply with server ID if available
-      if (response._id && response._id !== tempId) {
-        setLocalComments((prev) => {
-          const newComments = [...prev];
-          newComments[commentIndex].replies = newComments[
-            commentIndex
-          ].replies!.map((r) =>
-            r._id === tempId ? { ...r, _id: response._id } : r
-          );
-          return newComments;
-        });
-      }
+      await replyToComment(post._id, replyingTo, currentUser._id, replyText);
       if (!commentUsers[currentUser._id]) {
         setCommentUsers({
           ...commentUsers,
@@ -373,99 +367,140 @@ const PostModal: React.FC<PostModalProps> = ({
       if (fallbackComments[commentIndex].replies) {
         fallbackComments[commentIndex].replies = fallbackComments[
           commentIndex
-        ].replies!.filter((r) => r._id !== tempId);
+        ].replies!.filter((r) => r._id !== newReply._id);
       }
       setLocalComments(fallbackComments);
     }
   };
 
   const handleLikeComment = async (commentId: string) => {
-    console.log("handleLikeComment called with commentId:", commentId);
-    if (!currentUser?._id || !post?._id || !commentId) {
-      console.error("Cannot like comment: missing required IDs", {
-        userId: currentUser?._id,
-        postId: post?._id,
-        commentId,
-      });
-      return;
-    }
+    if (!currentUser?._id || !post?._id || !commentId || isAdmin) return;
 
+    // Find the comment to update
     const commentIndex = localComments.findIndex((c) => c._id === commentId);
     if (commentIndex === -1) {
-      console.error("Comment not found:", commentId);
+      console.error(`Comment with ID ${commentId} not found in localComments`);
       return;
     }
 
+    // Optimistic update
+    const isLiked = localComments[commentIndex].likes?.includes(
+      currentUser._id
+    );
+    const updatedLikes = isLiked
+      ? localComments[commentIndex].likes?.filter(
+          (id) => id !== currentUser._id
+        ) || []
+      : [...(localComments[commentIndex].likes || []), currentUser._id];
+
+    const updatedComments = [...localComments];
+    updatedComments[commentIndex] = {
+      ...updatedComments[commentIndex],
+      likes: updatedLikes,
+    };
+    setLocalComments(updatedComments);
+
     try {
-      console.log("Sending likeComment request:", {
-        postId: post._id,
-        commentId,
-        userId: currentUser._id,
-      });
-      await likeComment(post._id, commentId, currentUser._id);
-      console.log("likeComment API call successful");
-      setLocalComments((prevComments) => {
-        const updatedComments = [...prevComments];
-        if (!updatedComments[commentIndex].likes) {
-          updatedComments[commentIndex].likes = [];
-        }
-        const isLiked = updatedComments[commentIndex].likes!.includes(
-          currentUser._id
+      const response = await likeComment(post._id, commentId, currentUser._id);
+      console.log("Response from likeComment:", response);
+
+      // Validate response
+      if (!response || !("action" in response) || !("likes" in response)) {
+        throw new Error(
+          "Invalid response from likeComment: Expected { action, likes }"
         );
-        if (isLiked) {
-          updatedComments[commentIndex].likes = updatedComments[
-            commentIndex
-          ].likes!.filter((id) => id !== currentUser._id);
-        } else {
-          updatedComments[commentIndex].likes!.push(currentUser._id);
-        }
-        console.log(
-          "Updated comment likes:",
-          updatedComments[commentIndex].likes
-        );
-        return updatedComments;
-      });
+      }
+
+      // Update with server response
+      setLocalComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === commentId
+            ? { ...comment, likes: response.likes || [] }
+            : comment
+        )
+      );
     } catch (error) {
-      console.error("Error liking comment:", error);
+      console.error("Error liking/unliking comment:", error);
+      // Revert to original state
+      setLocalComments(localComments);
     }
   };
 
   const handleLikeReply = async (commentId: string, replyId: string) => {
-    console.log("handleLikeReply called with:", { commentId, replyId });
-    if (!currentUser?._id || !post?._id) return;
+    if (!currentUser?._id || !post?._id || !commentId || !replyId || isAdmin)
+      return;
 
+    // Find the comment and reply to update
     const commentIndex = localComments.findIndex((c) => c._id === commentId);
-    if (commentIndex === -1 || !localComments[commentIndex].replies) return;
-
-    const replyIndex = localComments[commentIndex].replies!.findIndex(
+    if (commentIndex === -1) {
+      console.error(`Comment with ID ${commentId} not found in localComments`);
+      return;
+    }
+    const replyIndex = localComments[commentIndex].replies?.findIndex(
       (r) => r._id === replyId
     );
-    if (replyIndex === -1) return;
+    if (replyIndex === undefined || replyIndex === -1) {
+      console.error(
+        `Reply with ID ${replyId} not found in comment ${commentId}`
+      );
+      return;
+    }
+
+    // Optimistic update
+    const isLiked = localComments[commentIndex].replies![
+      replyIndex
+    ].likes?.includes(currentUser._id);
+    const updatedLikes = isLiked
+      ? localComments[commentIndex].replies![replyIndex].likes?.filter(
+          (id) => id !== currentUser._id
+        ) || []
+      : [
+          ...(localComments[commentIndex].replies![replyIndex].likes || []),
+          currentUser._id,
+        ];
+
+    const updatedComments = [...localComments];
+    updatedComments[commentIndex].replies![replyIndex] = {
+      ...updatedComments[commentIndex].replies![replyIndex],
+      likes: updatedLikes,
+    };
+    setLocalComments(updatedComments);
 
     try {
-      await likeReply(post._id, commentId, replyId, currentUser._id);
-      setLocalComments((prevComments) => {
-        const updatedComments = [...prevComments];
-        if (!updatedComments[commentIndex].replies![replyIndex].likes) {
-          updatedComments[commentIndex].replies![replyIndex].likes = [];
-        }
-        const isLiked = updatedComments[commentIndex].replies![
-          replyIndex
-        ].likes!.includes(currentUser._id);
-        if (isLiked) {
-          updatedComments[commentIndex].replies![replyIndex].likes =
-            updatedComments[commentIndex].replies![replyIndex].likes!.filter(
-              (id) => id !== currentUser._id
-            );
-        } else {
-          updatedComments[commentIndex].replies![replyIndex].likes!.push(
-            currentUser._id
-          );
-        }
-        return updatedComments;
-      });
+      const response = await likeReply(
+        post._id,
+        commentId,
+        replyId,
+        currentUser._id
+      );
+      console.log("Response from likeReply:", response);
+
+      // Validate response
+      if (!response || !("action" in response) || !("likes" in response)) {
+        throw new Error(
+          "Invalid response from likeReply: Expected { action, likes }"
+        );
+      }
+
+      // Update with server response
+      setLocalComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === commentId && comment.replies
+            ? {
+                ...comment,
+                replies: comment.replies.map((reply) =>
+                  reply._id === replyId
+                    ? { ...reply, likes: response.likes || [] }
+                    : reply
+                ),
+              }
+            : comment
+        )
+      );
     } catch (error) {
-      console.error("Error liking reply:", error);
+      console.error("Error liking/unliking reply:", error);
+      // Revert to original state
+      setLocalComments(localComments);
     }
   };
 
@@ -573,15 +608,12 @@ const PostModal: React.FC<PostModalProps> = ({
     <>
       <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-80 flex items-center justify-center">
         <div className="relative w-[975px] h-[625px] flex bg-white rounded-lg shadow-2xl overflow-hidden">
-          {/* Close button */}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white bg-gray-900 bg-opacity-50 rounded-full p-2 z-20 hover:bg-opacity-70 transition-colors"
           >
             <FaTimes size={20} />
           </button>
-
-          {/* Left side - Image with tagged users */}
           <div
             className="w-[625px] h-[625px] flex-shrink-0 relative z-10"
             onClick={handleImageClick}
@@ -594,7 +626,7 @@ const PostModal: React.FC<PostModalProps> = ({
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
-                <p className="text-gray-600">No image</p>
+                <p className="text-gray-600">Fără imagine</p>
               </div>
             )}
             {post.taggedUsers &&
@@ -647,16 +679,13 @@ const PostModal: React.FC<PostModalProps> = ({
               >
                 <p className="text-white text-sm bg-black/50 px-3 py-1 rounded-full">
                   {showTaggedUsers
-                    ? "Click to hide tags"
-                    : "Click to view tags"}
+                    ? "Click pentru a ascunde etichetele"
+                    : "Click pentru a afișa etichetele"}
                 </p>
               </div>
             )}
           </div>
-
-          {/* Right side - Post details and comments */}
           <div className="w-[350px] h-[625px] flex flex-col">
-            {/* Post author header */}
             <div className="p-4 border-b flex items-center justify-between">
               <div
                 className="flex items-center cursor-pointer"
@@ -666,7 +695,7 @@ const PostModal: React.FC<PostModalProps> = ({
                   {postUser?.profilePicture ? (
                     <img
                       src={postUser.profilePicture}
-                      alt={`${postUser.username}'s profile`}
+                      alt={`Profil ${postUser.username}`}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -679,7 +708,7 @@ const PostModal: React.FC<PostModalProps> = ({
                 </div>
                 <div className="ml-3">
                   <h3 className="font-semibold text-gray-800">
-                    {postUser?.username || "Unknown User"}
+                    {postUser?.username || "Utilizator necunoscut"}
                   </h3>
                   {post.location?.name && (
                     <div
@@ -690,9 +719,7 @@ const PostModal: React.FC<PostModalProps> = ({
                           `/explore/location/${encodeURIComponent(
                             post.location!.name
                           )}`,
-                          {
-                            state: { coordinates: post.location?.coordinates },
-                          }
+                          { state: { coordinates: post.location?.coordinates } }
                         );
                         onClose();
                       }}
@@ -703,32 +730,37 @@ const PostModal: React.FC<PostModalProps> = ({
                   )}
                 </div>
               </div>
-              {currentUser &&
-                (currentUser._id === post.userId ||
-                  currentUser.role === "admin") && (
-                  <div className="relative" ref={menuRef}>
-                    <button
-                      className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                      onClick={() => setShowMenu(!showMenu)}
-                    >
-                      <FaEllipsisV />
-                    </button>
-                    {showMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 border border-gray-200">
+              <div className="relative" ref={menuRef}>
+                <button
+                  className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  onClick={() => setShowMenu(!showMenu)}
+                >
+                  <FaEllipsisV />
+                </button>
+                {showMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 border border-gray-200">
+                    {currentUser &&
+                      (currentUser._id === post.userId ||
+                        currentUser.role === "admin") && (
                         <button
                           className="flex items-center w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100 rounded-md"
                           onClick={handleDeletePost}
                         >
                           <FaTrash className="mr-2" />
-                          Delete post
+                          Șterge postarea
                         </button>
-                      </div>
-                    )}
+                      )}
+                    <button
+                      className="flex items-center w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100 rounded-md"
+                      onClick={handleReportPost}
+                    >
+                      <FaFlag className="mr-2" />
+                      Raportează postarea
+                    </button>
                   </div>
                 )}
+              </div>
             </div>
-
-            {/* Description */}
             {post.desc && (
               <div className="px-4 py-2 border-b">
                 <div className="flex">
@@ -738,7 +770,7 @@ const PostModal: React.FC<PostModalProps> = ({
                       post.userId && navigateToProfile(post.userId)
                     }
                   >
-                    {postUser?.username || "Unknown User"}
+                    {postUser?.username || "Utilizator necunoscut"}
                   </h4>
                   <p className="text-gray-800 ml-2">
                     {parseDescription(post.desc)}
@@ -746,8 +778,6 @@ const PostModal: React.FC<PostModalProps> = ({
                 </div>
               </div>
             )}
-
-            {/* Comments section */}
             <div className="flex-grow overflow-y-auto p-4">
               <div className="space-y-4">
                 {localComments.map((comment, index) => (
@@ -763,7 +793,7 @@ const PostModal: React.FC<PostModalProps> = ({
                         {commentUsers[comment.userId]?.profilePicture ? (
                           <img
                             src={commentUsers[comment.userId].profilePicture}
-                            alt="Profile"
+                            alt="Profil"
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -783,19 +813,20 @@ const PostModal: React.FC<PostModalProps> = ({
                             onClick={() => navigateToProfile(comment.userId)}
                           >
                             {commentUsers[comment.userId]?.username ||
-                              "Unknown User"}
+                              "Utilizator necunoscut"}
                           </p>
                           <p className="text-sm text-gray-700">
                             {parseCommentText(comment.text)}
                           </p>
                           {currentUser &&
-                            currentUser._id === comment.userId && (
+                            (currentUser._id === comment.userId ||
+                              currentUser.role === "admin") && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (
                                     window.confirm(
-                                      "Are you sure you want to delete this comment?"
+                                      "Ești sigur că vrei să ștergi acest comentariu?"
                                     )
                                   ) {
                                     setLocalComments(
@@ -815,72 +846,48 @@ const PostModal: React.FC<PostModalProps> = ({
                           <span className="text-gray-500">
                             {formatDate(comment.createdAt)}
                           </span>
-                          <div className="flex items-center space-x-1">
-                            <button
-                              className="flex items-center text-gray-500 hover:text-purple-500 focus:outline-none p-1 z-10"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log("Comment heart clicked:", {
-                                  commentId: comment._id,
-                                  userId: currentUser?._id,
-                                  postId: post._id,
-                                });
-                                if (
-                                  comment._id &&
-                                  currentUser?._id &&
-                                  post._id
-                                ) {
-                                  handleLikeComment(comment._id);
-                                } else {
-                                  console.error(
-                                    "Cannot like comment - missing data:",
-                                    {
-                                      commentId: comment._id,
-                                      userId: currentUser?._id,
-                                      postId: post._id,
-                                    }
-                                  );
-                                }
-                              }}
-                              disabled={
-                                !comment._id || !currentUser?._id || !post._id
-                              }
-                              title={
-                                comment._id
-                                  ? "Like comment"
-                                  : "Cannot like comment"
-                              }
-                            >
-                              {comment.likes?.includes(
-                                currentUser?._id || ""
-                              ) ? (
-                                <FaHeart
-                                  className="text-purple-500 mr-1"
-                                  size={12}
-                                />
-                              ) : (
-                                <FaRegHeart
-                                  className="text-gray-500 hover:text-purple-500 mr-1"
-                                  size={12}
-                                />
-                              )}
-                            </button>
+                          <button
+                            className={`flex items-center text-gray-500 ${
+                              isAdmin
+                                ? "cursor-not-allowed"
+                                : "hover:text-purple-500"
+                            }`}
+                            onClick={() =>
+                              !isAdmin &&
+                              comment._id &&
+                              handleLikeComment(comment._id)
+                            }
+                            disabled={isAdmin}
+                          >
+                            {comment.likes &&
+                            comment.likes.includes(currentUser?._id || "") ? (
+                              <FaHeart
+                                className={`mr-1 ${
+                                  isAdmin ? "text-gray-400" : "text-purple-500"
+                                }`}
+                                size={12}
+                              />
+                            ) : (
+                              <FaRegHeart
+                                className={`mr-1 ${
+                                  isAdmin ? "text-gray-400" : ""
+                                }`}
+                                size={12}
+                              />
+                            )}
                             <span
                               className={`${
                                 comment.likes && comment.likes.length > 0
                                   ? "cursor-pointer hover:text-purple-500 hover:underline"
-                                  : "cursor-default text-gray-500"
+                                  : ""
                               } ${
-                                comment.likes?.includes(currentUser?._id || "")
+                                comment.likes &&
+                                comment.likes.includes(currentUser?._id || "")
                                   ? "text-purple-500"
                                   : ""
                               }`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                console.log(
-                                  "Comment likes count clicked:",
-                                  comment._id
-                                );
                                 if (
                                   comment._id &&
                                   comment.likes &&
@@ -894,9 +901,9 @@ const PostModal: React.FC<PostModalProps> = ({
                               {comment.likes?.length || 0}{" "}
                               {(comment.likes?.length || 0) === 1
                                 ? "like"
-                                : "likes"}
+                                : "like-uri"}
                             </span>
-                          </div>
+                          </button>
                           <button
                             className="flex items-center text-gray-500 hover:text-blue-500"
                             onClick={() => {
@@ -909,7 +916,7 @@ const PostModal: React.FC<PostModalProps> = ({
                             }}
                           >
                             <FaReply className="mr-1" size={12} />
-                            Reply
+                            Răspunde
                           </button>
                         </div>
                         {comment.replies && comment.replies.length > 0 && (
@@ -923,11 +930,11 @@ const PostModal: React.FC<PostModalProps> = ({
                             className="text-blue-500 hover:text-blue-700 text-xs mt-1"
                           >
                             {showReplies[comment._id!]
-                              ? "Hide replies"
-                              : `View ${comment.replies.length} ${
+                              ? "Ascunde răspunsurile"
+                              : `Vezi ${comment.replies.length} ${
                                   comment.replies.length === 1
-                                    ? "reply"
-                                    : "replies"
+                                    ? "răspuns"
+                                    : "răspunsuri"
                                 }`}
                           </button>
                         )}
@@ -935,8 +942,9 @@ const PostModal: React.FC<PostModalProps> = ({
                           <MentionsInput
                             value={replyText}
                             onChange={setReplyText}
-                            placeholder={`Reply to ${
-                              commentUsers[comment.userId]?.username || "user"
+                            placeholder={`Răspunde lui ${
+                              commentUsers[comment.userId]?.username ||
+                              "utilizator"
                             }...`}
                             onSubmit={handleReply}
                             className="border border-gray-300 rounded-full px-3 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2"
@@ -967,7 +975,7 @@ const PostModal: React.FC<PostModalProps> = ({
                                           commentUsers[reply.userId]
                                             .profilePicture
                                         }
-                                        alt="Profile"
+                                        alt="Profil"
                                         className="w-full h-full object-cover"
                                       />
                                     ) : (
@@ -989,19 +997,20 @@ const PostModal: React.FC<PostModalProps> = ({
                                         }
                                       >
                                         {commentUsers[reply.userId]?.username ||
-                                          "Unknown User"}
+                                          "Utilizator necunoscut"}
                                       </p>
                                       <p className="text-xs text-gray-700">
                                         {parseCommentText(reply.text)}
                                       </p>
                                       {currentUser &&
-                                        currentUser._id === reply.userId && (
+                                        (currentUser._id === reply.userId ||
+                                          currentUser.role === "admin") && (
                                           <button
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               if (
                                                 window.confirm(
-                                                  "Are you sure you want to delete this reply?"
+                                                  "Ești sigur că vrei să ștergi acest răspuns?"
                                                 )
                                               ) {
                                                 const updatedComments = [
@@ -1040,27 +1049,42 @@ const PostModal: React.FC<PostModalProps> = ({
                                         {formatDate(reply.createdAt)}
                                       </span>
                                       <button
-                                        className="flex items-center text-gray-500 hover:text-purple-500"
+                                        className={`flex items-center text-gray-500 ${
+                                          isAdmin
+                                            ? "cursor-not-allowed"
+                                            : "hover:text-purple-500"
+                                        }`}
                                         onClick={() => {
-                                          if (comment._id && reply._id) {
+                                          if (
+                                            !isAdmin &&
+                                            comment._id &&
+                                            reply._id
+                                          ) {
                                             handleLikeReply(
                                               comment._id,
                                               reply._id
                                             );
                                           }
                                         }}
+                                        disabled={isAdmin}
                                       >
                                         {reply.likes &&
                                         reply.likes.includes(
                                           currentUser?._id || ""
                                         ) ? (
                                           <FaHeart
-                                            className="text-purple-500 mr-1"
+                                            className={`mr-1 ${
+                                              isAdmin
+                                                ? "text-gray-400"
+                                                : "text-purple-500"
+                                            }`}
                                             size={10}
                                           />
                                         ) : (
                                           <FaRegHeart
-                                            className="mr-1"
+                                            className={`mr-1 ${
+                                              isAdmin ? "text-gray-400" : ""
+                                            }`}
                                             size={10}
                                           />
                                         )}
@@ -1077,7 +1101,7 @@ const PostModal: React.FC<PostModalProps> = ({
                                           {reply.likes?.length || 0}{" "}
                                           {(reply.likes?.length || 0) === 1
                                             ? "like"
-                                            : "likes"}
+                                            : "like-uri"}
                                         </span>
                                       </button>
                                     </div>
@@ -1092,12 +1116,16 @@ const PostModal: React.FC<PostModalProps> = ({
                 ))}
               </div>
             </div>
-
-            {/* Actions section */}
             <div className="p-4 border-t flex justify-between items-center">
               <div className="flex space-x-8">
                 <div className="flex flex-col items-center">
-                  <button onClick={handleLike} className="transition-colors">
+                  <button
+                    onClick={handleLike}
+                    className={`transition-colors ${
+                      isAdmin ? "cursor-not-allowed opacity-50" : ""
+                    }`}
+                    disabled={isAdmin}
+                  >
                     {isLiked ? (
                       <FaHeart
                         className="text-2xl text-purple-500 filter drop-shadow-lg"
@@ -1107,7 +1135,13 @@ const PostModal: React.FC<PostModalProps> = ({
                         }}
                       />
                     ) : (
-                      <FaRegHeart className="text-2xl text-gray-700 hover:text-purple-500 transition-colors" />
+                      <FaRegHeart
+                        className={`text-2xl ${
+                          isAdmin
+                            ? "text-gray-400"
+                            : "text-gray-700 hover:text-purple-500 transition-colors"
+                        }`}
+                      />
                     )}
                   </button>
                   <button
@@ -1121,7 +1155,7 @@ const PostModal: React.FC<PostModalProps> = ({
                     } ${isLiked ? "text-purple-500" : "text-gray-700"}`}
                   >
                     {post.likes.length}{" "}
-                    {post.likes.length === 1 ? "like" : "likes"}
+                    {post.likes.length === 1 ? "like" : "like-uri"}
                   </button>
                 </div>
                 <div className="flex flex-col items-center">
@@ -1130,12 +1164,18 @@ const PostModal: React.FC<PostModalProps> = ({
                   </button>
                   <span className="mt-1 text-sm text-gray-700">
                     {localComments.length}{" "}
-                    {localComments.length === 1 ? "comment" : "comments"}
+                    {localComments.length === 1 ? "comentariu" : "comentarii"}
                   </span>
                 </div>
               </div>
               <div className="flex flex-col items-center">
-                <button onClick={handleSave} className="transition-colors">
+                <button
+                  onClick={handleSave}
+                  className={`transition-colors ${
+                    isAdmin ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                  disabled={isAdmin}
+                >
                   {isSaved ? (
                     <FaBookmark
                       className="text-2xl"
@@ -1149,31 +1189,35 @@ const PostModal: React.FC<PostModalProps> = ({
                       }}
                     />
                   ) : (
-                    <FaRegBookmark className="text-2xl text-gray-700 hover:text-yellow-500 transition-colors" />
+                    <FaRegBookmark
+                      className={`text-2xl ${
+                        isAdmin
+                          ? "text-gray-400"
+                          : "text-gray-700 hover:text-yellow-500 transition-colors"
+                      }`}
+                    />
                   )}
                 </button>
               </div>
             </div>
-
-            {/* Add comment section */}
-            <div className="p-4 border-t">
-              <MentionsInput
-                value={commentText}
-                onChange={setCommentText}
-                placeholder="Add a comment..."
-                onSubmit={handleComment}
-                className="border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {!isAdmin && (
+              <div className="p-4 border-t">
+                <MentionsInput
+                  value={commentText}
+                  onChange={setCommentText}
+                  placeholder="Adaugă un comentariu..."
+                  onSubmit={handleComment}
+                  className="border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Modals */}
       <UserListModal
         isOpen={isLikesModalOpen}
         onClose={() => setIsLikesModalOpen(false)}
-        title="Likes"
+        title="Like-uri"
         fetchUsers={fetchLikes}
         postId={post._id}
       />
@@ -1184,11 +1228,24 @@ const PostModal: React.FC<PostModalProps> = ({
             setIsCommentLikesModalOpen(null);
             setActiveCommentId(null);
           }}
-          title="Comment Likes"
+          title="Like-uri comentariu"
           fetchUsers={(page, limit) =>
             fetchCommentLikes(activeCommentId, page, limit)
           }
           postId={post._id}
+        />
+      )}
+      {showReportModal && (
+        <PostReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          post={{
+            _id: post._id,
+            userId: post.userId,
+            desc: post.desc,
+            likes: post.likes,
+            image: post.image || "",
+          }}
         />
       )}
     </>

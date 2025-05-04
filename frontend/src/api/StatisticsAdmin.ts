@@ -1,4 +1,4 @@
-// frontend/src/api/StatisticsAdmin.ts
+import api from './axiosConfig';
 import axios from 'axios';
 
 export type TimeframeType = "week" | "month" | "year";
@@ -58,8 +58,6 @@ export interface AdminStats {
   notificationStats: NotificationStats;
 }
 
-const BASE_URL = 'http://localhost:5001';
-
 /**
  * Get all admin statistics
  */
@@ -68,9 +66,8 @@ export const getAdminStatistics = async (
 ): Promise<AdminStats> => {
   try {
     console.log(`Fetching admin statistics with timeframe: ${timeframe}`);
-    const response = await axios.get(`${BASE_URL}/admin/statistics`, {
-      params: { timeframe },
-      withCredentials: true
+    const response = await api.get('/admin/statistics', {
+      params: { timeframe }
     });
     
     if (response.data.success) {

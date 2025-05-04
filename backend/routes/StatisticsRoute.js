@@ -1,5 +1,6 @@
-// backend/routes/StatisticsRoute.js
+// Modify backend/routes/StatisticsRoute.js
 import express from "express";
+import { verifyToken } from '../middleware/AuthMiddleware.js';
 import { 
     getUserStatistics,
     getFollowersData,
@@ -12,10 +13,11 @@ import {
 
 const router = express.Router();
 
-// Rută principală pentru a obține toate statisticile unui utilizator
-router.get("/user/:userId", getUserStatistics);
+// All statistics routes require authentication
+router.use(verifyToken);
 
-// Rute individuale pentru statistici specifice
+// Statistics routes
+router.get("/user/:userId", getUserStatistics);
 router.get("/user/:userId/followers", getFollowersData);
 router.get("/user/:userId/posts", getPostsData);
 router.get("/post/:userId/top", getTopPosts);

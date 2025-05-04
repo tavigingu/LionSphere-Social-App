@@ -1,7 +1,7 @@
+// src/api/Notification.ts
+import api from './axiosConfig';
 import axios from 'axios';
 import { INotification } from '../types/NotificationTypes';
-
-const BASE_URL = 'http://localhost:5001';
 
 // Get notifications for a user
 export const getNotifications = async (userId: string): Promise<{
@@ -9,7 +9,7 @@ export const getNotifications = async (userId: string): Promise<{
   unreadCount: number;
 }> => {
   try {
-    const response = await axios.get(`${BASE_URL}/notification/${userId}`);
+    const response = await api.get(`/notification/${userId}`);
     
     if (response.data.success) {
       return {
@@ -31,7 +31,7 @@ export const getNotifications = async (userId: string): Promise<{
 // Get unread notification count
 export const getUnreadCount = async (userId: string): Promise<number> => {
   try {
-    const response = await axios.get(`${BASE_URL}/notification/${userId}/unread`);
+    const response = await api.get(`/notification/${userId}/unread`);
     
     if (response.data.success) {
       return response.data.unreadCount;
@@ -50,7 +50,7 @@ export const getUnreadCount = async (userId: string): Promise<number> => {
 // Mark a notification as read
 export const markAsRead = async (notificationId: string): Promise<void> => {
   try {
-    const response = await axios.put(`${BASE_URL}/notification/${notificationId}/read`, {});
+    const response = await api.put(`/notification/${notificationId}/read`, {});
     
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to mark notification as read');
@@ -67,7 +67,7 @@ export const markAsRead = async (notificationId: string): Promise<void> => {
 // Mark all notifications as read
 export const markAllAsRead = async (userId: string): Promise<void> => {
   try {
-    const response = await axios.put(`${BASE_URL}/notification/read-all`, {
+    const response = await api.put(`/notification/read-all`, {
       allNotifications: true,
       userId
     });
@@ -94,7 +94,7 @@ export const createNotification = async (notification: {
   message: string;
 }): Promise<INotification> => {
   try {
-    const response = await axios.post(`${BASE_URL}/notification`, notification);
+    const response = await api.post(`/notification`, notification);
     
     if (response.data.success) {
       return response.data.notification;
@@ -113,7 +113,7 @@ export const createNotification = async (notification: {
 // Delete a notification
 export const deleteNotification = async (notificationId: string, userId: string): Promise<void> => {
   try {
-    const response = await axios.delete(`${BASE_URL}/notification/${notificationId}`, {
+    const response = await api.delete(`/notification/${notificationId}`, {
       data: { userId }
     });
     

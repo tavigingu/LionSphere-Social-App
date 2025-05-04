@@ -16,6 +16,7 @@ import axios from "axios";
 import useAuthStore from "../store/AuthStore";
 import Background from "../components/Home/Background";
 import AdminDashboard from "../components/Home/AdminDashboard";
+import api from "../api/axiosConfig";
 
 interface ReportedPost {
   _id: string;
@@ -89,13 +90,13 @@ const AdminReportedPostsPage: React.FC = () => {
   const fetchReportedPosts = async () => {
     setLoading(true);
     try {
-      let endpoint = `http://localhost:5001/report/posts?page=${currentPage}&limit=10`;
+      let endpoint = `/report/posts?page=${currentPage}&limit=10`;
 
       if (filterStatus !== "all") {
         endpoint += `&status=${filterStatus}`;
       }
 
-      const response = await axios.get(endpoint);
+      const response = await api.get(endpoint);
 
       if (response.data.success) {
         setReportedPosts(response.data.reportedPosts);

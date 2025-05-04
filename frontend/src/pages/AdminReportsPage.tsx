@@ -12,6 +12,7 @@ import axios from "axios";
 import useAuthStore from "../store/AuthStore";
 import Background from "../components/Home/Background";
 import AdminDashboard from "../components/Home/AdminDashboard";
+import api from "../api/axiosConfig";
 
 interface Report {
   _id: string;
@@ -68,13 +69,14 @@ const AdminReportsPage: React.FC = () => {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      let endpoint = `http://localhost:5001/report?page=${currentPage}&limit=10&type=general`;
+  
+      let endpoint = `/report?page=${currentPage}&limit=10&type=general`;
 
       if (filterStatus !== "all") {
         endpoint += `&status=${filterStatus}`;
       }
 
-      const response = await axios.get(endpoint);
+      const response = await api.get(endpoint);
 
       if (response.data.success) {
         setReports(response.data.reports);

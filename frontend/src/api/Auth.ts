@@ -1,13 +1,19 @@
+// frontend/src/api/Auth.ts
 import axios from 'axios';
 import { LoginCredentials, RegisterCredentials, AuthResponse } from '../types/AuthTypes';
 
 const BASE_URL = 'http://localhost:5001/auth';
 
-
 export const loginUser = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
-    const response = await axios.post<AuthResponse>(`${BASE_URL}/login`, credentials);
+    const response = await axios.post<AuthResponse>(`${BASE_URL}/login`, credentials, {
+      withCredentials: true
+    });
     console.log(response.data);
+
+    if (response.data.token) {
+      localStorage.setItem('authToken', response.data.token);
+    }
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -20,7 +26,13 @@ export const loginUser = async (credentials: LoginCredentials): Promise<AuthResp
 
 export const registerUser = async (userData: RegisterCredentials): Promise<AuthResponse> => {
   try {
-    const response = await axios.post<AuthResponse>(`${BASE_URL}/register`, userData);
+    const response = await axios.post<AuthResponse>(`${BASE_URL}/register`, userData, {
+      withCredentials: true
+    });
+
+    if (response.data.token) {
+      localStorage.setItem('authToken', response.data.token);
+    }
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -33,7 +45,9 @@ export const registerUser = async (userData: RegisterCredentials): Promise<AuthR
 
 export const logoutUser = async (): Promise<void> => {
   try {
-    await axios.post(`${BASE_URL}/logout`);
+    await axios.post(`${BASE_URL}/logout`, {}, {
+      withCredentials: true
+    });
   } catch (error) {
     if (axios.isAxiosError(error)) {
         console.error('Login failed:', error.response?.data);
@@ -42,4 +56,3 @@ export const logoutUser = async (): Promise<void> => {
     throw error;
   }
 };
-

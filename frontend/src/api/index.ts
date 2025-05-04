@@ -1,6 +1,6 @@
+// frontend/src/api/index.ts
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import useAuthStore from '../store/AuthStore';
-
 
 const instance = axios.create({
     withCredentials: true,
@@ -11,6 +11,12 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) : InternalAxiosRequestConfig => {
+        // Get token from Zustand store directly
+        const token = useAuthStore.getState().token;
+        
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error: AxiosError): Promise<AxiosError> => {
@@ -27,3 +33,5 @@ instance.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+export default instance;

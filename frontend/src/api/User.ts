@@ -1,14 +1,13 @@
-import axios from 'axios';
+import api from './axiosConfig';
 import { IUser } from '../types/AuthTypes';
-
-const BASE_URL = 'http://localhost:5001';
+import axios from 'axios';
 
 /**
  * Get user information by ID
  */
 export const getUser = async (userId: string): Promise<IUser> => {
   try {
-    const response = await axios.get(`${BASE_URL}/user/${userId}`);
+    const response = await api.get(`/user/${userId}`);
     
     if (response.data.success) {
       return response.data.user;
@@ -27,35 +26,11 @@ export const getUser = async (userId: string): Promise<IUser> => {
 /**
  * Follow a user
  */
-// export const followUser = async (userId: string, currentUserId: string): Promise<void> => {
-//   try {
-//     const response = await axios.post(
-//       `${BASE_URL}/user/${userId}/follow`,
-//       { _id: currentUserId },
-//       { withCredentials: true }
-//     );
-
-//     if (!response.data.success) {
-//       throw new Error(response.data.message || 'Failed to follow user');
-//     }
-//   } catch (error) {
-//     if (axios.isAxiosError(error)) {
-//       console.error('Follow user failed:', error.response?.data);
-//       throw new Error(error.response?.data?.message || 'Failed to follow user');
-//     }
-//     throw error;
-//   }
-// };
-
 export const followUser = async (userId: string, currentUserId: string): Promise<void> => {
   try {
     console.log(`Attempting to follow user ${userId} by user ${currentUserId}`);
     
-    const response = await axios.post(
-      `${BASE_URL}/user/${userId}/follow`,
-      { _id: currentUserId },
-      { withCredentials: true }
-    );
+    const response = await api.post(`/user/${userId}/follow`, { _id: currentUserId });
 
     console.log('Follow response:', response.data);
 
@@ -68,7 +43,7 @@ export const followUser = async (userId: string, currentUserId: string): Promise
     // Optional: Manually check if notification was created after a short delay
     setTimeout(async () => {
       try {
-        const notificationsResponse = await axios.get(`${BASE_URL}/notification/${userId}`);
+        const notificationsResponse = await api.get(`/notification/${userId}`);
         console.log('Recent notifications for recipient:', 
           notificationsResponse.data.notifications
           .filter((n: { type: string }) => n.type === 'follow')
@@ -93,11 +68,7 @@ export const followUser = async (userId: string, currentUserId: string): Promise
  */
 export const unfollowUser = async (userId: string, currentUserId: string): Promise<void> => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/user/${userId}/unfollow`,
-      { _id: currentUserId },
-      { withCredentials: true }
-    );
+    const response = await api.post(`/user/${userId}/unfollow`, { _id: currentUserId });
 
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to unfollow user');
@@ -116,14 +87,10 @@ export const unfollowUser = async (userId: string, currentUserId: string): Promi
  */
 export const updateUser = async (userId: string, currentUserId: string, userData: Partial<IUser>): Promise<IUser> => {
   try {
-    const response = await axios.put(
-      `${BASE_URL}/user/${userId}`,
-      { 
-        ...userData,
-        _id: currentUserId
-      },
-      { withCredentials: true }
-    );
+    const response = await api.put(`/user/${userId}`, { 
+      ...userData,
+      _id: currentUserId
+    });
 
     if (response.data.success) {
       return response.data.user;
@@ -143,32 +110,37 @@ export const updateUser = async (userId: string, currentUserId: string, userData
  * Check if user follows another user
  */
 export const checkFollowStatus = (user: IUser, currentUserId: string): boolean => {
-    if (!user.followers) return false;
-    
-    // Ensure we're working with an array of strings
-    const followers = user.followers as string[];
-    return followers.includes(currentUserId);
-  };
+  if (!user.followers) return false;
+  
+  // Ensure we're working with an array of strings
+  const followers = user.followers as string[];
+  return followers.includes(currentUserId);
+};
 
-  export const getSuggestedUsers = async (currentUserId: string): Promise<IUser[]> => {
-    try {
-      const response = await axios.get(
-        `${BASE_URL}/user/suggestions?userId=${currentUserId}`,
-        { withCredentials: true }
-      );
-      
-      console.log(response.data);
-      
-      if (response.data.success) {
-        return response.data.users;
-      } else {
-        throw new Error(response.data.message || 'Failed to fetch suggested users');
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Error fetching suggested users:', error.response?.data);
-        throw new Error(error.response?.data?.message || 'Error fetching suggested users');
-      }
-      throw error;
+/**
+ * Get suggested users
+ */
+export const getSuggestedUsers = async (userId: string): Promise<IUser[]> => {
+  try {
+    if (!userId || userId === 'suggestions' || typeof userId !== 'string') {
+      throw new Error('ID-ul utilizatorului nu este valid');
     }
-  };  
+
+    console.log(`Trimit cerere pentru utilizatori sugerați cu userId: ${userId}`);
+    const response = await api.get(`/user/suggestions?userId=${userId}`);
+    
+    console.log(response.data);
+    
+    if (response.data.success) {
+      return response.data.users;
+    } else {
+      throw new Error(response.data.message || 'Failed to fetch suggested users');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error fetching suggested users:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Error fetching suggested users');
+    }
+    throw error;
+  }
+};

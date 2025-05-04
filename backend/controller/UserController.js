@@ -315,7 +315,8 @@ export const searchUsers = async (req, res) => {
 
 export const getSuggestedUsers = async (req, res) => {
     try {
-        //console.log("Solicitare pentru sugestii utilizatori");
+        console.log("Solicitare pentru sugestii utilizatori");
+        console.log('Query primit:', req.query);
         const { userId } = req.query;
         
         if (!userId) {

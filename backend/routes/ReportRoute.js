@@ -1,4 +1,6 @@
+// Modify backend/routes/ReportRoute.js
 import express from "express";
+import { verifyToken, authorize } from '../middleware/AuthMiddleware.js';
 import { 
     createIssueReport, 
     createPostReport, 
@@ -9,19 +11,13 @@ import {
 
 const router = express.Router();
 
-// Submit a general issue report
-router.post("/issue", createIssueReport);
+// Protected routes - any authenticated user can create reports
+router.post("/issue", verifyToken, createIssueReport);
+router.post("/post", verifyToken, createPostReport);
 
-// Submit a post report
-router.post("/post", createPostReport);
-
-// Get all reports (admin)
-router.get("/", getAllReports);
-
-// Get reported posts (admin)
-router.get("/posts", getReportedPosts);
-
-// Update report status (admin)
-router.put("/:reportId", updateReportStatus);
+// Admin-only routes
+router.get("/", verifyToken, getAllReports);
+router.get("/posts", verifyToken, getReportedPosts);
+router.put("/:reportId", verifyToken, updateReportStatus);
 
 export default router;

@@ -39,10 +39,12 @@ export interface AuthResponse {
   message: string;
   success: boolean;
   user: IUser;
+  token: string;  
 }
 
 export interface AuthState {
   user: IUser | null;
+  token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;

@@ -1,7 +1,7 @@
-import { IPost }  from '../types/PostTypes'
+// src/api/Post.ts
+import api from './axiosConfig';
 import axios from 'axios';
-
-const BASE_URL = 'http://localhost:5001';
+import { IPost } from '../types/PostTypes';
 
 interface getPostsResponse {
     message: string,
@@ -9,9 +9,9 @@ interface getPostsResponse {
     posts: IPost[]
 }
 
-export const getTimelinePosts = async (userId: string ): Promise<IPost[]> => {
+export const getTimelinePosts = async (userId: string): Promise<IPost[]> => {
     try {
-        const response = await axios.get<getPostsResponse>(`${BASE_URL}/post/${userId}/timeline`);
+        const response = await api.get<getPostsResponse>(`/post/${userId}/timeline`);
         return response.data.posts;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -22,9 +22,9 @@ export const getTimelinePosts = async (userId: string ): Promise<IPost[]> => {
     }
 }
 
-export const getuserPosts = async( userId: string) : Promise<IPost[]> => {
+export const getuserPosts = async(userId: string): Promise<IPost[]> => {
   try{
-    const response = await axios.get<getPostsResponse>(`${BASE_URL}/post/${userId}/posts`);
+    const response = await api.get<getPostsResponse>(`/post/${userId}/posts`);
     return response.data.posts
   } catch (error) {
       if(axios.isAxiosError(error)){
@@ -35,9 +35,9 @@ export const getuserPosts = async( userId: string) : Promise<IPost[]> => {
   }
 }
 
-export const likePost = async (postId: string, userId: string) : Promise<void> => {
+export const likePost = async (postId: string, userId: string): Promise<void> => {
   try {
-      const response = await axios.put<{ 
+      const response = await api.put<{ 
           message: string, 
           success: boolean, 
           action: 'liked' | 'unliked',
@@ -46,7 +46,7 @@ export const likePost = async (postId: string, userId: string) : Promise<void> =
               _id: string;
           }
       }>(
-          `${BASE_URL}/post/${postId}/like`,
+          `/post/${postId}/like`,
           { userId }
       );
       
@@ -59,7 +59,7 @@ export const likePost = async (postId: string, userId: string) : Promise<void> =
       if (response.data.action === 'liked' && response.data.post.userId !== userId) {
           try {
               // Aici se face apelul către API-ul de notificări pentru a crea notificarea
-              await axios.post(`${BASE_URL}/notification`, {
+              await api.post(`/notification`, {
                   recipientId: response.data.post.userId,  // Proprietarul postării
                   senderId: userId,                        // Utilizatorul care a dat like
                   type: 'like',                           // Tipul notificării
@@ -81,11 +81,10 @@ export const likePost = async (postId: string, userId: string) : Promise<void> =
   }
 }
 
-// Actualizare funcție savePost pentru a evita slash-ul final
 export const savePost = async (postId: string, userId: string): Promise<void> => {
   try {
     console.log(`Saving post with ID: ${postId} for user: ${userId}`);
-    const response = await axios.put<{ 
+    const response = await api.put<{ 
         message: string, 
         success: boolean, 
         action: 'saved' | 'unsaved',
@@ -94,7 +93,7 @@ export const savePost = async (postId: string, userId: string): Promise<void> =>
             _id: string;
         }
     }>(
-        `${BASE_URL}/post/${postId}/save`, // Fără slash final
+        `/post/${postId}/save`,
         { userId }
     );
     
@@ -112,14 +111,13 @@ export const savePost = async (postId: string, userId: string): Promise<void> =>
   }
 };
 
-// Funcție pentru a obține postările salvate
 export const getSavedPosts = async (userId: string): Promise<IPost[]> => {
   try {
-    const response = await axios.get<{
+    const response = await api.get<{
       message: string,
       success: boolean,
       posts: IPost[]
-    }>(`${BASE_URL}/post/${userId}/saved`);
+    }>(`/post/${userId}/saved`);
     
     if(response.data.success) {
       return response.data.posts;
@@ -137,11 +135,11 @@ export const getSavedPosts = async (userId: string): Promise<IPost[]> => {
 
 export const getTaggedPosts = async (userId: string): Promise<IPost[]> => {
   try {
-    const response = await axios.get<{
+    const response = await api.get<{
       message: string,
       success: boolean,
       posts: IPost[]
-    }>(`${BASE_URL}/post/${userId}/tagged`);
+    }>(`/post/${userId}/tagged`);
     
     if (response.data.success) {
       return response.data.posts;
@@ -180,12 +178,11 @@ export const createPost = async (postData: {
   });
   
   try {
-    console.log("API: Using BASE_URL:", BASE_URL);
+    console.log("API: Using BASE_URL correctly configured");
     
-    const response = await axios.post<{ message: string; success: boolean; post: IPost }>(
-      `${BASE_URL}/post`,
-      postData,
-      { withCredentials: true }
+    const response = await api.post<{ message: string; success: boolean; post: IPost }>(
+      `/post`,
+      postData
     );
     
     console.log("API: Response from server:", response.data);
@@ -205,7 +202,7 @@ export const createPost = async (postData: {
         data: error.response?.data,
         headers: error.response?.headers
       });
-      throw new Error(error.response?.data?.message || 'Failed to create post');
+      throw new Error(error.response?.data?.message || 'Failed to createee post');
     }
     
     throw error;
@@ -214,7 +211,7 @@ export const createPost = async (postData: {
 
 export const commentOnPost = async (postId: string, userId: string, text: string): Promise<void> => {
   try {
-    const response = await axios.put<{
+    const response = await api.put<{
       message: string, 
       success: boolean,
       post: {
@@ -226,7 +223,7 @@ export const commentOnPost = async (postId: string, userId: string, text: string
         text: string;
       }
     }>(
-      `${BASE_URL}/post/${postId}/comment`,
+      `/post/${postId}/comment`,
       { userId, text }
     );
 
@@ -238,7 +235,7 @@ export const commentOnPost = async (postId: string, userId: string, text: string
     if (response.data.post.userId !== userId) {
       try {
         // Create notification for comment
-        await axios.post(`${BASE_URL}/notification`, {
+        await api.post(`/notification`, {
           recipientId: response.data.post.userId,  // Post owner
           senderId: userId,                        // Commenter
           type: 'comment',                         // Notification type
@@ -262,7 +259,7 @@ export const commentOnPost = async (postId: string, userId: string, text: string
 
 export const deletePost = async (postId: string, userId: string): Promise<void> => {
   try {
-    const response = await axios.delete(`${BASE_URL}/post/${postId}`, {
+    const response = await api.delete(`/post/${postId}`, {
       data: { userId } 
     });
     
@@ -285,8 +282,8 @@ export const replyToComment = async (
   text: string
 ): Promise<void> => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/post/${postId}/comment/${commentId}/reply`,
+    const response = await api.post(
+      `/post/${postId}/comment/${commentId}/reply`,
       { userId, text }
     );
 
@@ -302,14 +299,13 @@ export const replyToComment = async (
   }
 };
 
-// Like/unlike a comment
 export const likeComment = async (
   postId: string,
   commentId: string,
   userId: string
 ): Promise<{ action: 'liked' | 'unliked', likes: string[] }> => {
   try {
-    const response = await axios.put<{
+    const response = await api.put<{
       message: string;
       success: boolean;
       action: 'liked' | 'unliked';
@@ -318,7 +314,7 @@ export const likeComment = async (
         likes: string[];
       };
     }>(
-      `${BASE_URL}/post/${postId}/comment/${commentId}/like`,
+      `/post/${postId}/comment/${commentId}/like`,
       { userId }
     );
 
@@ -339,7 +335,6 @@ export const likeComment = async (
   }
 };
 
-// Like/unlike a reply
 export const likeReply = async (
   postId: string,
   commentId: string,
@@ -347,7 +342,7 @@ export const likeReply = async (
   userId: string
 ): Promise<{ action: 'liked' | 'unliked', likes: string[] }> => {
   try {
-    const response = await axios.put<{
+    const response = await api.put<{
       message: string;
       success: boolean;
       action: 'liked' | 'unliked';
@@ -356,7 +351,7 @@ export const likeReply = async (
         likes: string[];
       };
     }>(
-      `${BASE_URL}/post/${postId}/comment/${commentId}/reply/${replyId}/like`,
+      `/post/${postId}/comment/${commentId}/reply/${replyId}/like`,
       { userId }
     );
 
@@ -383,8 +378,8 @@ export const deleteComment = async (
   userId: string
 ): Promise<void> => {
   try {
-    const response = await axios.delete(
-      `${BASE_URL}/post/${postId}/comment/${commentId}`,
+    const response = await api.delete(
+      `/post/${postId}/comment/${commentId}`,
       { data: { userId } }
     );
     
@@ -407,8 +402,8 @@ export const deleteReply = async (
   userId: string
 ): Promise<void> => {
   try {
-    const response = await axios.delete(
-      `${BASE_URL}/post/${postId}/comment/${commentId}/reply/${replyId}`,
+    const response = await api.delete(
+      `/post/${postId}/comment/${commentId}/reply/${replyId}`,
       { data: { userId } }
     );
     
@@ -428,11 +423,11 @@ export const searchTags = async (query: string): Promise<string[]> => {
   try {
     console.log(`Searching for tags with query: "${query}"`);
     
-    const response = await axios.get<{
+    const response = await api.get<{
       message: string,
       success: boolean,
       tags: string[]
-    }>(`${BASE_URL}/post/tags/search?query=${encodeURIComponent(query)}`);
+    }>(`/post/tags/search?query=${encodeURIComponent(query)}`);
     
     if (response.data.success) {
       // Check if tags is an array of strings or objects with _id
@@ -469,7 +464,6 @@ export const searchTags = async (query: string): Promise<string[]> => {
   }
 };
 
-// Get posts by tag name
 export const getPostsByTag = async (tagName: string): Promise<IPost[]> => {
   try {
     // Normalize the tag (remove # if present)
@@ -477,11 +471,11 @@ export const getPostsByTag = async (tagName: string): Promise<IPost[]> => {
     
     console.log(`Fetching posts for tag: "${normalizedTag}"`);
     
-    const response = await axios.get<{
+    const response = await api.get<{
       message: string,
       success: boolean,
       posts: IPost[]
-    }>(`${BASE_URL}/post/tag/${encodeURIComponent(normalizedTag)}`);
+    }>(`/post/tag/${encodeURIComponent(normalizedTag)}`);
     
     if (response.data.success) {
       console.log(`Found ${response.data.posts.length} posts with tag ${normalizedTag}`);
@@ -499,6 +493,3 @@ export const getPostsByTag = async (tagName: string): Promise<IPost[]> => {
     throw error;
   }
 };
-
-
-

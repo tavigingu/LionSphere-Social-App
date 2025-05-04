@@ -1,12 +1,12 @@
+// src/api/Chat.ts
+import api from './axiosConfig';
 import axios from 'axios';
 import { IChat, IMessage, IChatUser } from '../types/ChatTypes';
-
-const BASE_URL = 'http://localhost:5001';
 
 // Get user's chats
 export const getUserChats = async (userId: string): Promise<IChat[]> => {
   try {
-    const response = await axios.get(`${BASE_URL}/chat/${userId}`);
+    const response = await api.get(`/chat/${userId}`);
     
     if (response.data.success) {
       return response.data.chats;
@@ -25,7 +25,7 @@ export const getUserChats = async (userId: string): Promise<IChat[]> => {
 // Get or create a chat between two users
 export const getOrCreateChat = async (userId: string, otherUserId: string): Promise<IChat> => {
   try {
-    const response = await axios.post(`${BASE_URL}/chat`, {
+    const response = await api.post(`/chat`, {
       userId,
       otherUserId
     });
@@ -47,7 +47,7 @@ export const getOrCreateChat = async (userId: string, otherUserId: string): Prom
 // Mark chat as read for a user
 export const markChatAsRead = async (chatId: string, userId: string): Promise<void> => {
   try {
-    const response = await axios.put(`${BASE_URL}/chat/read`, {
+    const response = await api.put(`/chat/read`, {
       chatId,
       userId
     });
@@ -67,7 +67,7 @@ export const markChatAsRead = async (chatId: string, userId: string): Promise<vo
 // Delete chat (only removes for the current user)
 export const deleteChat = async (chatId: string, userId: string): Promise<void> => {
   try {
-    const response = await axios.delete(`${BASE_URL}/chat`, {
+    const response = await api.delete(`/chat`, {
       data: { chatId, userId }
     });
     
@@ -91,7 +91,7 @@ export const getChatMessages = async (chatId: string, page = 1, limit = 20): Pro
   totalMessages: number;
 }> => {
   try {
-    const response = await axios.get(`${BASE_URL}/message/${chatId}`, {
+    const response = await api.get(`/message/${chatId}`, {
       params: { page, limit }
     });
     
@@ -123,7 +123,7 @@ export const sendMessage = async (messageData: {
   replyTo?: string;
 }): Promise<IMessage> => {
   try {
-    const response = await axios.post(`${BASE_URL}/message`, messageData);
+    const response = await api.post(`/message`, messageData);
     
     if (response.data.success) {
       return response.data.sentMessage;
@@ -142,7 +142,7 @@ export const sendMessage = async (messageData: {
 // Delete a message
 export const deleteMessage = async (messageId: string, userId: string): Promise<void> => {
   try {
-    const response = await axios.delete(`${BASE_URL}/message`, {
+    const response = await api.delete(`/message`, {
       data: { messageId, userId }
     });
     
@@ -163,7 +163,7 @@ export const markMessageAsRead = async (messageId: string, userId: string): Prom
   unreadCount: number;
 }> => {
   try {
-    const response = await axios.put(`${BASE_URL}/message/read`, {
+    const response = await api.put(`/message/read`, {
       messageId,
       userId
     });

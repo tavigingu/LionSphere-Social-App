@@ -1,4 +1,6 @@
+// Modify backend/routes/MessageRoute.js
 import express from "express";
+import { verifyToken } from '../middleware/AuthMiddleware.js';
 import { 
     getChatMessages, 
     sendMessage, 
@@ -8,16 +10,13 @@ import {
 
 const router = express.Router();
 
-// Get messages for a specific chat
+// All message routes require authentication
+router.use(verifyToken);
+
+// Message routes
 router.get("/:chatId", getChatMessages);
-
-// Send a new message
 router.post("/", sendMessage);
-
-// Delete a message
 router.delete("/", deleteMessage);
-
-// Mark message as read
 router.put("/read", markMessageAsRead);
 
 export default router;

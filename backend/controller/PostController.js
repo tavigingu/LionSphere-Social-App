@@ -963,3 +963,36 @@ export const searchTags = async (req, res) => {
       });
     }
   };
+
+  export const getPopularPosts = async (req, res) => {
+    try {
+      // Get posts with the most interactions (likes + comments)
+      const popularPosts = await PostModel.aggregate([
+        { 
+          $addFields: {
+            likeCount: { $size: { $ifNull: ["$likes", []] } },
+            commentCount: { $size: { $ifNull: ["$comments", []] } },
+            totalInteractions: { 
+              $add: [
+                { $size: { $ifNull: ["$likes", []] } },
+                { $size: { $ifNull: ["$comments", []] } }
+              ]
+            }
+          }
+        },
+        { $sort: { totalInteractions: -1 } },
+        { $limit: 10 }
+      ]);
+      
+      res.status(200).json({
+        message: "Popular posts fetched successfully",
+        success: true,
+        posts: popularPosts
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: error.message || error,
+        success: false
+      });
+    }
+  };

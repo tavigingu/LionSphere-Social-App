@@ -45,6 +45,17 @@ const PeopleYouMayKnow: React.FC = () => {
 
   useEffect(() => {
     const fetchSuggestedUsers = async () => {
+      if (
+        !user ||
+        !user._id ||
+        typeof user._id !== "string" ||
+        user._id === "suggestions"
+      ) {
+        setError("Utilizatorul nu este valid sau nu este autentificat");
+        setLoading(false);
+        return;
+      }
+      console.log("ID utilizator trimis:", user._id);
       if (!user) return;
 
       setLoading(true);

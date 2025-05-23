@@ -173,7 +173,7 @@ const AdminUsersPage: React.FC = () => {
                 </p>
               </div>
               <div className="mt-4 md:mt-0 relative flex items-center">
-                <div className="relative flex-grow">
+                <div className="relative flex-grow text-gray-700">
                   <input
                     type="text"
                     placeholder="Search users..."

@@ -11,7 +11,6 @@ router.get('/search', allowGuest, searchUsers);
 router.get('/:id', allowGuest, getUser);
 
 // Protected routes
-
 router.put('/:id', verifyToken, updateUser);
 router.delete('/:id', verifyToken, deleteUser);
 router.post('/:id/follow', verifyToken, followUser);

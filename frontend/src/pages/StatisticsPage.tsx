@@ -128,8 +128,7 @@ interface StatsData {
 
 type TimeframeType = "week" | "month" | "year";
 
-const 
-StatisticsPage: React.FC = () => {
+const StatisticsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
@@ -156,9 +155,7 @@ StatisticsPage: React.FC = () => {
       } catch (err) {
         console.error("Eroare la obținerea statisticilor:", err);
         setError(
-          err instanceof Error
-            ? err.message
-            : "Eroare la încărcarea statisticilor"
+          err instanceof Error ? err.message : "Error loading statistics"
         );
         setLoading(false);
       }
@@ -226,19 +223,19 @@ StatisticsPage: React.FC = () => {
   const getDayNameInRomanian = (day: string): string => {
     switch (day) {
       case "Lun":
-        return "luni";
+        return "Monday";
       case "Mar":
-        return "marți";
+        return "Tuesday";
       case "Mie":
-        return "miercuri";
+        return "Wednesday";
       case "Joi":
-        return "joi";
+        return "Thursday";
       case "Vin":
-        return "vineri";
+        return "Friday";
       case "Sâm":
-        return "sâmbătă";
+        return "Saturday";
       case "Dum":
-        return "duminică";
+        return "Sunday";
       default:
         return day.toLowerCase();
     }
@@ -254,7 +251,7 @@ StatisticsPage: React.FC = () => {
             <div className="flex flex-col items-center">
               <div className="animate-spin w-12 h-12 border-4 border-t-blue-500 border-blue-200 rounded-full"></div>
               <p className="mt-4 text-lg text-gray-800">
-                Încărcare statistici...
+                Loading statistics...
               </p>
             </div>
           </div>
@@ -274,14 +271,14 @@ StatisticsPage: React.FC = () => {
             <div className="flex flex-col items-center">
               <FaExclamationTriangle className="text-yellow-500 text-4xl mb-4" />
               <p className="mt-2 text-xl text-gray-800">
-                Eroare la încărcarea statisticilor
+                Error loading statistics
               </p>
               <p className="mt-1 text-gray-600">{error}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
               >
-                Încearcă din nou
+                Try again
               </button>
             </div>
           </div>
@@ -301,11 +298,10 @@ StatisticsPage: React.FC = () => {
             <div className="flex flex-col items-center">
               <FaExclamationTriangle className="text-yellow-500 text-4xl mb-4" />
               <p className="mt-2 text-xl text-gray-800">
-                Nu există date statistice disponibile
+                No statistics data available
               </p>
               <p className="mt-1 text-gray-600">
-                Creează mai multe postări și interacțiuni pentru a genera
-                statistici.
+                Create more posts and interactions to generate statistics.
               </p>
             </div>
           </div>
@@ -325,10 +321,10 @@ StatisticsPage: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">
-                  Statistici cont
+                  Account Statistics
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  Urmărește creșterea și implicarea utilizatorilor
+                  Track growth and user engagement
                 </p>
               </div>
               <div className="mt-4 md:mt-0">
@@ -341,7 +337,7 @@ StatisticsPage: React.FC = () => {
                         : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
-                    Săptămână
+                    Week
                   </button>
                   <button
                     onClick={() => setTimeframe("month")}
@@ -351,7 +347,7 @@ StatisticsPage: React.FC = () => {
                         : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
-                    Lună
+                    Month
                   </button>
                   <button
                     onClick={() => setTimeframe("year")}
@@ -361,7 +357,7 @@ StatisticsPage: React.FC = () => {
                         : "text-gray-800 hover:bg-white/10"
                     }`}
                   >
-                    An
+                    Year
                   </button>
                 </div>
               </div>
@@ -374,7 +370,7 @@ StatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Urmăritori</p>
+                  <p className="text-gray-500 text-sm">Followers</p>
                   <h3 className="text-3xl font-bold text-gray-800 mt-1">
                     {stats.followersSummary.totalFollowers}
                   </h3>
@@ -386,10 +382,10 @@ StatisticsPage: React.FC = () => {
               <div className="mt-2 text-sm flex justify-between items-center">
                 <span className="text-gray-600">
                   {stats.followersSummary.followerRatio > 1
-                    ? `${stats.followersSummary.followerRatio}x mai mulți urmăritori decât urmărești`
-                    : `Urmărești ${(
+                    ? `${stats.followersSummary.followerRatio}x more followers than you follow`
+                    : `You follow ${(
                         1 / stats.followersSummary.followerRatio
-                      ).toFixed(1)}x mai mulți decât te urmăresc`}
+                      ).toFixed(1)}x more than follow you`}
                 </span>
               </div>
             </div>
@@ -398,7 +394,7 @@ StatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Postări totale</p>
+                  <p className="text-gray-500 text-sm">Total Posts</p>
                   <h3 className="text-3xl font-bold text-gray-800 mt-1">
                     {stats.postsSummary.totalPosts}
                   </h3>
@@ -409,8 +405,8 @@ StatisticsPage: React.FC = () => {
               </div>
               <div className="mt-2 text-sm">
                 <span className="text-gray-600">
-                  {stats.postsSummary.postsInPeriod} postări în perioada
-                  selectată
+                  {stats.postsSummary.postsInPeriod} posts in the selected
+                  period
                 </span>
               </div>
             </div>
@@ -419,7 +415,7 @@ StatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Aprecieri totale</p>
+                  <p className="text-gray-500 text-sm">Total Likes</p>
                   <h3 className="text-3xl font-bold text-gray-800 mt-1">
                     {stats.postsSummary.engagement.total.likes}
                   </h3>
@@ -430,8 +426,9 @@ StatisticsPage: React.FC = () => {
               </div>
               <div className="mt-2 text-sm">
                 <span className="text-gray-600">
-                  Media de {stats.postsSummary.engagement.average.likesPerPost}{" "}
-                  aprecieri per postare
+                  Average of{" "}
+                  {stats.postsSummary.engagement.average.likesPerPost} likes per
+                  post
                 </span>
               </div>
             </div>
@@ -440,7 +437,7 @@ StatisticsPage: React.FC = () => {
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Comentarii</p>
+                  <p className="text-gray-500 text-sm">Comments</p>
                   <h3 className="text-3xl font-bold text-gray-800 mt-1">
                     {stats.postsSummary.engagement.total.comments}
                   </h3>
@@ -451,9 +448,9 @@ StatisticsPage: React.FC = () => {
               </div>
               <div className="mt-2 text-sm">
                 <span className="text-gray-600">
-                  Media de{" "}
+                  Average of{" "}
                   {stats.postsSummary.engagement.average.commentsPerPost}{" "}
-                  comentarii per postare
+                  comments per post
                 </span>
               </div>
             </div>
@@ -466,7 +463,7 @@ StatisticsPage: React.FC = () => {
               <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <FaChartBar className="mr-2 text-blue-400" />
-                  Activitatea postărilor recente
+                  Recent Post Activity
                 </h2>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
@@ -496,19 +493,19 @@ StatisticsPage: React.FC = () => {
                         dataKey="likes"
                         stroke="#EC4899"
                         activeDot={{ r: 8 }}
-                        name="Aprecieri"
+                        name="Likes"
                       />
                       <Line
                         type="monotone"
                         dataKey="comments"
                         stroke="#10B981"
-                        name="Comentarii"
+                        name="Comments"
                       />
                       <Line
                         type="monotone"
                         dataKey="saves"
                         stroke="#3B82F6"
-                        name="Salvări"
+                        name="Saves"
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -521,7 +518,7 @@ StatisticsPage: React.FC = () => {
               <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <FaHeart className="mr-2 text-pink-400" />
-                  Distribuția interacțiunilor
+                  Engagement Distribution
                 </h2>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
@@ -568,7 +565,7 @@ StatisticsPage: React.FC = () => {
               <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <FaCalendarAlt className="mr-2 text-yellow-400" />
-                  Postări după ziua săptămânii
+                  Posts by Day of the Week
                 </h2>
                 <div className="h-60">
                   <ResponsiveContainer width="100%" height="100%">
@@ -601,7 +598,7 @@ StatisticsPage: React.FC = () => {
                         fill="#F59E0B"
                         barSize={36}
                         radius={[4, 4, 0, 0]}
-                        name="Număr postări"
+                        name="Number of Posts"
                       />
                     </BarChart>
                   </ResponsiveContainer>
@@ -616,7 +613,7 @@ StatisticsPage: React.FC = () => {
                 <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                     <FaUserFriends className="mr-2 text-blue-400" />
-                    Cei mai recenți urmăritori
+                    Most Recent Followers
                   </h2>
                   <div className="space-y-4">
                     {stats.followersSummary.mostRecentFollowers.map(
@@ -663,7 +660,7 @@ StatisticsPage: React.FC = () => {
               <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <FaBookmark className="mr-2 text-purple-400" />
-                  Cele mai populare postări
+                  Most Popular Posts
                 </h2>
                 <div className="overflow-hidden">
                   <div className="overflow-x-auto">
@@ -671,16 +668,16 @@ StatisticsPage: React.FC = () => {
                       <thead className="bg-gray-800/40">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Data
+                            Date
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Aprecieri
+                            Likes
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Comentarii
+                            Comments
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Salvări
+                            Saves
                           </th>
                         </tr>
                       </thead>
@@ -725,7 +722,7 @@ StatisticsPage: React.FC = () => {
               <div className="backdrop-blur-md bg-white/10 rounded-xl p-6">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <FaRegClock className="mr-2 text-blue-400" />
-                  Activitate recentă
+                  Recent Activity
                 </h2>
                 <div className="space-y-4 max-h-80 overflow-y-auto">
                   {stats.recentActivity.map((activity, index) => (
@@ -754,7 +751,7 @@ StatisticsPage: React.FC = () => {
                               ? activity.message
                               : activity.type === "comment"
                               ? activity.text
-                              : "Activitate nedefinită"}
+                              : "Undefined activity"}
                           </p>
                           <p className="text-gray-500 text-xs mt-1">
                             {formatDate(activity.createdAt)}
@@ -771,82 +768,59 @@ StatisticsPage: React.FC = () => {
           {/* Secțiunea de Sfaturi */}
           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Recomandări personalizate
+              Personalized Recommendations
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                 <h3 className="text-blue-400 font-medium mb-2">
-                  Crește-ți audiența
+                  Grow Your Audience
                 </h3>
                 <p className="text-gray-500 text-sm">
                   {getBestDayToPost() ? (
                     <>
-                      Postează mai des{" "}
-                      {getDayNameInRomanian(getBestDayToPost())} când audiența
-                      ta este cea mai activă.
+                      Post more often on{" "}
+                      {getDayNameInRomanian(getBestDayToPost())} when your
+                      audience is most active.
                     </>
                   ) : (
-                    "Postează conținut de calitate în mod regulat pentru a-ți crește audiența."
+                    "Post high-quality content regularly to grow your audience."
                   )}
                 </p>
               </div>
 
               <div className="bg-pink-500/10 border border-pink-500/20 rounded-lg p-4">
                 <h3 className="text-pink-400 font-medium mb-2">
-                  Optimizează conținutul
+                  Optimize Content
                 </h3>
                 <p className="text-gray-500 text-sm">
-                  Postările cu cele mai multe interacțiuni au în medie{" "}
-                  {stats.postsSummary.engagement.average.likesPerPost} aprecieri
-                  și {stats.postsSummary.engagement.average.commentsPerPost}{" "}
-                  comentarii. Folosește hashtag-uri relevante pentru a crește
-                  vizibilitatea.
+                  Posts with the most engagement have an average of{" "}
+                  {stats.postsSummary.engagement.average.likesPerPost} likes and{" "}
+                  {stats.postsSummary.engagement.average.commentsPerPost}{" "}
+                  comments. Use relevant hashtags to increase visibility.
                 </p>
               </div>
 
               <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
                 <h3 className="text-green-400 font-medium mb-2">
-                  Crește interacțiunea
+                  Increase Engagement
                 </h3>
                 <p className="text-gray-500 text-sm">
-                  Adaugă întrebări și invitații la acțiune în descrierile
-                  postărilor pentru a stimula comentariile. Interacționează cu
-                  urmăritorii tăi răspunzând la comentarii.
+                  Add questions and calls to action in post descriptions to
+                  encourage comments. Engage with your followers by responding
+                  to comments.
                 </p>
               </div>
 
               <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
                 <h3 className="text-purple-400 font-medium mb-2">
-                  Reține audiența
+                  Retain Audience
                 </h3>
                 <p className="text-gray-500 text-sm">
-                  Postează constant pentru a-ți menține audiența angajată. Ai
-                  realizat {stats.postsSummary.postsInPeriod} postări în
-                  perioada selectată. Încearcă să crești această frecvență
-                  pentru rezultate mai bune.
+                  Post consistently to keep your audience engaged. You made{" "}
+                  {stats.postsSummary.postsInPeriod} posts in the selected
+                  period. Try increasing this frequency for better results.
                 </p>
               </div>
-            </div>
-          </div>
-
-          {/* Secțiunea de export */}
-          <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 mb-8 text-center">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Exportă datele tale
-            </h2>
-            <p className="text-gray-500 mb-4">
-              Descarcă statisticile pentru analiză personală sau raportare
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition-colors">
-                Exportă ca PDF
-              </button>
-              <button className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium transition-colors">
-                Exportă ca CSV
-              </button>
-              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-medium transition-colors">
-                Programează raport săptămânal
-              </button>
             </div>
           </div>
         </div>

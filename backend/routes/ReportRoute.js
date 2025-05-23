@@ -16,8 +16,8 @@ router.post("/issue", verifyToken, createIssueReport);
 router.post("/post", verifyToken, createPostReport);
 
 // Admin-only routes
-router.get("/", verifyToken, getAllReports);
-router.get("/posts", verifyToken, getReportedPosts);
-router.put("/:reportId", verifyToken, updateReportStatus);
+router.get("/", verifyToken, authorize('admin'), getAllReports);
+router.get("/posts", verifyToken, authorize('admin'), getReportedPosts);
+router.put("/:reportId", verifyToken, authorize('admin'), updateReportStatus);
 
 export default router;

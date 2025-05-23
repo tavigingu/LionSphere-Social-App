@@ -209,7 +209,7 @@ const MinimalistSidebar: React.FC<{
                 minWidth: "180px",
               }}
             >
-              <motion.div
+              {/* <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
                   visible: { opacity: 1, y: 0 },
@@ -226,7 +226,7 @@ const MinimalistSidebar: React.FC<{
                   <FaCog className="mr-3 text-blue-500" />
                   <span>Settings</span>
                 </button>
-              </motion.div>
+              </motion.div> */}
 
               <motion.div
                 variants={{
@@ -247,7 +247,7 @@ const MinimalistSidebar: React.FC<{
                 </button>
               </motion.div>
 
-              <motion.div
+              {/* <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
                   visible: { opacity: 1, y: 0 },
@@ -264,7 +264,7 @@ const MinimalistSidebar: React.FC<{
                   <FaBookmark className="mr-3 text-blue-500" />
                   <span>Saved</span>
                 </button>
-              </motion.div>
+              </motion.div> */}
 
               <motion.div
                 variants={{
@@ -717,7 +717,7 @@ const OriginalDashboard: React.FC<{
                 minWidth: "180px",
               }}
             >
-              <motion.div
+              {/* <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
                   visible: { opacity: 1, y: 0 },
@@ -734,7 +734,7 @@ const OriginalDashboard: React.FC<{
                   <FaCog className="mr-3 text-blue-500" />
                   <span>Settings</span>
                 </button>
-              </motion.div>
+              </motion.div> */}
 
               <motion.div
                 variants={{
@@ -755,7 +755,7 @@ const OriginalDashboard: React.FC<{
                 </button>
               </motion.div>
 
-              <motion.div
+              {/* <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
                   visible: { opacity: 1, y: 0 },
@@ -772,7 +772,7 @@ const OriginalDashboard: React.FC<{
                   <FaBookmark className="mr-3 text-blue-500" />
                   <span>Saved</span>
                 </button>
-              </motion.div>
+              </motion.div> */}
 
               <motion.div
                 variants={{

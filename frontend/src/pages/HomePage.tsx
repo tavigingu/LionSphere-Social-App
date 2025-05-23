@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react"; // Add useState
 import useAuthStore from "../store/AuthStore";
 import usePostStore from "../store/PostStore";
 import useStoryStore from "../store/StoryStore";
@@ -9,6 +9,7 @@ import Dashboard from "../components/Home/Dashboard";
 import PeopleYouMayKnow from "../components/Home/PeopleYouMayKnow";
 import StoryCircles from "../components/Home/StoryCircles";
 import StoryViewer from "../components/Home/StoryViewer";
+import StoryCreationForm from "../components/Home/StoryCreationForm"; // Import StoryCreationForm
 
 const HomePage: React.FC = () => {
   const { user } = useAuthStore();
@@ -27,6 +28,8 @@ const HomePage: React.FC = () => {
     loading: storiesLoading,
     error: storiesError,
   } = useStoryStore();
+
+  const [isCreatingStory, setIsCreatingStory] = useState(false); // State for StoryCreationForm
 
   useEffect(() => {
     if (user && user._id) {
@@ -52,14 +55,20 @@ const HomePage: React.FC = () => {
     }
   };
 
+  // Handle story creation completion
+  const handleStoryCreated = () => {
+    setIsCreatingStory(false); // Close the form
+    if (user?._id) {
+      fetchStories(user._id); // Refresh stories
+    }
+  };
+
   return (
     <div className="relative min-h-screen text-white">
       <Background />
 
-      {/* Main content with responsive padding */}
       <div className="container mx-auto px-4 py-4 relative z-10 sm:px-6 md:px-8 lg:pr-80 lg:ml-10 xl:ml-20">
         <div className="max-w-5xl mx-auto flex flex-col lg:flex-row lg:gap-4">
-          {/* Left sidebar with profile - hidden on mobile, adjusted for tablets */}
           <div className="hidden lg:block lg:w-64 xl:w-72 mb-6 lg:mb-0 mr-4">
             <div className="space-y-6">
               <ProfileSide />
@@ -67,9 +76,7 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Main content - middle column */}
           <div className="w-full lg:flex-1 mx-0 lg:mx-0 lg:-ml-2 lg:mr-28 xl:mr-32">
-            {/* Main content wrapper with consistent width */}
             <div className="max-w-xl mx-auto">
               {storiesLoading && (
                 <div className="flex justify-center items-center p-3 mb-6">
@@ -88,7 +95,9 @@ const HomePage: React.FC = () => {
                 </div>
               )}
 
-              <StoryCircles />
+              <StoryCircles
+                onCreateStory={() => setIsCreatingStory(true)} // Trigger StoryCreationForm
+              />
 
               {postsLoading && (
                 <div className="flex justify-center items-center p-3">
@@ -135,7 +144,6 @@ const HomePage: React.FC = () => {
                       }
                     />
                   ))}
-                  {/* Footer Section */}
                   <div className="mt-8">
                     <div className="border-t border-gray-200 my-4"></div>
                     <div className="px-3">
@@ -188,10 +196,18 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Right-side fixed dashboard */}
       <Dashboard />
 
       {activeStoryGroup && <StoryViewer />}
+
+      {/* Render StoryCreationForm conditionally */}
+      {isCreatingStory && (
+        <StoryCreationForm
+          onClose={() => setIsCreatingStory(false)}
+          onStoryCreated={handleStoryCreated}
+          userId={user?._id || ""}
+        />
+      )}
     </div>
   );
 };

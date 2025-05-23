@@ -117,15 +117,12 @@ const AdminReportedPostsPage: React.FC = () => {
 
     setReportActionLoading(true);
     try {
-      const response = await axios.put(
-        `http://localhost:5001/report/${reportId}`,
-        {
-          status: newStatus,
-          adminNote: `Status updated by ${
-            user?.username
-          } on ${new Date().toLocaleDateString()}`,
-        }
-      );
+      const response = await api.put(`/report/${reportId}`, {
+        status: newStatus,
+        adminNote: `Status updated by ${
+          user?.username
+        } on ${new Date().toLocaleDateString()}`,
+      });
 
       if (response.data.success) {
         setReportedPosts((prev) =>
@@ -177,8 +174,8 @@ const AdminReportedPostsPage: React.FC = () => {
     setDeletePostLoading(true);
     try {
       // Delete the post
-      const response = await axios.delete(
-        `http://localhost:5001/post/${postId}`
+      const response = await api.delete(
+        `/post/${postId}`
       );
 
       if (response.data.success) {

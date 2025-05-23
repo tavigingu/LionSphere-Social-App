@@ -59,6 +59,7 @@ interface PostCardProps {
   onSave?: () => void;
   isLiked?: boolean;
   isSaved?: boolean;
+  isReadOnly?: boolean;
 }
 
 const PostCard: React.FC<PostCardProps> = ({
@@ -75,6 +76,7 @@ const PostCard: React.FC<PostCardProps> = ({
   onSave,
   isLiked = false,
   isSaved = false,
+  isReadOnly = false,
 }) => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuthStore();
@@ -117,8 +119,18 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>(
     {}
   );
-
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [promptAction, setPromptAction] = useState<
+    "like" | "comment" | "save" | "profile" | "report"
+  >("like");
   const isAdmin = currentUser?.role === "admin";
+
+  const handleRequireLogin = (
+    action: "like" | "comment" | "save" | "profile" | "report"
+  ) => {
+    setPromptAction(action);
+    setShowLoginPrompt(true);
+  };
 
   const parseCommentText = (text: string) => {
     const parts = text.split(/(@\w+)/g);
@@ -178,6 +190,11 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleLikeComment = async (commentId: string) => {
+    if (isReadOnly) {
+      handleRequireLogin("like");
+      return;
+    }
+
     if (!currentUser?._id || !commentId) return;
 
     try {
@@ -200,6 +217,11 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleLikeReply = async (commentId: string, replyId: string) => {
+    if (isReadOnly) {
+      handleRequireLogin("like");
+      return;
+    }
+
     if (!currentUser?._id || !commentId || !replyId) return;
 
     try {
@@ -251,6 +273,10 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleDeletePost = async () => {
+    if (isReadOnly) {
+      handleRequireLogin("like");
+      return;
+    }
     if (_id && currentUser) {
       try {
         await deletePost(_id, currentUser._id);
@@ -262,6 +288,10 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleReportPost = () => {
+    if (isReadOnly) {
+      handleRequireLogin("report");
+      return;
+    }
     setShowMenu(false);
     setShowReportModal(true);
   };
@@ -273,6 +303,10 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleSavePost = async (e: React.MouseEvent) => {
+    if (isReadOnly) {
+      handleRequireLogin("save");
+      return;
+    }
     e.stopPropagation();
     if (_id && currentUser) {
       try {
@@ -290,6 +324,10 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleAddComment = async (e: React.FormEvent) => {
+    if (isReadOnly) {
+      handleRequireLogin("comment");
+      return;
+    }
     e.preventDefault();
     if (commentText.trim() && currentUser?._id && _id) {
       const newComment = {
@@ -326,6 +364,10 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleReply = async (e: React.FormEvent) => {
+    if (isReadOnly) {
+      handleRequireLogin("comment");
+      return;
+    }
     e.preventDefault();
 
     if (replyText.trim() && currentUser?._id && _id && replyingTo) {
@@ -1179,6 +1221,33 @@ const PostCard: React.FC<PostCardProps> = ({
           onClose={() => setShowReportModal(false)}
           post={{ _id, userId, desc, likes, image: image || "" }}
         />
+      )}
+
+      {showLoginPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              Sign in required
+            </h3>
+            <p className="text-gray-600 mb-6">
+              You need to be logged in to {promptAction} posts.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate("/login")}
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg"
+              >
+                Log In
+              </button>
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

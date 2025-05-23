@@ -39,6 +39,14 @@ const MessageItem: React.FC<MessageItemProps> = ({
     }
   }
 
+  // Check if message text contains an image URL in the format [Image: URL]
+  const imageRegex = /\[Image: (https?:\/\/[^\]]+)\]/;
+  const imageMatch = message.text ? message.text.match(imageRegex) : null;
+  const imageUrl = imageMatch ? imageMatch[1] : null;
+
+  // Text to display (remove the image tag if present)
+  const displayText = message.text ? message.text.replace(imageRegex, "") : "";
+
   // Animation variants
   const messageVariants = {
     initial: {
@@ -91,24 +99,43 @@ const MessageItem: React.FC<MessageItemProps> = ({
         </div>
       )}
 
-      {/* Message bubble */}
-      <div
-        className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl max-w-[75%] sm:max-w-xs md:max-w-sm break-words shadow-sm ${
-          isCurrentUser
-            ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-tr-none"
-            : "bg-white border border-purple-100/40 text-gray-800 rounded-tl-none"
-        } ${message.failed ? "opacity-75" : ""} text-sm sm:text-base`}
-      >
-        {/* If message was deleted */}
-        {message.text === "This message was deleted" ? (
-          <p className="italic text-sm opacity-75">{message.text}</p>
-        ) : (
-          <p>{message.text}</p>
-        )}
-      </div>
+      {/* Message bubble - only show if there's text after removing image tag */}
+      {displayText.trim() !== "" && (
+        <div
+          className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl max-w-[75%] sm:max-w-xs md:max-w-sm break-words shadow-sm ${
+            isCurrentUser
+              ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-tr-none"
+              : "bg-white border border-purple-100/40 text-gray-800 rounded-tl-none"
+          } ${message.failed ? "opacity-75" : ""} text-sm sm:text-base`}
+        >
+          {/* If message was deleted */}
+          {displayText === "This message was deleted" ? (
+            <p className="italic text-sm opacity-75">{displayText}</p>
+          ) : (
+            <p>{displayText}</p>
+          )}
+        </div>
+      )}
 
-      {/* Image if present */}
-      {message.image && (
+      {/* Image from URL in message text */}
+      {imageUrl && (
+        <div
+          className={`mt-1 rounded-lg overflow-hidden ${
+            isCurrentUser ? "rounded-tr-none" : "rounded-tl-none"
+          } shadow-md border ${
+            isCurrentUser ? "border-purple-300/20" : "border-purple-100/40"
+          }`}
+        >
+          <img
+            src={imageUrl}
+            alt="Message attachment"
+            className="max-w-[75%] sm:max-w-xs md:max-w-sm max-h-60 object-contain"
+          />
+        </div>
+      )}
+
+      {/* Image if directly present in message object */}
+      {message.image && !imageUrl && (
         <div
           className={`mt-1 rounded-lg overflow-hidden ${
             isCurrentUser ? "rounded-tr-none" : "rounded-tl-none"

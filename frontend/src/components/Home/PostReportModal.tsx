@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import useAuthStore from "../../store/AuthStore";
 import { IPost } from "../../types/PostTypes";
+import api from "../../api/axiosConfig"; // Adjust the import path as necessary
 
 interface PostReportModalProps {
   isOpen: boolean;
@@ -47,7 +48,7 @@ const PostReportModal: React.FC<PostReportModalProps> = ({
       setError(null);
 
       // Create report
-      const response = await axios.post("http://localhost:5001/report/post", {
+      const response = await api.post("/report/post", {
         userId: user._id,
         postId: post._id,
         postUserId: post.userId,

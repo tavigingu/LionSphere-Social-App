@@ -69,7 +69,6 @@ const AdminReportsPage: React.FC = () => {
   const fetchReports = async () => {
     setLoading(true);
     try {
-  
       let endpoint = `/report?page=${currentPage}&limit=10&type=general`;
 
       if (filterStatus !== "all") {
@@ -97,15 +96,12 @@ const AdminReportsPage: React.FC = () => {
 
     setReportActionLoading(true);
     try {
-      const response = await axios.put(
-        `http://localhost:5001/report/${reportId}`,
-        {
-          status: newStatus,
-          adminNote: `Status updated by ${
-            user?.username
-          } on ${new Date().toLocaleDateString()}`,
-        }
-      );
+      const response = await api.put(`/report/${reportId}`, {
+        status: newStatus,
+        adminNote: `Status updated by ${
+          user?.username
+        } on ${new Date().toLocaleDateString()}`,
+      });
 
       if (response.data.success) {
         setReports((prev) =>

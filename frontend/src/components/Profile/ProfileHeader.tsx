@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { IUser } from "../../types/AuthTypes";
-import { FaPen } from "react-icons/fa";
+import { FaPen, FaSignInAlt, FaUserPlus } from "react-icons/fa";
 import { followUser, unfollowUser } from "../../api/User";
 import useAuthStore from "../../store/AuthStore";
 import useStoryStore from "../../store/StoryStore";
@@ -9,6 +9,7 @@ import EditProfileModal from "./EditProfileModal";
 import UserListModal from "../UserListModal";
 import axios from "axios";
 import ReactDOM from "react-dom";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileHeaderProps {
   user: IUser | null;
@@ -18,6 +19,8 @@ interface ProfileHeaderProps {
   onProfileUpdate?: (updatedUser: IUser) => void;
   onFollowToggle?: () => void;
   onStoryClick?: (storyGroupIndex: number) => void;
+  isReadOnly?: boolean;
+  onShowLoginPrompt?: () => void;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -28,6 +31,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onProfileUpdate,
   onFollowToggle,
   onStoryClick,
+  isReadOnly = false,
+  onShowLoginPrompt,
 }) => {
   const { user: currentUser, updateUserProfile } = useAuthStore();
   const { storyGroups, fetchStories, setActiveStoryGroup } = useStoryStore();
@@ -40,6 +45,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
   const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?._id) {
@@ -74,6 +80,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   };
 
   const handleFollow = async () => {
+    if (isReadOnly) {
+      if (onShowLoginPrompt) {
+        onShowLoginPrompt();
+      }
+      return;
+    }
+
     if (!currentUser || !user || followLoading) return;
 
     setFollowLoading(true);
@@ -81,7 +94,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
     try {
       if (isFollowing) {
-        // Unfollow
         await unfollowUser(user._id, currentUser._id);
         updateUserProfile({
           ...currentUser,
@@ -89,7 +101,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         });
         setIsFollowing(false);
       } else {
-        // Follow
         await followUser(user._id, currentUser._id);
         updateUserProfile({
           ...currentUser,
@@ -237,7 +248,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
   return (
     <div className={containerClasses}>
-      {/* Cover Image */}
       <div
         className={`h-32 sm:h-48 bg-cover bg-center relative transition duration-500 ease-in-out ${
           isVisible ? "opacity-100" : "opacity-0"
@@ -253,9 +263,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         onMouseLeave={() => setIsHoveringCover(false)}
       />
 
-      {/* Profile Information */}
       <div className="px-4 sm:px-6 py-5 relative">
-        {/* Profile Picture with Story Ring */}
         <motion.div
           className={`absolute -top-16 sm:-top-20 left-4 sm:left-6 transition-all duration-1000 ease-out ${
             isVisible
@@ -303,7 +311,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </button>
         </motion.div>
 
-        {/* User Details */}
         <div
           className={`mt-16 sm:mt-0 sm:ml-44 transition-all duration-700 ${
             isVisible
@@ -359,7 +366,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </div>
           )}
 
-          {/* Bio */}
           <div
             className={`mt-4 sm:mt-8 -ml-0 sm:-ml-40 px-0 sm:px-6 transition-all duration-700 ${
               isVisible
@@ -381,7 +387,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             )}
           </div>
 
-          {/* Stats */}
           <div
             className={`mt-4 sm:mt-6 flex space-x-6 sm:space-x-8 ml-0 sm:ml-30 px-0 sm:px-6 transition-all duration-700 ${
               isVisible

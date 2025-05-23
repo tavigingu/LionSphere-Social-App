@@ -207,7 +207,7 @@ Password: pass123
 3.  **Explore**: Use the search icon to discover new content and users. Try to search in User section by usernames (try "ta" becauase all users are named "tavi") Tags section "puma" and in location section "London", you'll see all posts with that tag or in that location.
 4.  **Post Creation**: Click the "+" button in the top navigation to create a new post, you can try also story but it is not finished
 5.  **Profile**: Access your profile by clicking Profile section in dashboard or View Full Profile in the mini profile section in left side. You can edit your profile, see your followers and follwing, your post, saved posts and tagged posts.
-6.  **Messages**: Open the chat section by clicking the message icon in the side navigation (can't send photos in present)
+6.  **Messages**: Open the chat section by clicking the message icon in the side navigation
 7.  **Notifications**: View your notifications by clicking the bell icon
 8.  **Stories**: View and create stories from the circles at the top of your feed (photo resolution and display in story viewer isnt working in present)
 9.  **Settings**: Access account settings from your profile page
@@ -220,7 +220,7 @@ Password: pass123
 ```
 
 1.  **Access Admin Panel**: After logging in as admin, you'll see an "Admin" option in your dashboard
-2.  **Statistics**: The default admin view shows platform statistics and metrics (just frontend)
+2.  **Statistics**: The default admin view shows platform statistics and metrics
 3.  **User Management**: Click on "Users" in the admin sidebar to manage user accounts
 4.  **Reports**: Click on "Reports" to review general user reports
 5.  **Reported Posts**: Click on "Reported Posts" to moderate flagged content

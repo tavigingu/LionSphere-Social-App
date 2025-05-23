@@ -16,6 +16,7 @@ import { IUser } from "../types/AuthTypes";
 import { IPost } from "../types/PostTypes";
 import { followUser, unfollowUser, checkFollowStatus } from "../api/User";
 import { motion } from "framer-motion";
+import { FaSignInAlt, FaUserPlus } from "react-icons/fa";
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -45,6 +46,7 @@ const ProfilePage: React.FC = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [selectedPost, setSelectedPost] = useState<IPost | null>(null);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const isOwnProfile = currentUser?._id === (userId || currentUser?._id);
   const targetUserId = userId || currentUser?._id;
@@ -316,6 +318,10 @@ const ProfilePage: React.FC = () => {
     setActiveStoryIndex(storyIndex);
   }, []);
 
+  const handleShowLoginPrompt = useCallback(() => {
+    setShowLoginPrompt(true);
+  }, []);
+
   const profileHeaderProps = useMemo(
     () => ({
       user: profileUser,
@@ -325,6 +331,8 @@ const ProfilePage: React.FC = () => {
       onProfileUpdate: handleProfileUpdate,
       onFollowToggle: handleFollowToggle,
       onStoryClick: handleStoryClick,
+      isReadOnly: !currentUser,
+      onShowLoginPrompt: handleShowLoginPrompt,
     }),
     [
       profileUser,
@@ -334,6 +342,8 @@ const ProfilePage: React.FC = () => {
       handleProfileUpdate,
       handleFollowToggle,
       handleStoryClick,
+      currentUser,
+      handleShowLoginPrompt,
     ]
   );
 
@@ -568,31 +578,70 @@ const ProfilePage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          <div className="hidden lg:block lg:w-80">
+            <Dashboard />
+          </div>
         </div>
 
-        <div className="hidden lg:block lg:w-80">
-          <Dashboard />
-        </div>
+        {selectedPost && (
+          <PostModal
+            post={selectedPost}
+            onClose={() => setSelectedPost(null)}
+            onLike={handleLikePost}
+            onSave={handleSavePost}
+          />
+        )}
+
+        {activeStoryIndex !== null && storyGroups[activeStoryIndex] && (
+          <StoryViewer
+            storyGroup={storyGroups[activeStoryIndex]}
+            onClose={() => {
+              setActiveStoryIndex(null);
+              setActiveStoryGroup(null);
+            }}
+          />
+        )}
+
+        {showLoginPrompt && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Sign in required
+              </h3>
+              <p className="text-gray-600 mb-6">
+                You need to be logged in to follow users.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
+                >
+                  <FaSignInAlt />
+                  Log In
+                </button>
+                <button
+                  onClick={() => setShowLoginPrompt(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() =>
+                    navigate("/login", { state: { isRegister: true } })
+                  }
+                  className="text-sm text-purple-600 hover:text-purple-700 flex items-center justify-center gap-1 mx-auto"
+                >
+                  <FaUserPlus />
+                  Don't have an account? Sign up
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {selectedPost && (
-        <PostModal
-          post={selectedPost}
-          onClose={() => setSelectedPost(null)}
-          onLike={handleLikePost}
-          onSave={handleSavePost}
-        />
-      )}
-
-      {activeStoryIndex !== null && storyGroups[activeStoryIndex] && (
-        <StoryViewer
-          storyGroup={storyGroups[activeStoryIndex]}
-          onClose={() => {
-            setActiveStoryIndex(null);
-            setActiveStoryGroup(null);
-          }}
-        />
-      )}
     </div>
   );
 };

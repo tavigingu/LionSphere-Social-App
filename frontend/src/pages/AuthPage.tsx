@@ -1,13 +1,18 @@
-import { useNavigate } from "react-router-dom";
+// frontend/src/pages/AuthPage.tsx
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../store/AuthStore";
 import { useState, useEffect } from "react";
 import LoginForm from "../components/Auth/loginForm";
 import RegisterForm from "../components/Auth/registerForm";
 
 const AuthPage: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
+
+  // Check for initial state from navigation
+  const initialRegisterState = location.state?.isRegister || false;
+  const [isLogin, setIsLogin] = useState(!initialRegisterState);
 
   useEffect(() => {
     if (isAuthenticated) {

@@ -69,24 +69,62 @@ export const register = async (req, res) => {
     try {
         const { username, email, password, firstname, lastname } = req.body;
         
-        // Existing validation code...
-
-        const token_data = {
-            id: newUser._id,
-            email: newUser.email,
-            role: newUser.role || 'user' // Include role in token
+        // Basic validation
+        if (!username || !email || !password) {
+            return res.status(400).json({
+                message: "Username, email and password are required",
+                success: false
+            });
         }
-        const token = await jwt.sign(token_data, process.env.JWT_SECRET_KEY, { expiresIn: '1d'})
+        
+        // Check if user already exists
+        const existingUser = await UserModel.findOne({ 
+            $or: [
+                { email: email.toLowerCase() },
+                { username: username.toLowerCase() }
+            ]
+        });
+        
+        if (existingUser) {
+            return res.status(409).json({
+                message: "User with this email or username already exists",
+                success: false
+            });
+        }
+        
+        // Hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        
+        // Create new user
+        const newUser = new UserModel({
+            username: username.toLowerCase(),
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            firstname: firstname || "",
+            lastname: lastname || "",
+            role: "user"
+        });
+        
+        // Save the user first
+        const savedUser = await newUser.save();
+        
+        // Now create token with the saved user data
+        const token_data = {
+            id: savedUser._id,
+            email: savedUser.email,
+            role: savedUser.role
+        }
+        
+        const token = await jwt.sign(token_data, process.env.JWT_SECRET_KEY, { expiresIn: '1d'});
 
         const cookie_options = {
             httpOnly: true,
             secure: true
         }
         
-        const user = await newUser.save();
-
-        //remove password from user object
-        const { password:_, ...userWithoutPassword } = user._doc;
+        // Remove password from user object
+        const { password:_, ...userWithoutPassword } = savedUser._doc;
 
         res.cookie('token', token, cookie_options)
             .status(201)

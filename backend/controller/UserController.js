@@ -37,6 +37,7 @@ export const updateUser = async (req, res) => {
         const userId = req.params.id;
         const { _id, password, role: userRole, ...updateData } = req.body;
 
+        console.log("Update request data:", req.body);
         
         if(userId != _id && userRole !== 'admin') {
             return res.status(403).json({
@@ -92,20 +93,20 @@ export const updateUser = async (req, res) => {
             });
         }
 
-        const token_data =  {
-                id: updateUser._id,
-                email : updateUser.email
-            }
+        // const token_data =  {
+        //         id: user._id,
+        //         email: user.email,
+        //         role: user.role 
+        //     }
         
-        const token = await jwt.sign(token_data, process.env.JWT_SECRET_KEY, { expiresIn : '1d'})
+        // const token = await jwt.sign(token_data, process.env.JWT_SECRET_KEY, { expiresIn : '1d'})
         
-        const cookie_options = {
-            httpOnly : true,
-            secure : true
-        }
+        // const cookie_options = {
+        //     httpOnly : true,
+        //     secure : true
+        // }
         
-        res.cookie('token', token, cookie_options)
-        .status(201)
+        res.status(201)
         .json({
             message: "User updated successfully",
             success: true,

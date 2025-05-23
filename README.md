@@ -1,12 +1,13 @@
 # LionSphere - Social Media Platform
 
-LionSphere is a comprehensive social media platform with a modern and intuitive user interface built using React, TypeScript, and Tailwind CSS for the frontend, and Node.js, Express, and MongoDB for the backend.
-
 <p align="center">
   <img src="./photos/feed.png" width="800"/>
   <br/>
   <img src="./photos/myprofile.png" width="400"/> <img src="./photos/chat.png" width="400"/>
 </p>
+
+
+LionSphere is a comprehensive social media platform with a modern and intuitive user interface built using React, TypeScript, and Tailwind CSS for the frontend, and Node.js, Express, and MongoDB for the backend.
 
 ## 🌟 Features
 
